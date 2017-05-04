@@ -43,8 +43,9 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   FairModule* pipe = new KoaPipe("Pipe");
   run->AddModule(pipe);
     
-  FairDetector* NewDet = new KoaRec("TestDetector", kTRUE);
-  run->AddModule(NewDet);
+  FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
+  
+  run->AddModule(rec_det);
 
  // ------------------------------------------------------------------------
 
