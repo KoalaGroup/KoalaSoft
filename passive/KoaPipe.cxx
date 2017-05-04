@@ -61,7 +61,8 @@ void KoaPipe::ConstructGeometry()
     
     // ---> Volume
     TGeoVolume* pipe = new TGeoVolume("KoaPipe", shape, Carbon);
-    
+
+    /* Default implementation seems to be wrong about the vacuum pipe    
     // --Now create the same but diameter less by Thikness and vacuum instead of Carbon
     TGeoPcon* Vshape = new TGeoPcon(0., 360., nSects);
     for (Int_t iSect = 0; iSect < nSects; iSect++) {
@@ -70,7 +71,13 @@ void KoaPipe::ConstructGeometry()
     
     // ---> Volume
     TGeoVolume* Vpipe = new TGeoVolume("KoaPipe", shape, Vacuum);
-    
+    */
+    TGeoPcon* Vshape = new TGeoPcon(0.,360.,nSects);
+    for(Int_t iSect = 0; iSect < nSects; iSect++){
+      Vshape->DefineSection(iSect, z[iSect], 0., r[iSect]);
+    }
+    TGeoVolume* Vpipe = new TGeoVolume("KoaVPipe", Vshape, Vacuum);
+
     top->AddNode(pipe, 1);
     top->AddNode(Vpipe, 1);
 

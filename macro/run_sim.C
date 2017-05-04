@@ -14,12 +14,20 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
 
   // -----   Create simulation run   ----------------------------------------
   FairRunSim* run = new FairRunSim();
+
+  // The name of FairRunSim should be TGeant4, TGeant3 or TFluka
+  // TFluka is deprecated, I think.
+  // Based on the name of FairRunSim, different MC configuration and engine will be selected
   run->SetName(mcEngine);              // Transport engine
+
+  // the output root where simulation result (hits and digits) are saved
   run->SetOutputFile(outFile);          // Output file
   FairRuntimeDb* rtdb = run->GetRuntimeDb();
   // ------------------------------------------------------------------------
   
   // -----   Create media   -------------------------------------------------
+  // Important: the materials used by all detector modules in the simultation is
+  // defined in a single file and imported here.
   run->SetMaterials("media.geo");       // Materials
   // ------------------------------------------------------------------------
   
@@ -29,8 +37,8 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  FairModule* magnet = new KoaMagnet("Magnet");
-  run->AddModule(magnet);
+  // FairModule* magnet = new KoaMagnet("Magnet");
+  // run->AddModule(magnet);
 
   FairModule* pipe = new KoaPipe("Pipe");
   run->AddModule(pipe);
@@ -41,14 +49,14 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
  // ------------------------------------------------------------------------
 
 
-    // -----   Magnetic field   -------------------------------------------
-    // Constant Field
-    KoaConstField  *fMagField = new KoaConstField();
-    fMagField->SetField(0., 20. ,0. ); // values are in kG
-    fMagField->SetFieldRegion(-200, 200,-200, 200, -200, 200); // values are in cm
-                          //  (xmin,xmax,ymin,ymax,zmin,zmax)
-    run->SetField(fMagField);
-    // --------------------------------------------------------------------
+    // // -----   Magnetic field   -------------------------------------------
+    // // Constant Field
+    // KoaConstField  *fMagField = new KoaConstField();
+    // fMagField->SetField(0., 20. ,0. ); // values are in kG
+    // fMagField->SetFieldRegion(-200, 200,-200, 200, -200, 200); // values are in cm
+    //                       //  (xmin,xmax,ymin,ymax,zmin,zmax)
+    // run->SetField(fMagField);
+    // // --------------------------------------------------------------------
 
     
     

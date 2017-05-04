@@ -1,0 +1,20 @@
+* Geometry 
+** Parameters
+*** Default setup(passive modules)
+    Cave: read from cave.geo file, type: box, material: air, size: 200m*200m*200m, related class: KoaCave and KoaGeoCave
+    Pipe: hardcoded in KoaPipe, constructed using TGeo methods directly, type: Polycone(TGeoPcon), material: C+Vacuum,
+          Size: length is from [-10m,30m] inner radius is 2.5cm thickness is 0.05cm, related class: KoaPipe
+    Magnet: hardcoded in KoaMagnet as KoaPipe (Because Koala do not have magnet, thus this module should not be added in simulaion)
+*** Intial edition
+**** Recoil detector
+**** Forward detector
+*** Raw edition
+**** Recoil detector
+**** Forward detector
+*** Fine edition
+**** Recoil detector
+**** Forward detector
+
+
+
+
