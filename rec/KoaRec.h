@@ -5,13 +5,14 @@
  *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#ifndef NEWDETECTOR_H
-#define NEWDETECTOR_H
+#ifndef KOAREC_H
+#define KOAREC_H
 
 #include "FairDetector.h"
 
 #include "TVector3.h"
 #include "TLorentzVector.h"
+#include <string>
 
 class KoaRecPoint;
 class FairVolume;
@@ -54,6 +55,8 @@ class KoaRec: public FairDetector
     /**      Create the detector geometry        */
     void ConstructGeometry();
 
+    Bool_t CheckIfSensitive(std::string name);
+    void ConstructASCIIGeometry();
 
 
     /**      This method is an example of how to add your own point
@@ -79,6 +82,8 @@ class KoaRec: public FairDetector
 
 
   private:
+    // Sensitive volume name list, used when importing geometry from ROOT file
+    std::vector<std::string> fListOfSensitives;  
 
     /** Track information to be stored until the track leaves the
     active volume.

@@ -5,8 +5,8 @@
  *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#ifndef NEWDETECTORGEO_H
-#define NEWDETECTORGEO_H
+#ifndef KOARECGEO_H
+#define KOARECGEO_H
 
 #include "FairGeoSet.h"
 
@@ -32,7 +32,7 @@ inline Int_t KoaRecGeo::getModNumInMod(const TString& name)
    .geo file. For example if all nodes in this file starts with
    newdetector ?? has to be 11.
   */
-  return (Int_t)(name[11]-'0')-1; //
+  return (Int_t)(name[6]-'0')-1; //
 }
 
 #endif

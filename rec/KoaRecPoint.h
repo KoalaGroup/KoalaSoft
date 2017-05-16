@@ -5,8 +5,8 @@
  *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#ifndef NEWDETECTORPOINT_H
-#define NEWDETECTORPOINT_H 1
+#ifndef KOARECPOINT_H
+#define KOARECPOINT_H 1
 
 
 #include "FairMCPoint.h"

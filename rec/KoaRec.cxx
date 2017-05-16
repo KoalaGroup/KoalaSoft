@@ -46,6 +46,8 @@ KoaRec::KoaRec()
     fELoss(-1),
     fKoaRecPointCollection(new TClonesArray("KoaRecPoint"))
 {
+  fListOfSensitives.push_back("SensorSi");
+  fListOfSensitives.push_back("SensorGe");
 }
 
 KoaRec::KoaRec(const char* name, Bool_t active)
@@ -59,6 +61,8 @@ KoaRec::KoaRec(const char* name, Bool_t active)
     fELoss(-1),
     fKoaRecPointCollection(new TClonesArray("KoaRecPoint"))
 {
+  fListOfSensitives.push_back("SensorSi");
+  fListOfSensitives.push_back("SensorGe");
 }
 
 KoaRec::~KoaRec()
@@ -73,6 +77,9 @@ void KoaRec::Initialize()
 {
   FairDetector::Initialize();
   FairRuntimeDb* rtdb= FairRun::Instance()->GetRuntimeDb();
+  // Parameter Container should be init in SetParContainer, not here. Besides, par is not used in this class
+  // However, if the Parameter Container is used for output and values not read from file, then it is reasonable to
+  // init it here.
   KoaRecGeoPar* par=(KoaRecGeoPar*)(rtdb->getContainer("KoaRecGeoPar"));
 }
 
@@ -148,67 +155,67 @@ void KoaRec::Reset()
 
 void KoaRec::ConstructGeometry()
 {
-    
-    TGeoVolume *top=gGeoManager->GetTopVolume();
-    TGeoMedium *Si =gGeoManager->GetMedium("Si");
-    TGeoMedium *Carbon = gGeoManager->GetMedium("Carbon");
-    
-    if(Si==0){
-        TGeoMaterial *matSi     = new TGeoMaterial("Si", 28.0855, 14, 2.33);
-        Si     = new TGeoMedium("Si", 2, matSi);
-    }
-    if(Carbon==0){
-        TGeoMaterial *matCarbon    = new TGeoMaterial("C", 12.011, 6.0, 2.265);
-        Carbon     = new TGeoMedium("C", 3, matCarbon);
-    }
+  TString fileName=GetGeometryFileName();
+  if (fileName.EndsWith(".geo")) {
+    LOG(INFO)<<"Constructing KoaRec geometry from ASCII file "<<fileName<<FairLogger::endl;
+    ConstructASCIIGeometry();
+  } else if (fileName.EndsWith(".root")) {
+    LOG(INFO)<<"Constructing KoaRec geometry from ROOT file "<<fileName<<FairLogger::endl;
+    ConstructRootGeometry();
+  } else {
+    LOG(FATAL) << "Geometry format not supported." << FairLogger::endl;
+  }
+}
 
-    
-    TGeoVolume *det1= gGeoManager->MakeTubs("Det1",Si,5,80,0.1,0,360);
-    AddSensitiveVolume(det1);
-    TGeoRotation r1;
-    r1.SetAngles(0,0,0);
-    TGeoTranslation t1(0, 0, 0);
-    TGeoCombiTrans c1(t1, r1);
-    TGeoHMatrix *h1 = new TGeoHMatrix(c1);
-    top->AddNode(det1,1,h1);
-    det1->SetLineColor(kGreen);
-    
-    TGeoVolume *passive1= gGeoManager->MakeTubs("Pass1",Si,5,120,10,0,360);
-    TGeoRotation rp1;
-    rp1.SetAngles(0,0,0);
-    TGeoTranslation tp1(0, 0, 20);
-    TGeoCombiTrans cp1(tp1, rp1);
-    TGeoHMatrix *hp1 = new TGeoHMatrix(cp1);
-    top->AddNode(passive1,1,hp1);
-    passive1->SetLineColor(kRed);
-    
-    
-    
-    TGeoVolume *det2= gGeoManager->MakeTubs("Det2",Si,5,150,0.1,0,360);
-    AddSensitiveVolume(det2);
-    TGeoRotation r2;
-    r2.SetAngles(0,0,0);
-    TGeoTranslation t2(0, 0, 70);
-    TGeoCombiTrans c2(t2, r2);
-    TGeoHMatrix *h2 = new TGeoHMatrix(c2);
-    top->AddNode(det2,1,h2);
-    det2->SetLineColor(kGreen);
-    
-    TGeoVolume *det3= gGeoManager->MakeTubs("Det3",Si,5,150,0.1,0,360);
-    AddSensitiveVolume(det3);
-    TGeoRotation r3;
-    r3.SetAngles(0,0,0);
-    TGeoTranslation t3(0, 0, 150);
-    TGeoCombiTrans c3(t3, r3);
-    TGeoHMatrix *h3 = new TGeoHMatrix(c3);
-    top->AddNode(det3,1,h3);
-    det3->SetLineColor(kGreen);
-    
-    
-    
-    
-    
-    
+Bool_t KoaRec::CheckIfSensitive(std::string name)
+{
+  for (Int_t i = 0; i < fListOfSensitives.size(); i++){
+    if (name.find(fListOfSensitives[i]) != std::string::npos)    
+      return true;
+  }
+  return false;
+}
+
+void KoaRec::ConstructASCIIGeometry()
+{
+  /** If you are using the standard ASCII input for the geometry
+      just copy this and use it for your detector, otherwise you can
+      implement here you own way of constructing the geometry. */
+
+  FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
+  FairGeoInterface* geoFace = geoLoad->getGeoInterface();
+  KoaRecGeo*  Geo  = new KoaRecGeo();
+  LOG(DEBUG)<<"Read Geo file "<<GetGeometryFileName()<<FairLogger::endl;
+  Geo->setGeomFile(GetGeometryFileName());
+  geoFace->addGeoModule(Geo);
+
+  Bool_t rc = geoFace->readSet(Geo);
+  if (rc) { Geo->create(geoLoad->getGeoBuilder()); }
+  TList* volList = Geo->getListOfVolumes();
+
+  // store geo parameter
+  FairRun* fRun = FairRun::Instance();
+  FairRuntimeDb* rtdb= FairRun::Instance()->GetRuntimeDb();
+  KoaRecGeoPar* par=static_cast<KoaRecGeoPar*>(rtdb->getContainer("KoaRecGeoPar"));
+  TObjArray* fSensNodes = par->GetGeoSensitiveNodes();
+  TObjArray* fPassNodes = par->GetGeoPassiveNodes();
+
+  TListIter iter(volList);
+  FairGeoNode* node   = NULL;
+  FairGeoVolume* aVol=NULL;
+
+  while( (node = static_cast<FairGeoNode*>(iter.Next())) ) {
+    aVol = dynamic_cast<FairGeoVolume*> ( node );
+    if ( node->isSensitive()  ) {
+      fSensNodes->AddLast( aVol );
+    } else {
+      fPassNodes->AddLast( aVol );
+    }
+  }
+  par->setChanged();
+  par->setInputVersion(fRun->GetRunId(),1);
+
+  ProcessNodes ( volList );
 }
 
 KoaRecPoint* KoaRec::AddHit(Int_t trackID, Int_t detID,

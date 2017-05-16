@@ -5,8 +5,8 @@
  *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#ifndef NEWDETECTORGEOPAR_H
-#define NEWDETECTORGEOPAR_H
+#ifndef KOARECGEOPAR_H
+#define KOARECGEOPAR_H
 
 #include "FairParGenericSet.h"
 

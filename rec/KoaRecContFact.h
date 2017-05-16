@@ -5,8 +5,8 @@
  *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#ifndef NEWDETECTORCONTFACT_H
-#define NEWDETECTORCONTFACT_H
+#ifndef KOARECCONTFACT_H
+#define KOARECCONTFACT_H
 
 #include "FairContFact.h"
 

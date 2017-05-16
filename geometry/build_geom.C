@@ -69,40 +69,48 @@ void build_geom() {
   Float_t ge1_size[3]={0.5/2,5.0/2,8.04/2};
   Float_t ge2_size[3]={1.1/2,5.0/2,8.04/2};
   Float_t envelop[3]={2.0/2,14.65/2,29.9/2};
-  TGeoVolume* Si1 = gGeoMan->MakeBox("Si1", SiVolMed, si_size[0],si_size[1],si_size[2]);
+  TGeoVolume* Si1 = gGeoMan->MakeBox("SensorSi1", SiVolMed, si_size[0],si_size[1],si_size[2]);
   Si1->SetLineColor(kBlue); // set line color 
   Si1->SetTransparency(70); // set transparency 
-  TGeoVolume* Si2 = gGeoMan->MakeBox("Si2", SiVolMed, si_size[0],si_size[1],si_size[2]);
+  TGeoVolume* Si2 = gGeoMan->MakeBox("SensorSi2", SiVolMed, si_size[0],si_size[1],si_size[2]);
   Si2->SetLineColor(kBlue); // set line color 
   Si2->SetTransparency(70); // set transparency 
-  TGeoVolume* Ge1 = gGeoMan->MakeBox("Ge1", GeVolMed, ge1_size[0],ge1_size[1],ge1_size[2]);
+  TGeoVolume* Ge1 = gGeoMan->MakeBox("SensorGe1", GeVolMed, ge1_size[0],ge1_size[1],ge1_size[2]);
   Ge1->SetLineColor(kRed); // set line color 
   Ge1->SetTransparency(70); // set transparency 
-  TGeoVolume* Ge2 = gGeoMan->MakeBox("Ge2", GeVolMed, ge2_size[0],ge2_size[1],ge2_size[2]);
+  TGeoVolume* Ge2 = gGeoMan->MakeBox("SensorGe2", GeVolMed, ge2_size[0],ge2_size[1],ge2_size[2]);
   Ge2->SetLineColor(kRed); // set line color 
   Ge2->SetTransparency(70); // set transparency 
-  TGeoVolume* Envelope = gGeoMan->MakeBox("MasterRec", AirVolMed, envelop[0], envelop[1], envelop[2]);
-  Envelope->SetVisibility(kFALSE);
+  TGeoVolume* RecArm = gGeoMan->MakeBox("RecArm", AirVolMed, envelop[0], envelop[1], envelop[2]);
+  RecArm->SetVisibility(kFALSE);
 
   // Placement
   Float_t si1_align[3]={-0.1/2,0.575+5./2,-29.9/2+7.68/2+1.66};
   Float_t si2_align[3]={-0.1/2,-0.575-5./2,-29.9/2+7.68/2+1.66+5.28};
-  Float_t ge1_align[3]={-0.5/2,0.575_5./2,-29.9/2+7.68/2+1.66+5.28+7.68/2-1.09+8.04/2};
-  Float_t ge2_align[3]={-1.1/2,-0.575-5./2,-29.9/2+7.68/2+1.66+5.28+7.68/2-1.09+8.04/2-1.2+8.04/2};
+  Float_t ge1_align[3]={-0.5/2,0.575+5./2,-29.9/2+7.68/2+1.66+5.28+7.68/2-1.09+8.04/2};
+  Float_t ge2_align[3]={-1.1/2,-0.575-5./2,-29.9/2+7.68/2+1.66+5.28+7.68/2-1.09+8.04/2-1.2+8.04};
 
   TGeoTranslation *trans_si1=new TGeoTranslation(si1_align[0],si1_align[1],si1_align[2]);
-  Envelope->AddNode(Si1, 1, trans_si1);
+  RecArm->AddNode(Si1, 1, trans_si1);
   TGeoTranslation *trans_si2=new TGeoTranslation(si2_align[0],si2_align[1],si2_align[2]);
-  Envelope->AddNode(Si2, 1, trans_si2);
+  RecArm->AddNode(Si2, 1, trans_si2);
   TGeoTranslation *trans_ge1=new TGeoTranslation(ge1_align[0],ge1_align[1],ge1_align[2]);
-  Envelope->AddNode(Ge1, 1, trans_ge1);
+  RecArm->AddNode(Ge1, 1, trans_ge1);
   TGeoTranslation *trans_ge2=new TGeoTranslation(ge2_align[0],ge2_align[1],ge2_align[2]);
-  Envelope->AddNode(Ge2, 1, trans_ge2);
+  RecArm->AddNode(Ge2, 1, trans_ge2);
+
+  // // alternative way: assemblyvolume
+  // TGeoVolumeAssembly* RecArm = new TGeoVolumeAssembly("RecArm");
+  // RecArm->AddNode(Si1, 1, trans_si1);
+  // RecArm->AddNode(Si2, 1, trans_si2);
+  // RecArm->AddNode(Ge1, 1, trans_ge1);
+  // RecArm->AddNode(Ge2, 1, trans_ge2);
 
   // Align
-  Float_t z_offset=-0.12*5;//5 strips offset
-  TGeoTranslation *trans_zoffset=new TGeoTranslation(0.,0.,29.9/2-1.66+z_offset);
-  top->AddNode(Envelope, 1, trans_zoffset);
+  Float_t z_offset=-0.12*20;//5 strips offset
+  Float_t x_offset=100.;
+  TGeoTranslation *trans_zoffset=new TGeoTranslation(x_offset,0.,29.9/2-1.66+z_offset);
+  top->AddNode(RecArm, 1, trans_zoffset);
 
   cout<<"Voxelizing."<<endl;
   top->Voxelize("");
@@ -120,8 +128,8 @@ void build_geom() {
   gGeoMan->Write();
   outfile->Close();
 
-  //  top->Draw("ogl");
-  //top->Raytrace();
+   top->Draw("ogl");
+  top->Raytrace();
 
   // -----   Finish   -------------------------------------------------------
 
