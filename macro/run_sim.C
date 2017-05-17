@@ -67,10 +67,10 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
   
     // Add a box generator also to the run
-    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 5); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(20,25); // GeV/c
-    boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
-    boxGen->SetThetaRange(0., 90.); // Polar angle in lab system range [degree]
+    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
+    boxGen->SetPRange(20,20); // GeV/c
+    boxGen->SetPhiRange(1., 5.); // Azimuth angle range [degree]
+    boxGen->SetThetaRange(89., 90.); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // cm
     primGen->AddGenerator(boxGen);
   
