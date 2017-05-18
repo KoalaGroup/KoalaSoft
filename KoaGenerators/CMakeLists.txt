@@ -25,6 +25,7 @@ link_directories( ${LINK_DIRECTORIES})
 set(SRCS
 Pythia6Generator.cxx
 Pythia8Generator.cxx
+KoaPpelasticGenerator.cxx
 )
 
 set(LINKDEF  GenLinkDef.h)

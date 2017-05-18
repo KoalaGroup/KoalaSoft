@@ -66,15 +66,22 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   // -----   Create PrimaryGenerator   --------------------------------------
   FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
   
-    // Add a box generator also to the run
-    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
-    boxGen->SetPRange(20,20); // GeV/c
-    boxGen->SetPhiRange(1., 5.); // Azimuth angle range [degree]
-    boxGen->SetThetaRange(89., 90.); // Polar angle in lab system range [degree]
-    boxGen->SetXYZ(0., 0., 0.); // cm
-    primGen->AddGenerator(boxGen);
-  
-    
+    // // Add a box generator also to the run
+    // FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
+    // boxGen->SetPRange(20,20); // GeV/c
+    // boxGen->SetPhiRange(1., 5.); // Azimuth angle range [degree]
+    // boxGen->SetThetaRange(89., 90.); // Polar angle in lab system range [degree]
+    // boxGen->SetXYZ(0., 0., 0.); // cm
+    // primGen->AddGenerator(boxGen);
+
+    // // Particle Gun
+    // FairParticleGenerator* parGen = new FairParticleGenerator(13, 1, 20,0.5,0);
+    // primGen->AddGenerator(parGen);
+
+    // P-P elastic generator
+    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
+    primGen->AddGenerator(ppGen);
+
     run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
  
