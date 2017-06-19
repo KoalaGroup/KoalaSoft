@@ -28,6 +28,9 @@ class FairPrimaryGenerator;
 class  KoaPpelasticGeneratorImp
 {
 private:
+  Double_t  fPlab;
+  Double_t  fTetmin;
+
   Double_t   fTetaCMS;        //  sampled Theta in CMS
   Double_t  fThetaLab;        //sampled Theta in Lab system
   Double_t   fBeta;         // velosity of projectile 
@@ -68,7 +71,10 @@ public:
   KoaPpelasticGeneratorImp();
   virtual   ~KoaPpelasticGeneratorImp()  {Reset();}
 
-  void     Run(Double_t Plab=20., Int_t nevents=100, Double_t tetmin=-1.); 
+  void     SetPlab(Double_t plab) {fPlab=plab;}
+  void     SetTetmin(Double_t tetmin) {fTetmin=tetmin;}
+
+  void     GetEvent(); 
   void     Init(Double_t Plab=20., Double_t tetmin=-1.);
   Double_t  SampleInvariantT(Double_t Plab=20., Int_t Z=1);
 
@@ -83,7 +89,7 @@ public:
   Double_t DSIG_INT(Double_t T);
   Double_t DSIG_HAD(Double_t T);
 
-  void       Reset()        {delete fnt; fnt=0; }
+  void       Reset()        {}
 
   ClassDef(KoaPpelasticGeneratorImp,1)
 };
@@ -120,6 +126,7 @@ class KoaPpelasticGenerator : public FairGenerator
  private:
 
   Int_t iEvent;      //! Event number
+  Bool_t fFromFile;
   const Char_t* fFileName;   //! Input file name
   TFile* fInputFile;        //! Pointer to input file
   TTree* fInputTree;        //! Pointer to input tree

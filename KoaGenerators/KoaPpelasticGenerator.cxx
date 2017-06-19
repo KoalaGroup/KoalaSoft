@@ -13,8 +13,11 @@
 
 using namespace std;
 
-PPElastic::PPElastic()
+KoaPpelasticGeneratorImp::KoaPpelasticGeneratorImp()
 {
+  fPlab = -1.;
+  fTetmin = -1.;
+
   fBeta = 0.;
   fTetaCMS = 0.; 
   fRa = 0.;
@@ -26,7 +29,6 @@ PPElastic::PPElastic()
   fThetaLab = 0.;
   cs_tot=0;
   cs_el=0;
-  fnt=0;
   Mn=0.938;
   //-----------------
   Pcms=0;
@@ -47,7 +49,7 @@ PPElastic::PPElastic()
   fdto=0;
 }
 
-void  PPElastic::Init(Double_t Plab, Double_t tetmin)
+void  KoaPpelasticGeneratorImp::Init(Double_t Plab, Double_t tetmin)
 {
   TLorentzVector  Pproj(0.,0.,Plab,sqrt(Plab*Plab+Mn*Mn));
 
@@ -245,26 +247,254 @@ cout<<"  sig_had  "<<SIG_Had<<" Sig_col " <<SIG_COL<<" Sig_inter "<< SIG_INTER<<
  }
 /////////////////////////////////////////////////////////////
 
+Double_t KoaPpelasticGeneratorImp::DSIG_HAD(Double_t T)
+{
+ Double_t  U, dShad;
+ U=fTmax-T;
+ Double_t ImHad, ReHad;  //Imaginary and real parts of el_hadron Amplitude
+ ImHad= exp(B*T/2.)+exp(B*U/2.);
+ ReHad=-A2 ;
+ dShad = A1*ImHad*ImHad+ReHad*ReHad ;
+ return dShad;
+}
+////////////////////////////////////////////////////////////
+
+Double_t KoaPpelasticGeneratorImp::DSIG_COL(Double_t T)
+{
+Double_t G4, pkoef, dScol; 
+     G4=pow((1+fabs(T)/0.71),-8); 
+      pkoef= 10./(5.0677*5.0677);        //10.
+      dScol=4*3.1416*aelm*aelm*G4*pkoef/((fBeta * T)*(fBeta*T));
+   return dScol;
+}
+///////////////////////////////////////////////////////////
+
+Double_t KoaPpelasticGeneratorImp::DSIG_INT(Double_t T)
+{
+ Double_t G2, delT, dSint;
+    G2=pow((1+fabs(T)/0.71),-4);
+      delT=aelm*(0.577+log(B*fabs(T)/2.+ 4*fabs(T)/0.71)+
+       4.*fabs(T)/0.71*log(4.*fabs(T)/0.71)+2.*fabs(T)/0.71);
+      dSint=aelm*sigma_tot*G2*exp(0.5*B*T)*
+     (rho*cos(delT) + sin(delT))/fBeta/fabs(T) ;  /////// -  ->  + sin
+ return dSint;
+}
+////////////////////////////////////////////////////////////
+
+Double_t KoaPpelasticGeneratorImp::SampleInvariantT(Double_t Plab, Int_t Z)
+{
+Double_t  T;
+Double_t Ksi = gRandom->Rndm();
+
+Int_t iS=0;
+Int_t iE=fNdiv-1;
+Int_t i;  
+do 
+ { i= (iS+iE)/2; 
+   Bool_t left=((Fun_inv[iS]- Ksi)*(Fun_inv[i]- Ksi))<0.;
+   if(left) {iE=i;}
+   else     {iS=i;}
+ } while((iS+1)!=iE);
+
+Double_t Tl, Tm, Yl, Ym;
+
+ Tl=fTmin + iS*fdto;
+ Tm=fTmin + iE*fdto;
+ Yl=Fun_inv[iS];
+ Ym=Fun_inv[iE];
+ T=Tl+(Tm-Tl)*(Ksi-Yl)/(Ym-Yl);
+ 
+ fT=T;
+
+Double_t cosTet=1.0+T/(2.*Pcms*Pcms);
+if(cosTet >  1.0 ) cosTet= 1.;  
+if(cosTet < -1.0 ) cosTet=-1.; 
+fTetaCMS=acos(cosTet);
+
+//cout<<" fTmin "<<fTmin<<" fTmax "<<fTmax<<" T " <<T<< " teta_cms " << fTetaCMS*180./3.1416 <<endl;
+
+ return T;
+}
+
+
+
+///////////////////////////////////////////////////////////////////////
+// calculation of Theta in CMS system   /////////////////////
+Double_t KoaPpelasticGeneratorImp::SampleThetaCMS(Double_t plab, Int_t Z)
+{
+ Double_t T;
+ T =  SampleInvariantT(plab,  Z);
+
+ // NaN finder
+if(!(T < 0.0 || T >= 0.0))
+{
+cout << "Elastic:WARNING: mom= " << plab<< " S-wave will be sampled"<<endl; 
+  T=  gRandom->Rndm()*fTmax;
+}
+ if(Pcms > 0.) 
+ {
+   Double_t cosTet=1.0+T/(2.*Pcms*Pcms);
+   if(cosTet >  1.0 ) cosTet= 1.;   
+   if(cosTet < -1.0 ) cosTet=-1.;    
+   fTetaCMS=acos(cosTet);   
+   return  fTetaCMS;
+  } else  
+    {  
+      return 2.*gRandom->Rndm() - 1.; 
+    }
+ }
+///////////////////////////////////////////////////////////////////////////
+//     Sample of Theta in Lab System
+Double_t KoaPpelasticGeneratorImp::SampleThetaLab(Double_t plab, Int_t Z)
+{
+ Double_t T;
+ T =  SampleInvariantT(plab,  Z);
+ // NaN finder
+if(!(T < 0.0 || T >= 0.0))
+{
+cout << "Elastic:WARNING: mom= " << plab<< " S-wave will be sampled"<<endl; 
+  T=  gRandom->Rndm()*fTmax;
+}
+  Double_t phi  = gRandom->Rndm()*TMath::TwoPi( ); 
+  Double_t cost(1.);  
+  if(fTmax < 0.) {cost = 1. - 2.0*T/fTmax;}   //> --> <
+  Double_t sint;
+   if( cost >= 1.0 )
+     {  
+        cost = 1.0;
+        sint =  0.0;
+     }
+  else if( cost <= -1.0)
+   {
+     cost = -1.0;
+     sint = 0.0;
+  }
+ else
+  {
+    sint = sqrt((1.0-cost)*(1.0+cost));
+  }
+ TVector3 v(sint*cos(phi), sint*sin(phi), cost);
+ v*=Pcms;  
+
+TLorentzVector nlv(v.X(),v.Y(),v.Z(),sqrt(Pcms*Pcms + Mn*Mn));
+
+nlv.Boost(fbst);
+
+TVector3 np = nlv.Vect(); 
+TLorentzVector part(np.X(), np.Y(), np.Z(),sqrt(Mn*Mn+ np.Mag2()));
+fvect = part;
+Double_t theta = np.Theta();
+
+ fThetaLab = theta;
+
+  return theta;
+}
+
+/////////////////////////////////////////////////////////////////////
+//  Calculation of particle velocity Beta
+Double_t KoaPpelasticGeneratorImp::CalculateParticleBeta(Double_t  momentum )
+/*
+  {
+  Double_t mass = 0.938;
+  Double_t a    = momentum/mass;
+  fBeta         = a/sqrt(1+a*a);
+  return fBeta ;
+  }
+*/
+
+{
+  Double_t mass = 0.938;
+  Double_t Elab=sqrt(mass*mass+momentum*momentum);
+  Double_t S=2.*mass*mass + 2.*mass*Elab;
+  Double_t Ecms=sqrt(S)/2.;                 // Energy of projectile in CMS
+  Double_t Pcms=sqrt(Ecms*Ecms-mass*mass);  // Momentum of projectile in CMS
+
+  fBeta=Pcms/Ecms;
+
+  return fBeta;
+}
+
+///////////////////////////////////////////////////////////////////////
+ void KoaPpelasticGeneratorImp::GetEvent()
+{
+ Int_t   Ieven,  i, npart, Id;
+ Double_t px[2],py[2],pz[2],E[2]; 
+ Double_t tet=0;
+ Double_t weight = 1.0;
+ Double_t tinv=0;
+ Double_t tinv1=0;
+ 
+
+ TLorentzVector Mom; 
+ TLorentzVector V(0,0,0,0);
+
+ if(fPlab<0){
+   LOG(FATAL) << "Set beam momentum first: using SetPlab(Double* plab)" << FairLogger::endl;
+   return;
+ }
+ 
+ Init(fPlab, fTetmin);
+
+ tet=SampleThetaLab(fPlab, 1);
+ tinv=fabs(fT);
+ tinv1=fabs(fTmax-fT);
+
+ px[0]=fvect.X();
+ px[1]=-fvect.X();
+ py[0]=fvect.Y();
+ py[1]=-fvect.Y(); 
+ pz[0]=fvect.Z();
+ pz[1]=Plab-fvect.Z();
+ E[0]=fvect.E();
+ E[1]=sqrt(Plab*Plab+Mn*Mn)+Mn-E[0];
+
+ // px[0], py[0], pz[0] momentum of "forward going" proton
+ // px[1], py[1], pz[1] momentum of recoil proton
+//  Double_t pt=sqrt(px[0]*px[0]+py[0]*py[0]);
+// cout<<" X "<<px[0]<<" Y  "<<py[0]<<" Z  "<< pz[0]<<" E "<< E[0]<<endl;
+// cout<<"  Pt  " <<pt<<endl;
+
+  Id=2212;
+  npart=2;
+   for (i= 0; i< npart; ++i) 
+ {       
+ Mom.SetPxPyPzE(px[i],py[i],pz[i],E[i]);
+
+  TParticle   fparticle(Id,1,0,0,0,0, Mom, V);
+ }
+
+}
 
 // -----   Default constructor   ------------------------------------------
-KoaPpelasticGenerator::KoaPpelasticGenerator() {
-  iEvent     = 0;
-  fInputFile = NULL;
-  fInputTree = NULL;
+KoaPpelasticGenerator::KoaPpelasticGenerator() :
+  fFromFile(kFALSE),
+  iEvent(0),
+  fInputFile(NULL),
+  fInputTree(NULL)
+{
 }
 
-KoaPpelasticGenerator::KoaPpelasticGenerator(Double_t p){
+// -----  In-class generation   -------------------------------------------
+KoaPpelasticGenerator::KoaPpelasticGenerator(Double_t p):
+  fFromFile(kFALSE),
+  iEvent(0),
+  fInputTree(NULL),
+  fInputFile(NULL)
+{
   
 }
-// ------------------------------------------------------------------------
 
-
-
-// -----   Standard constructor   -----------------------------------------
-KoaPpelasticGenerator::KoaPpelasticGenerator(const Char_t* fileName) {
-  iEvent     = 0;
-  fFileName  = fileName;
+// -----   Input from file   -----------------------------------------
+KoaPpelasticGenerator::KoaPpelasticGenerator(const Char_t* fileName):
+  fFromFile(kTRUE),
+  iEvent(0),
+  fFileName(fileName)
+{
+  LOG(INFO) << "KoaPpelasticGenerator: get event from ROOT file: " << fFileName << FairLogger::endl;
   fInputFile = new TFile(fFileName);
+  if(!fInputFile){
+    LOG(FATAL)<< "Cannot open input generator file" << FairLogger::endl;
+  }
   fInputTree = (TTree*) fInputFile->Get("data");
   fParticles = new TClonesArray("TParticle",100);
   fInputTree->SetBranchAddress("Particles", &fParticles);
@@ -284,51 +514,54 @@ KoaPpelasticGenerator::~KoaPpelasticGenerator() {
 // -----   Public method ReadEvent   --------------------------------------
 Bool_t KoaPpelasticGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
 
-  // Check for input file
-  if ( ! fInputFile ) {
-    cout << "-E KoaPpelasticGenerator: Input file nor open!" << endl;
-    return kFALSE;
-  }
-
-  // Check for number of events in input file
-  if ( iEvent > fInputTree->GetEntries() ) {
-    cout << "-E KoaPpelasticGenerator: No more events in input file!" << endl;
-    CloseInput();
-    return kFALSE;
-  }
-  TFile  *g=gFile;
-  fInputFile->cd();
-  fInputTree->GetEntry(iEvent++);
-  g->cd();
-
-   // Get number of particle in TClonesrray
-  Int_t nParts = fParticles->GetEntriesFast();
-
-  // Loop over particles in TClonesArray
-  for (Int_t iPart=0; iPart < nParts; iPart++) {
-    TParticle* part = (TParticle*) fParticles->At(iPart);
-    Int_t pdgType = part->GetPdgCode();
-
-    // Check if particle type is known to database
-    if ( ! pdgType ) {
-      cout << "-W KoaPpelasticGenerator: Unknown type " << part->GetPdgCode()
-	   << ", skipping particle." << endl;
-      continue;
+  if(fFromFile){
+    // Check for input file
+    if ( ! fInputFile ) {
+      LOG(ERROR) << "-E KoaPpelasticGenerator: Input file nor open!" << FairLogger::endl;
+      return kFALSE;
     }
 
-    Double_t px = part->Px();
-    Double_t py = part->Py();
-    Double_t pz = part->Pz();
+    // Check for number of events in input file
+    if ( iEvent > fInputTree->GetEntries() ) {
+      LOG(INFO) << "-E KoaPpelasticGenerator: No more events in input file!" << FairLogger::endl;
+      CloseInput();
+      return kFALSE;
+    }
+    TFile  *g=gFile;
+    fInputFile->cd();
+    fInputTree->GetEntry(iEvent++);
+    g->cd();
 
-    Double_t vx = part->Vx();
-    Double_t vy = part->Vy();
-    Double_t vz = part->Vz();
+    // Get number of particle in TClonesrray
+    Int_t nParts = fParticles->GetEntriesFast();
 
-    // Give track to PrimaryGenerator
-    primGen->AddTrack(pdgType, px, py, pz, vx, vy, vz);
+    // Loop over particles in TClonesArray
+    for (Int_t iPart=0; iPart < nParts; iPart++) {
+      TParticle* part = (TParticle*) fParticles->At(iPart);
+      Int_t pdgType = part->GetPdgCode();
 
-  }        //  Loop over particle in event
+      // Check if particle type is known to database
+      if ( ! pdgType ) {
+        LOG(WARNING) << "-W KoaPpelasticGenerator: Unknown type " << part->GetPdgCode()
+                     << ", skipping particle." << FairLogger::endl;
+        continue;
+      }
 
+      Double_t px = part->Px();
+      Double_t py = part->Py();
+      Double_t pz = part->Pz();
+
+      Double_t vx = part->Vx();
+      Double_t vy = part->Vy();
+      Double_t vz = part->Vz();
+
+      // Give track to PrimaryGenerator
+      primGen->AddTrack(pdgType, px, py, pz, vx, vy, vz);
+    }        //  Loop over particle in event
+  }
+  else{
+    
+  }
   return kTRUE;
 
 }
@@ -339,16 +572,17 @@ Bool_t KoaPpelasticGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
 
 // -----   Private method CloseInput   ------------------------------------
 void KoaPpelasticGenerator::CloseInput() {
-  if ( fInputFile ) {
-    cout << "-I KoaPpelasticGenerator: Closing input file " << fFileName
-	 << endl;
-    fInputFile->Close();
-    delete fInputFile;
+  if(fFromFile){
+    if ( fInputFile ) {
+      LOG(INFO) << "-I KoaPpelasticGenerator: Closing input file " << fFileName
+                << FairLogger::endl;
+      fInputFile->Close();
+      delete fInputFile;
+    }
+    fInputFile = NULL;
   }
-  fInputFile = NULL;
 }
 // ------------------------------------------------------------------------
-
 
 
 ClassImp(KoaPpelasticGenerator)
