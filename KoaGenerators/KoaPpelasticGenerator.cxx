@@ -7,17 +7,33 @@
 #include "TLorentzVector.h"
 #include "TTree.h"
 #include "TVector3.h"
-#include "TParticle.h"
+#include "TRandom.h"
 #include "KoaPpelasticGenerator.h"
 #include "FairPrimaryGenerator.h"
+#include "FairLogger.h"
 
 using namespace std;
 
 KoaPpelasticGeneratorImp::KoaPpelasticGeneratorImp()
+  : fScatteredProton(2212,1,0,0,0,0,0,0,0,0,0,0,0,0),
+    fRecoilProton(2212,1,0,0,0,0,0,0,0,0,0,0,0,0),
+    fPlab(-1),
+    fTetmin(-1)
 {
-  fPlab = -1.;
-  fTetmin = -1.;
+  InitValue();
+}
 
+KoaPpelasticGeneratorImp::KoaPpelasticGeneratorImp(Double_t p)
+  : fScatteredProton(2212,1,0,0,0,0,0,0,0,0,0,0,0,0),
+    fRecoilProton(2212,1,0,0,0,0,0,0,0,0,0,0,0,0),
+    fPlab(p),
+    fTetmin(-1)
+{
+  InitValue();
+}
+
+void KoaPpelasticGeneratorImp::InitValue()
+{
   fBeta = 0.;
   fTetaCMS = 0.; 
   fRa = 0.;
@@ -47,6 +63,8 @@ KoaPpelasticGeneratorImp::KoaPpelasticGeneratorImp()
   sigma_tot = 0;
   fNdiv=300000;
   fdto=0;
+
+  Init(fPlab, fTetmin);
 }
 
 void  KoaPpelasticGeneratorImp::Init(Double_t Plab, Double_t tetmin)
@@ -415,15 +433,9 @@ Double_t KoaPpelasticGeneratorImp::CalculateParticleBeta(Double_t  momentum )
 }
 
 ///////////////////////////////////////////////////////////////////////
- void KoaPpelasticGeneratorImp::GetEvent()
+ void KoaPpelasticGeneratorImp::NextEvent()
 {
- Int_t   Ieven,  i, npart, Id;
  Double_t px[2],py[2],pz[2],E[2]; 
- Double_t tet=0;
- Double_t weight = 1.0;
- Double_t tinv=0;
- Double_t tinv1=0;
- 
 
  TLorentzVector Mom; 
  TLorentzVector V(0,0,0,0);
@@ -433,36 +445,22 @@ Double_t KoaPpelasticGeneratorImp::CalculateParticleBeta(Double_t  momentum )
    return;
  }
  
- Init(fPlab, fTetmin);
-
- tet=SampleThetaLab(fPlab, 1);
- tinv=fabs(fT);
- tinv1=fabs(fTmax-fT);
+ SampleThetaLab(fPlab, 1);
+ // px[0], py[0], pz[0] momentum of "forward going" proton
+ // px[1], py[1], pz[1] momentum of recoil proton
 
  px[0]=fvect.X();
  px[1]=-fvect.X();
  py[0]=fvect.Y();
  py[1]=-fvect.Y(); 
  pz[0]=fvect.Z();
- pz[1]=Plab-fvect.Z();
+ pz[1]=fPlab-fvect.Z();
  E[0]=fvect.E();
- E[1]=sqrt(Plab*Plab+Mn*Mn)+Mn-E[0];
+ E[1]=sqrt(fPlab*fPlab+Mn*Mn)+Mn-E[0];
+ fScatteredProton.SetMomentum(px[0],py[0],pz[0],E[0]);
+ fRecoilProton.SetMomentum(px[1],py[1],pz[1],E[1]);
 
- // px[0], py[0], pz[0] momentum of "forward going" proton
- // px[1], py[1], pz[1] momentum of recoil proton
-//  Double_t pt=sqrt(px[0]*px[0]+py[0]*py[0]);
-// cout<<" X "<<px[0]<<" Y  "<<py[0]<<" Z  "<< pz[0]<<" E "<< E[0]<<endl;
-// cout<<"  Pt  " <<pt<<endl;
-
-  Id=2212;
-  npart=2;
-   for (i= 0; i< npart; ++i) 
- {       
- Mom.SetPxPyPzE(px[i],py[i],pz[i],E[i]);
-
-  TParticle   fparticle(Id,1,0,0,0,0, Mom, V);
- }
-
+ return;
 }
 
 // -----   Default constructor   ------------------------------------------
@@ -470,7 +468,8 @@ KoaPpelasticGenerator::KoaPpelasticGenerator() :
   fFromFile(kFALSE),
   iEvent(0),
   fInputFile(NULL),
-  fInputTree(NULL)
+  fInputTree(NULL),
+  fInternalGenerator()
 {
 }
 
@@ -479,16 +478,17 @@ KoaPpelasticGenerator::KoaPpelasticGenerator(Double_t p):
   fFromFile(kFALSE),
   iEvent(0),
   fInputTree(NULL),
-  fInputFile(NULL)
+  fInputFile(NULL),
+  fInternalGenerator(p)
 {
-  
 }
 
 // -----   Input from file   -----------------------------------------
 KoaPpelasticGenerator::KoaPpelasticGenerator(const Char_t* fileName):
   fFromFile(kTRUE),
   iEvent(0),
-  fFileName(fileName)
+  fFileName(fileName),
+  fInternalGenerator()
 {
   LOG(INFO) << "KoaPpelasticGenerator: get event from ROOT file: " << fFileName << FairLogger::endl;
   fInputFile = new TFile(fFileName);
@@ -547,23 +547,24 @@ Bool_t KoaPpelasticGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
         continue;
       }
 
-      Double_t px = part->Px();
-      Double_t py = part->Py();
-      Double_t pz = part->Pz();
-
-      Double_t vx = part->Vx();
-      Double_t vy = part->Vy();
-      Double_t vz = part->Vz();
-
       // Give track to PrimaryGenerator
-      primGen->AddTrack(pdgType, px, py, pz, vx, vy, vz);
+      primGen->AddTrack(pdgType,
+                        part->Px(), part->Py(), part->Pz(),
+                        part->Vx(), part->Vy(), part->Vz());
     }        //  Loop over particle in event
   }
   else{
-    
+    fInternalGenerator.NextEvent();
+
+    primGen->AddTrack(fInternalGenerator.fScatteredProton.GetPdgCode(),
+                      fInternalGenerator.fScatteredProton.Px(),fInternalGenerator.fScatteredProton.Py(),fInternalGenerator.fScatteredProton.Pz(),
+                      fInternalGenerator.fScatteredProton.Vx(),fInternalGenerator.fScatteredProton.Vy(),fInternalGenerator.fScatteredProton.Vz());
+
+    primGen->AddTrack(fInternalGenerator.fRecoilProton.GetPdgCode(),
+                      fInternalGenerator.fRecoilProton.Px(),fInternalGenerator.fRecoilProton.Py(),fInternalGenerator.fRecoilProton.Pz(),
+                      fInternalGenerator.fRecoilProton.Vx(),fInternalGenerator.fRecoilProton.Vy(),fInternalGenerator.fRecoilProton.Vz());
   }
   return kTRUE;
-
 }
 // ------------------------------------------------------------------------
 

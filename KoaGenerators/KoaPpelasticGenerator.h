@@ -19,6 +19,7 @@
 #include "FairGenerator.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
+#include "TParticle.h"
 
 class TClonesArray;
 class TFile;
@@ -27,6 +28,10 @@ class FairPrimaryGenerator;
 
 class  KoaPpelasticGeneratorImp
 {
+ public:
+  TParticle fScatteredProton;
+  TParticle fRecoilProton;
+
 private:
   Double_t  fPlab;
   Double_t  fTetmin;
@@ -67,24 +72,22 @@ private:
   Double_t fdto;
   Double_t fTmin; 
 
-public:
+ public:
   KoaPpelasticGeneratorImp();
+  KoaPpelasticGeneratorImp(Double_t p);
   virtual   ~KoaPpelasticGeneratorImp()  {Reset();}
 
   void     SetPlab(Double_t plab) {fPlab=plab;}
   void     SetTetmin(Double_t tetmin) {fTetmin=tetmin;}
 
-  void     GetEvent(); 
+  void     InitValue();
   void     Init(Double_t Plab=20., Double_t tetmin=-1.);
+  void     NextEvent(); 
+  
   Double_t  SampleInvariantT(Double_t Plab=20., Int_t Z=1);
-
   Double_t SampleThetaCMS(Double_t Plab=20., Int_t Z=1);
-
-
   Double_t SampleThetaLab(Double_t Plab=20., Int_t Z=1);
-
   Double_t CalculateParticleBeta(Double_t momentum);
-
   Double_t DSIG_COL(Double_t T);
   Double_t DSIG_INT(Double_t T);
   Double_t DSIG_HAD(Double_t T);
@@ -136,6 +139,7 @@ class KoaPpelasticGenerator : public FairGenerator
    ** input file properly. Called from destructor and from ReadEvent. **/
   void CloseInput();
 
+  KoaPpelasticGeneratorImp fInternalGenerator;
 
   ClassDef(KoaPpelasticGenerator,1);
 
