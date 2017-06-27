@@ -1,0 +1,252 @@
+/**
+ @class FairFilteredPrimaryGenerator
+
+ @author Martin J. Galuska <martin [dot] j [dot] galuska (at) physik [dot] uni (minus) giessen [dot] de>
+ @author Katja Kleeberg
+
+ @brief Primary generator with added event filtering capabilities.
+
+ This class adds event filtering capabilities to FairPrimaryGenerator which is used internally for handling the event generators and so on.
+ The event filtering is performed after the event generation and before the particle transport through the detector model.
+
+ From the description of FairPrimaryGenerator:
+
+ The FairFilteredPrimaryGenerator is responsible for the handling of the MC input.
+ Several input generators can be registered to it; these have to be
+ derived from the FairGenerator class. The FairFilteredPrimaryGenerator defines
+ position and (optionally) smearing of the primary vertex.
+ This class should be instantiated only once.
+ */
+
+/** Added by Yong Zhou
+    This file is copied from PandaRoot feb17p1
+**/
+
+
+
+#ifndef FairFilteredPrimaryGenerator_H
+#define FairFilteredPrimaryGenerator_H
+
+#include "FairPrimaryGenerator.h"
+
+#include "FairEvtFilter.h"
+#include "FairEvtFilterParams.h"
+
+#include "TNamed.h"                     // for TNamed
+#include "TFile.h"                     // for TFile
+#include "FairRunSim.h"
+
+#include "FairGenerator.h"              // for FairGenerator
+
+#include "Riosfwd.h"                    // for ostream
+#include "Rtypes.h"                     // for Double_t, Bool_t, Int_t, etc
+#include "TObjArray.h"                  // for TObjArray
+#include "TVector3.h"                   // for TVector3
+
+#include <iostream>                     // for operator<<, basic_ostream, etc
+#include <vector>
+
+
+class FairGenericStack;
+class FairMCEventHeader;
+class TIterator;
+
+
+
+class FairFilteredPrimaryGenerator : public FairPrimaryGenerator
+{
+
+public:
+
+	/** @brief Default constructor. **/
+	FairFilteredPrimaryGenerator();
+
+
+	/** @brief Constructor with name and title **/
+	FairFilteredPrimaryGenerator(const char* name, const char* title="Filtered Generator");
+
+
+	/** @brief Destructor. **/
+	virtual ~FairFilteredPrimaryGenerator();
+
+	/** @brief Initialize the event generator(s) and the event (veto) filter(s). **/
+	virtual Bool_t Init();
+
+	/** @brief Register a non-veto event filter using a logical AND to connect with previously defined non-veto event filters. **/
+	void AndFilter(FairEvtFilter* filter) {
+		AddFilter(filter, FairEvtFilter::kAnd, kFALSE);
+	}
+
+	/** @brief Register a non-veto event filter using a logical AND NOT to connect with previously defined non-veto event filters. **/
+	void AndNotFilter(FairEvtFilter* filter) {
+		AddFilter(filter, FairEvtFilter::kAnd, kTRUE);
+	}
+
+	/** @brief Register a non-veto event filter using a logical OR to connect with previously defined non-veto event filters. **/
+	void OrFilter(FairEvtFilter* filter) {
+		AddFilter(filter, FairEvtFilter::kOr, kFALSE);
+	}
+
+	/** @brief Register a non-veto event filter using a logical OR NOT to connect with previously defined non-veto event filters. **/
+	void OrNotFilter(FairEvtFilter* filter) {
+		AddFilter(filter, FairEvtFilter::kOr, kTRUE);
+	}
+
+	/** @brief Register an event veto filter. Veto filters have higher priority than regular event filters. If the event matches any veto filter, it will be skipped.  **/
+	void AddVetoFilter(FairEvtFilter* filter) {
+		if ( ! fVetoFilterList ) {
+			std::cout << "Empty fFilterList pointer ! \n";
+			return;
+		}
+		fVetoFilterList->Add(filter);
+		fEventVetoFilterActive = kTRUE;
+	}
+
+
+	/** @brief Calls event generators and the event filters.
+	 *
+        To be called at the beginning of each event from FairMCApplication.
+        Generates an event vertex and calls the ReadEvent methods from the
+        registered generators.
+        Calls defined event (veto) filters to decide whether to process the event
+        or to call the event generators again.
+	 *@param pStack The particle stack
+	 *@return kTRUE if successful, kFALSE if not
+	 **/
+	virtual Bool_t GenerateEvent(FairGenericStack* pStack);
+
+
+	TObjArray* GetListOfFilters() { return fFilterList;}
+
+	TObjArray* GetListOfVetoFilters() { return fVetoFilterList;}
+
+	/** @brief Define the maximum number of times that this object should try to find an event which suits all event filters. **/
+	void SetFilterMaxTries(Int_t maxTries=99999)
+	{
+		if ( maxTries > 0 ){
+			fEvtFilterStat.fFilterMaxTries = maxTries;
+			std::cout << "FairFilteredPrimaryGenerator: maxTries is now set to " << fEvtFilterStat.fFilterMaxTries << "\n";
+		} else {
+			std::cout << "\n\n\n  -WARNING from FairFilteredPrimaryGenerator: maxTries must be a positive number! Check your SetFilterMaxTries call!\n\n\n";
+		}
+	}
+
+	/** @brief returns the maximum number of times that this object should try to find an event which suits all event filters. */
+	Int_t GetNumberOfFilterMaxTries(){
+		return fEvtFilterStat.fFilterMaxTries;
+	}
+
+	/** @brief returns the total (accepted + rejected) number of events generated by the event generators. If no event filters are used this number is equal to the number of simulated events. */
+	Int_t GetNumberOfGeneratedEvents(){
+		return fEvtFilterStat.fGeneratedEvents;
+	}
+
+	/** @brief Returns the number of cases in which no matching event was found within the set max. tries.
+	 *
+		 This method returns 0 if everything works fine.
+		 If it returns a value >0 it means that you should set a higher limit in SetFilterMaxTries.
+		 If it returns a value which is equal to the number of events that you requested, it means that either the max. number of tries is set way too low
+		 or that the generator does not create such events that you are interested in
+		 or that your event filters cannot be satisfied at all (logical error).
+	 */
+	Int_t GetNumberOfFilterFailedEvents(){
+		return fEvtFilterStat.fFailedFilterEvents;
+	}
+
+	/** @brief Writes all relevant event filter information to the output root file */
+	void WriteEvtFilterStatsToRootFile(){
+		std::cout << "\n\nGenerated Events = " << GetNumberOfGeneratedEvents() << "\n";
+		if (0 < GetNumberOfFilterFailedEvents() ) {
+			std::cout << "WARNING: Number of events where the event filter FAILED " << GetNumberOfFilterFailedEvents() << "\n\n\n";
+			std::cout << "Random events were accepted to avoid infinite loops. \n";
+			std::cout <<  "Try increasing the max. number of tries or change your filter (maybe the generators do not produce such events as you want).\n\n";
+		}
+		TFile* outputFile;
+		outputFile = FairRunSim::Instance()->GetOutputFile();
+		outputFile->cd();
+		outputFile->mkdir("FairEvtFilter");
+		outputFile->cd("FairEvtFilter");
+		fEvtFilterStat.Write();
+		outputFile->cd();
+	}
+
+	/**@brief Set the level of commenting output.
+	 * @param verbose Level of commenting output, 0 means no output, higher gives more output.
+	 */
+	void SetVerbose(Int_t verbose=12){
+		if ( verbose >= 0 ){
+			fVerbose = verbose;
+			std::cout << "FairFilteredPrimaryGenerator: fVerbose is now set to " << verbose << "\n";
+		} else {
+			std::cout << "\n\n\n  -WARNING from FairFilteredPrimaryGenerator: verbose must be a positive number! Check your SetVerbose call!\n\n\n";
+		}
+	}
+
+
+
+protected:
+	/** @brief  List of registered veto filters */
+	TObjArray*  fVetoFilterList;
+	/** @brief  Iterator over veto filter list */
+	TIterator*  fVetoFilterIter;      //!
+	/** @brief  List of registered filters */
+	TObjArray*  fFilterList;
+	/** @brief  Iterator over filter list */
+	TIterator*  fFilterIter;      //!
+
+	/** @brief Contains the statistics of the event filtering process. */
+	FairEvtFilterParams fEvtFilterStat;
+	/** @brief Level of commenting output, 0 means no output, higher gives more output. */
+	Int_t fVerbose;
+	/** @brief returns kTRUE if any event veto filter is registered. */
+	Bool_t fEventVetoFilterActive;
+	/** @brief returns kTRUE if any non-veto event filter is registerd. */
+	Bool_t fEventFilterActive;
+	/** @brief Vector containing the results of the EventMatches methods for every registered non-veto event filter in the corresponding order.
+	 *
+	    The content of the vector is overwritten for each generated event. */
+	std::vector<Bool_t> filterAcceptEvent;
+	/** @brief vector containing the logical operations with which the outputs of the non-veto event filters should be combined.
+	 *
+	    The vector grows automatically with every added non-veto event filter.
+	    It is used to combine multiple filters via && or ||.
+	    The expression is evaluated sequentally from the first registered filter to the last one disregarding operator priorities.
+	*/
+	std::vector<UInt_t> fLogicalFilterOperation;
+	/** @brief vector determining whether the output of a non-veto event filter should be negated or not.
+	 *
+	 The vector grows automatically with every added non-veto event filter.
+	 A kTRUE entry at position i in the vector negates the i. filter's output, kFALSE entries do not negate.
+	*/
+	std::vector<Bool_t> fFilterNegation;
+
+
+	/** @brief Event number (Set by the filtered primary generator **/
+	Int_t fEventNrFiltered;
+
+
+	/** @brief Registers a regular (non-veto) filter. This method is not supposed to be directly used by the user. See public methods for user interfaces to this method. */
+	void AddFilter(FairEvtFilter* filter, FairEvtFilter::LogicOp op, Bool_t negateFilter) {
+		if ( ! fFilterList ) {
+			std::cout << "Empty fFilterList pointer ! \n";
+			return;
+		}
+		fFilterList->Add(filter);
+		fEventFilterActive = kTRUE;
+		// add the settings for every new filter
+		if(fFilterList->GetEntriesFast()!=1){
+			fLogicalFilterOperation.push_back(op);
+		}
+		fFilterNegation.push_back(negateFilter);
+	}
+
+
+private:
+	FairFilteredPrimaryGenerator(const FairFilteredPrimaryGenerator&);
+	FairFilteredPrimaryGenerator& operator=(const  FairFilteredPrimaryGenerator&);
+
+
+	ClassDef(FairFilteredPrimaryGenerator,1);
+};
+
+#endif

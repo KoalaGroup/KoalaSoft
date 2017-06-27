@@ -26,6 +26,10 @@ set(SRCS
 Pythia6Generator.cxx
 Pythia8Generator.cxx
 KoaPpelasticGenerator.cxx
+FairFilteredPrimaryGenerator.cxx
+FairEvtFilter.cxx
+FairEvtFilterParams.cxx
+KoaEvtFilterOnGeometry.cxx
 )
 
 set(LINKDEF  GenLinkDef.h)

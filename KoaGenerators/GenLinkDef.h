@@ -21,4 +21,9 @@
 #pragma link C++ class  KoaPpelasticGenerator+;
 #pragma link C++ class  KoaPpelasticGeneratorImp+;
 
+#pragma link C++ class  FairFilteredPrimaryGenerator+;
+#pragma link C++ class  FairEvtFilter+;
+#pragma link C++ class  FairEvtFilterParams+;
+#pragma link C++ class  KoaEvtFilterOnGeometry+;
+
 #endif
