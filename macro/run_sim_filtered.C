@@ -79,8 +79,8 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
     // primGen->AddGenerator(parGen);
 
     // P-P elastic generator
-    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
-  // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(5);
+    // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
+  KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(5);
     primGen->AddGenerator(ppGen);
 
     // Add filter

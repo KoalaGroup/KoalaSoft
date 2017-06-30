@@ -37,9 +37,6 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  // FairModule* magnet = new KoaMagnet("Magnet");
-  // run->AddModule(magnet);
-
   FairModule* pipe = new KoaPipe("Pipe");
   run->AddModule(pipe);
     

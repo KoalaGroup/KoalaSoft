@@ -39,7 +39,26 @@ KoaPipe::KoaPipe(const char * name, const char * title)
 // -----  ConstructGeometry  --------------------------------------------------
 void KoaPipe::ConstructGeometry()
 {
-     TGeoVolume *top=gGeoManager->GetTopVolume();
+  TString notdefined("Not defined");
+  TString fileName=GetGeometryFileName();
+  if (fileName.EqualTo(notdefined)) {
+    LOG(INFO)<<"Constructing default KoaPipe geometry"<<fileName<<FairLogger::endl;
+    ConstructDefaultGeometry()
+  } else if (fileName.EndsWith(".root")) {
+    LOG(INFO)<<"Constructing KoaPipe geometry from ROOT file "<<fileName<<FairLogger::endl;
+    ConstructRootGeometry();
+  // } else if (fileName.EndsWith(".geo")){
+    // LOG(INFO)<<"Constructing KoaPipe geometry from ASCII file"<<fileName<<FairLogger::endl;
+    // ConstructASCIIGeometry();
+  } else{
+    LOG(FATAL) << "Geometry format not supported." << FairLogger::endl;
+  }
+}
+// ----------------------------------------------------------------------------
+
+KoaPipe::ConstructDefaultGeometry()
+{
+      TGeoVolume *top=gGeoManager->GetTopVolume();
     
     // define some materials
      TGeoMaterial *matCarbon    = new TGeoMaterial("C", 12.011, 6.0, 2.265);
@@ -80,12 +99,7 @@ void KoaPipe::ConstructGeometry()
 
     top->AddNode(pipe, 1);
     top->AddNode(Vpipe, 1);
-
-
 }
-// ----------------------------------------------------------------------------
-
-
 
 ClassImp(KoaPipe)
 

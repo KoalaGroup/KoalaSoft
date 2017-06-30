@@ -24,6 +24,9 @@ class KoaPipe : public FairModule {
     virtual ~KoaPipe();
     virtual void ConstructGeometry();
    
+ private:
+    void ConstructDefaultGeometry();
+
   ClassDef(KoaPipe,1) //KoaPIPE
 
 };
