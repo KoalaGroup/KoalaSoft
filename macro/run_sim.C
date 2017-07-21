@@ -38,6 +38,9 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   run->AddModule(cave);
 
   FairModule* pipe = new KoaPipe("Pipe");
+  /* if not geometry file is specified, the default one will be used.
+   */
+  // pipe->SetGeometryFileName("pipe_simple.root");
   run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
