@@ -158,8 +158,8 @@ void build_fwd(TString FileName="fwd.root") {
 
   // Get the GeoManager for later usage
   gGeoMan = (TGeoManager*) gROOT->FindObject("FAIRGeom");
-  gGeoMan->SetVisLevel(2);  
-  gGeoMan->SetVisOption(0);
+  // gGeoMan->SetVisLevel(1);  
+  // gGeoMan->SetVisOption(0);
   
   // Medium
   TGeoMedium* AirVolMed   = gGeoMan->GetMedium("air");
@@ -174,7 +174,7 @@ void build_fwd(TString FileName="fwd.root") {
 
   // Fwd-chamber: unit: cm
   Double_t chamber_x, chamber_y, chamber_z, chamber_thickness;
-  chamber_x = 40./2; // to be defined
+  chamber_x = 50./2; // to be defined
   chamber_y = 40./2;// to be defined
   chamber_z = 90./2; // to be defined 
   chamber_thickness = 0.5; // to be defined 
@@ -195,13 +195,21 @@ void build_fwd(TString FileName="fwd.root") {
   TGeoBBox* shape_chamber = new TGeoBBox("shape_chamber", chamber_x, chamber_y, chamber_z);
   TGeoBBox* shape_vacuum  = new TGeoBBox("shape_vacuum", chamber_x-chamber_thickness, chamber_y-chamber_thickness, chamber_z-chamber_thickness);
 
-  TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber", "shape_chamber-shape_sub");
+  TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber", "shape_chamber-shape_sub-shape_vacuum");
   TGeoCompositeShape* cs_vacuum = new TGeoCompositeShape("cs_vacuum", "shape_vacuum-shape_sub");
+  /*test*/
+  // TGeoCompositeShape* cs_test = new TGeoCompositeShape("cs_test", "shape_chamber-shape_vacuum");
+  // TGeoVolume* test = new TGeoVolume("FwdTest", cs_test, ChamberVolMed);
+  /*test*/
+
   TGeoVolume* FwdChamber = new TGeoVolume("FwdChamber", cs_chamber, ChamberVolMed);
+  // TGeoVolume* FwdChamber = new TGeoVolume("FwdChamber", shape_chamber, ChamberVolMed);
   // FwdChamber->SetVisibility(kTRUE);
-  // FwdChamber->SetLineColor(kBlue);
+  FwdChamber->SetLineColor(kBlue);
   TGeoVolume* FwdVacuum  = new TGeoVolume("FwdVacuum", cs_vacuum, VacuumVolMed);
+  // TGeoVolume* FwdVacuum  = new TGeoVolume("FwdVacuum", shape_vacuum, VacuumVolMed);
   // FwdVacuum->SetLineColor(kGreen);
+  // FwdVacuum->SetVisibility(kFALSE);
 
   // Fwd dectectors: Dimensions of the detecors (x,y,z), unit: cm
   Double_t fwd_x,fwd_y,fwd_z;
@@ -209,7 +217,9 @@ void build_fwd(TString FileName="fwd.root") {
   fwd_y = 10./2;
   fwd_z = 2./2;
   TGeoVolume* SensorSc1 = gGeoMan->MakeBox("SensorSc1", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+  SensorSc1->SetLineColor(kGreen);
   TGeoVolume* SensorSc2 = gGeoMan->MakeBox("SensorSc2", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+  SensorSc2->SetLineColor(kGreen);
 
   Double_t sc_gap  = 10; // gap between Sc1 and Sc2
   Double_t sc_align_z = -chamber_z + fwd_z + l_cone;
@@ -225,8 +235,18 @@ void build_fwd(TString FileName="fwd.root") {
 
   FwdVacuum->AddNode(SensorSc1, 1, trans_sc1);
   FwdVacuum->AddNode(SensorSc2, 1, trans_sc2);
-  FwdChamber->AddNode(FwdVacuum, 1);
-  top->AddNode(FwdChamber, 1, trans_zoffset);
+  // FwdChamber->AddNode(FwdVacuum, 1);
+
+  // // alternative way: assemblyvolume
+  TGeoVolumeAssembly* FwdArm = new TGeoVolumeAssembly("FwdArm");
+  FwdArm->AddNode(FwdChamber, 1);
+  FwdArm->AddNode(FwdVacuum, 1);
+  top->AddNode(FwdArm, 1, trans_zoffset);
+  /*test*/
+  // TGeoTranslation* trans_test=new TGeoTranslation(sc_align_x,0,sc_align_z+z_offset);
+  // top->AddNode(test, 1, trans_zoffset); 
+  // top->AddNodeOverlap(SensorSc2,1, trans_test);
+  /*test*/
 
   cout<<"Voxelizing."<<endl;
   top->Voxelize("");
@@ -243,6 +263,10 @@ void build_fwd(TString FileName="fwd.root") {
 
    top->Draw("ogl");
   top->Raytrace();
+
+  TFile* outfile2=new TFile("fwd_manager.root","recreate");
+  gGeoMan->Write();
+  delete outfile2;
 
   // -----   Finish   -------------------------------------------------------
 
