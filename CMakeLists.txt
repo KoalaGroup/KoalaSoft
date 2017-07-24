@@ -175,6 +175,7 @@ ENDIF(HAS_CXX11_SHAREDPOINTER)
 add_subdirectory (KoaData)
 add_subdirectory (KoaGenerators)
 add_subdirectory (rec)
+add_subdirectory (fwd)
 add_subdirectory (passive)
 add_subdirectory (field)  
 

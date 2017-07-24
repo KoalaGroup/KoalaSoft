@@ -18,6 +18,6 @@
 #ifndef KoaDetectorList_H
 #define KoaDetectorList_H 1
 // kSTOPHERE is needed for iteration over the enum. All detectors have to be put before.
-enum DetectorId {kKoaRec, kSTOPHERE};
+enum DetectorId {kKoaRec, kKoaFwd, kSTOPHERE};
 
 #endif

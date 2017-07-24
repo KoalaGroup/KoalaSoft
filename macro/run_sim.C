@@ -49,7 +49,12 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   // rec_det->SetGeometryFileName("rec.geo");
   run->AddModule(rec_det);
 
- // ------------------------------------------------------------------------
+  FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
+  fwd_det->SetGeometryFileName("fwd.root");
+  // fwd_det->SetGeometryFileName("fwd.geo");
+  run->AddModule(fwd_det);
+
+// ------------------------------------------------------------------------
 
 
     // // -----   Magnetic field   -------------------------------------------

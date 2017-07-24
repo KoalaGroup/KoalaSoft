@@ -149,7 +149,7 @@ void build_rec(TString FileName="rec.root") {
   // ------------------------------------------------------------------------
 }
 
-// build function for RecArm, default output file is rec.root
+// build function for Fwd detecor, default output file is fwd.root
 void build_fwd(TString FileName="fwd.root") {
   TStopwatch timer;
   timer.Start();
@@ -158,69 +158,75 @@ void build_fwd(TString FileName="fwd.root") {
 
   // Get the GeoManager for later usage
   gGeoMan = (TGeoManager*) gROOT->FindObject("FAIRGeom");
-  gGeoMan->SetVisLevel(7);  
+  gGeoMan->SetVisLevel(2);  
+  gGeoMan->SetVisOption(0);
   
   // Medium
   TGeoMedium* AirVolMed   = gGeoMan->GetMedium("air");
   TGeoMedium* ScintillatorVolMed   = gGeoMan->GetMedium("polyvinyltoluene");
+  TGeoMedium* VacuumVolMed = gGeoMan->GetMedium("vacuum");
+  TGeoMedium* ChamberVolMed = gGeoMan->GetMedium("Aluminum");
 
   // Create the top volume
   // Cave is exactly the same as the KoaCave
   TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed,20000., 20000.,20000.);
   gGeoMan->SetTopVolume(top);
 
-  // Dimensions of the detecors (x,y,z), unit: cm
-  Float_t fwd_x,fwd_y,fwd_z;
-  fwd_x = 11./2;
+  // Fwd-chamber: unit: cm
+  Double_t chamber_x, chamber_y, chamber_z, chamber_thickness;
+  chamber_x = 40./2; // to be defined
+  chamber_y = 40./2;// to be defined
+  chamber_z = 90./2; // to be defined 
+  chamber_thickness = 0.5; // to be defined 
+
+  // Substracted shape: Cone + EndPipe
+  Int_t nSects = 4;
+  Double_t l_cone = 32; // in cm
+  Double_t cone_thickness = 0.003; // in cm, 30um
+  Double_t pipe_thickness = 0.5;
+  Double_t z_cone[] = {-chamber_z-l_cone, -chamber_z+l_cone, -chamber_z+l_cone, chamber_z+1};
+  Double_t r_cone[] = {10+cone_thickness+10-3, 3+cone_thickness, 3+pipe_thickness, 3+pipe_thickness};
+  TGeoPcon* shape_sub = new TGeoPcon("shape_sub", 0., 360., nSects);
+  for(Int_t iSect = 0; iSect < nSects; iSect++){
+    shape_sub->DefineSection(iSect, z_cone[iSect], 0, r_cone[iSect]);
+  }
+
+  // Chamber shape:
+  TGeoBBox* shape_chamber = new TGeoBBox("shape_chamber", chamber_x, chamber_y, chamber_z);
+  TGeoBBox* shape_vacuum  = new TGeoBBox("shape_vacuum", chamber_x-chamber_thickness, chamber_y-chamber_thickness, chamber_z-chamber_thickness);
+
+  TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber", "shape_chamber-shape_sub");
+  TGeoCompositeShape* cs_vacuum = new TGeoCompositeShape("cs_vacuum", "shape_vacuum-shape_sub");
+  TGeoVolume* FwdChamber = new TGeoVolume("FwdChamber", cs_chamber, ChamberVolMed);
+  // FwdChamber->SetVisibility(kTRUE);
+  // FwdChamber->SetLineColor(kBlue);
+  TGeoVolume* FwdVacuum  = new TGeoVolume("FwdVacuum", cs_vacuum, VacuumVolMed);
+  // FwdVacuum->SetLineColor(kGreen);
+
+  // Fwd dectectors: Dimensions of the detecors (x,y,z), unit: cm
+  Double_t fwd_x,fwd_y,fwd_z;
+  fwd_x = 12./2;// larger than 12cm, to be defined
   fwd_y = 10./2;
   fwd_z = 2./2;
-  Float_t si_size[3]={0.1/2,5./2,7.68/2};
-  Float_t ge1_size[3]={0.5/2,5.0/2,8.04/2};
-  Float_t ge2_size[3]={1.1/2,5.0/2,8.04/2};
-  Float_t envelop[3]={2.0/2,14.65/2,29.9/2};
-  TGeoVolume* Si1 = gGeoMan->MakeBox("SensorSi1", SiVolMed, si_size[0],si_size[1],si_size[2]);
-  Si1->SetLineColor(kBlue); // set line color 
-  Si1->SetTransparency(70); // set transparency 
-  TGeoVolume* Si2 = gGeoMan->MakeBox("SensorSi2", SiVolMed, si_size[0],si_size[1],si_size[2]);
-  Si2->SetLineColor(kBlue); // set line color 
-  Si2->SetTransparency(70); // set transparency 
-  TGeoVolume* Ge1 = gGeoMan->MakeBox("SensorGe1", GeVolMed, ge1_size[0],ge1_size[1],ge1_size[2]);
-  Ge1->SetLineColor(kRed); // set line color 
-  Ge1->SetTransparency(70); // set transparency 
-  TGeoVolume* Ge2 = gGeoMan->MakeBox("SensorGe2", GeVolMed, ge2_size[0],ge2_size[1],ge2_size[2]);
-  Ge2->SetLineColor(kRed); // set line color 
-  Ge2->SetTransparency(70); // set transparency 
-  TGeoVolume* RecArm = gGeoMan->MakeBox("RecArm", AirVolMed, envelop[0], envelop[1], envelop[2]);
-  RecArm->SetVisibility(kFALSE);
+  TGeoVolume* SensorSc1 = gGeoMan->MakeBox("SensorSc1", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+  TGeoVolume* SensorSc2 = gGeoMan->MakeBox("SensorSc2", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
 
-  // Placement
-  Float_t si1_align[3]={-0.1/2,0.575+5./2,-29.9/2+7.68/2+1.66};
-  Float_t si2_align[3]={-0.1/2,-0.575-5./2,-29.9/2+7.68/2+1.66+5.28};
-  Float_t ge1_align[3]={-0.5/2,0.575+5./2,-29.9/2+7.68/2+1.66+5.28+7.68/2-1.09+8.04/2};
-  Float_t ge2_align[3]={-1.1/2,-0.575-5./2,-29.9/2+7.68/2+1.66+5.28+7.68/2-1.09+8.04/2-1.2+8.04};
+  Double_t sc_gap  = 10; // gap between Sc1 and Sc2
+  Double_t sc_align_z = -chamber_z + fwd_z + l_cone;
+  Double_t sc_align_x = -fwd_x-3-1; // 3 is radius of the pipe, 1 is the gap between detector and the pipe
+  TGeoTranslation *trans_sc1=new TGeoTranslation(sc_align_x, 0, sc_align_z);
+  TGeoTranslation *trans_sc2=new TGeoTranslation(sc_align_x, 0, sc_align_z + sc_gap);
 
-  TGeoTranslation *trans_si1=new TGeoTranslation(si1_align[0],si1_align[1],si1_align[2]);
-  RecArm->AddNode(Si1, 1, trans_si1);
-  TGeoTranslation *trans_si2=new TGeoTranslation(si2_align[0],si2_align[1],si2_align[2]);
-  RecArm->AddNode(Si2, 1, trans_si2);
-  TGeoTranslation *trans_ge1=new TGeoTranslation(ge1_align[0],ge1_align[1],ge1_align[2]);
-  RecArm->AddNode(Ge1, 1, trans_ge1);
-  TGeoTranslation *trans_ge2=new TGeoTranslation(ge2_align[0],ge2_align[1],ge2_align[2]);
-  RecArm->AddNode(Ge2, 1, trans_ge2);
+  // Add FwdChamber to the top volume
+  Double_t l_target = 210; // from KoaPipe, unit in cm
+  Double_t l_snake  = 257.3;
+  Double_t z_offset= l_target + l_snake + chamber_z;
+  TGeoTranslation *trans_zoffset=new TGeoTranslation(0., 0., z_offset);
 
-  // // alternative way: assemblyvolume
-  // TGeoVolumeAssembly* RecArm = new TGeoVolumeAssembly("RecArm");
-  // RecArm->AddNode(Si1, 1, trans_si1);
-  // RecArm->AddNode(Si2, 1, trans_si2);
-  // RecArm->AddNode(Ge1, 1, trans_ge1);
-  // RecArm->AddNode(Ge2, 1, trans_ge2);
-
-  // Align
-  // RecArm in +x direction
-  Float_t z_offset=-0.12*20;//5 strips offset
-  Float_t x_offset=100.;
-  TGeoTranslation *trans_zoffset=new TGeoTranslation(x_offset,0.,29.9/2-1.66+z_offset);
-  top->AddNode(RecArm, 1, trans_zoffset);
+  FwdVacuum->AddNode(SensorSc1, 1, trans_sc1);
+  FwdVacuum->AddNode(SensorSc2, 1, trans_sc2);
+  FwdChamber->AddNode(FwdVacuum, 1);
+  top->AddNode(FwdChamber, 1, trans_zoffset);
 
   cout<<"Voxelizing."<<endl;
   top->Voxelize("");
@@ -230,6 +236,7 @@ void build_fwd(TString FileName="fwd.root") {
   gGeoMan->PrintOverlaps();
   gGeoMan->Test();
 
+  // Write into file
   TFile* outfile = TFile::Open(FileName,"RECREATE");
   top->Write();
   outfile->Close();
@@ -285,6 +292,7 @@ void create_materials_from_media_file()
   FairGeoMedium* mylar            = geoMedia->getMedium("mylar");
   FairGeoMedium* vacuum           = geoMedia->getMedium("vacuum");
   FairGeoMedium* polyvinyltoluene = geoMedia->getMedium("polyvinyltoluene");
+  FairGeoMedium* aluminum         = geoMedia->getMedium("Aluminum");
 
   // include check if all media are found
 
@@ -294,5 +302,6 @@ void create_materials_from_media_file()
   geoBuild->createMedium(mylar);
   geoBuild->createMedium(vacuum);
   geoBuild->createMedium(polyvinyltoluene);
+  geoBuild->createMedium(aluminum);
 }
 
