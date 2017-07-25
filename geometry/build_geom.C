@@ -57,15 +57,15 @@ void build_rec(TString FileName="rec.root") {
   gGeoMan->SetTopVolume(top);
 
   // Dimensions of the detecors (x,y,z), unit: cm
-  Float_t si_size[3]={0.1/2,5./2,7.68/2};
-  Float_t ge1_size[3]={0.5/2,5.0/2,8.04/2};
-  Float_t ge2_size[3]={1.1/2,5.0/2,8.04/2};
-  Float_t envelop[3]={2.0/2,14.65/2,29.9/2};
+  Double_t si_size[3]={0.1/2,5./2,7.68/2};// 64ch, 76.8mm x 50mm x 1mm
+  Double_t ge1_size[3]={0.5/2,5.0/2,8.04/2};// 67ch, 80.4mm x 50mm x 5mm
+  Double_t ge2_size[3]={1.1/2,5.0/2,8.04/2};// 67ch, 80.4mm x 50mm x 11mm
+  Double_t envelop[3]={2.5/2,14.65/2,29.9/2};// envelop based on technical drawing
   TGeoVolume* Si1 = gGeoMan->MakeBox("SensorSi1", SiVolMed, si_size[0],si_size[1],si_size[2]);
-  Si1->SetLineColor(kBlue); // set line color 
+  Si1->SetLineColor(kGreen); // set line color 
   Si1->SetTransparency(70); // set transparency 
   TGeoVolume* Si2 = gGeoMan->MakeBox("SensorSi2", SiVolMed, si_size[0],si_size[1],si_size[2]);
-  Si2->SetLineColor(kBlue); // set line color 
+  Si2->SetLineColor(kGreen); // set line color 
   Si2->SetTransparency(70); // set transparency 
   TGeoVolume* Ge1 = gGeoMan->MakeBox("SensorGe1", GeVolMed, ge1_size[0],ge1_size[1],ge1_size[2]);
   Ge1->SetLineColor(kRed); // set line color 
@@ -77,10 +77,10 @@ void build_rec(TString FileName="rec.root") {
   RecArm->SetVisibility(kFALSE);
 
   // Placement
-  Float_t si1_align[3]={-0.1/2,0.575+5./2,-29.9/2+7.68/2+1.66};
-  Float_t si2_align[3]={-0.1/2,-0.575-5./2,-29.9/2+7.68/2+1.66+5.28};
-  Float_t ge1_align[3]={-0.5/2,0.575+5./2,-29.9/2+7.68/2+1.66+5.28+7.68/2-1.09+8.04/2};
-  Float_t ge2_align[3]={-1.1/2,-0.575-5./2,-29.9/2+7.68/2+1.66+5.28+7.68/2-1.09+8.04/2-1.2+8.04};
+  Double_t si1_align[3]={0.1/2,0.575+0.1+5./2,-29.9/2+1.66+7.68/2};
+  Double_t si2_align[3]={0.1/2,-0.575-0.1-5./2,-29.9/2+1.66+7.68/2+5.28};
+  Double_t ge1_align[3]={0.5/2,0.575+0.1+5./2,-29.9/2+1.66+8.04/2+5.28+7.68-1.08};
+  Double_t ge2_align[3]={1.1/2,-0.575-0.1-5./2,-29.9/2+1.66+8.04/2+5.28+7.68-1.08-1.2+8.04};
 
   TGeoTranslation *trans_si1=new TGeoTranslation(si1_align[0],si1_align[1],si1_align[2]);
   RecArm->AddNode(Si1, 1, trans_si1);
@@ -100,8 +100,8 @@ void build_rec(TString FileName="rec.root") {
 
   // Align
   // RecArm in +x direction
-  Float_t z_offset=-0.12*20;//5 strips offset
-  Float_t x_offset=100.;
+  Double_t z_offset=-0.12*22;//22 strips offset
+  Double_t x_offset=100.;
   TGeoTranslation *trans_zoffset=new TGeoTranslation(x_offset,0.,29.9/2-1.66+z_offset);
   top->AddNode(RecArm, 1, trans_zoffset);
 
@@ -127,7 +127,7 @@ void build_rec(TString FileName="rec.root") {
   // Extract the maximal used memory an add is as Dart measurement
   // This line is filtered by CTest and the value send to CDash
   FairSystemInfo sysInfo;
-  Float_t maxMemory=sysInfo.GetMaxMemory();
+  Double_t maxMemory=sysInfo.GetMaxMemory();
   cout << "<DartMeasurement name=\"MaxMemory\" type=\"numeric/double\">";
   cout << maxMemory;
   cout << "</DartMeasurement>" << endl;
@@ -136,7 +136,7 @@ void build_rec(TString FileName="rec.root") {
   Double_t rtime = timer.RealTime();
   Double_t ctime = timer.CpuTime();
 
-  Float_t cpuUsage=ctime/rtime;
+  Double_t cpuUsage=ctime/rtime;
   cout << "<DartMeasurement name=\"CpuLoad\" type=\"numeric/double\">";
   cout << cpuUsage;
   cout << "</DartMeasurement>" << endl;
