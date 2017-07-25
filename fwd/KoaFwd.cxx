@@ -47,6 +47,7 @@ KoaFwd::KoaFwd()
     fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint"))
 {
   fListOfSensitives.push_back("SensorSc");
+  fListOfSensitives.push_back("MonitorSc");
 }
 
 KoaFwd::KoaFwd(const char* name, Bool_t active)
@@ -61,6 +62,7 @@ KoaFwd::KoaFwd(const char* name, Bool_t active)
     fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint"))
 {
   fListOfSensitives.push_back("SensorSc");
+  fListOfSensitives.push_back("MonitorSc");
 }
 
 KoaFwd::~KoaFwd()

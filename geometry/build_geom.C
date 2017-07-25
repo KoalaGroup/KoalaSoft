@@ -150,7 +150,7 @@ void build_rec(TString FileName="rec.root") {
 }
 
 // build function for Fwd detecor, default output file is fwd.root
-void build_fwd(TString FileName="fwd.root") {
+void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false) {
   TStopwatch timer;
   timer.Start();
   // Load needed material definition from media.geo file
@@ -236,6 +236,20 @@ void build_fwd(TString FileName="fwd.root") {
   FwdVacuum->AddNode(SensorSc1, 1, trans_sc1);
   FwdVacuum->AddNode(SensorSc2, 1, trans_sc2);
   // FwdChamber->AddNode(FwdVacuum, 1);
+
+  /* Beam Profile Monitor detector*/
+  if(WithMonitor){
+    TGeoVolume* MonitorSc1 = gGeoMan->MakeBox("MonitorSc1", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+    MonitorSc1->SetLineColor(kRed);
+    TGeoVolume* MonitorSc2 = gGeoMan->MakeBox("MonitorSc2", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+    MonitorSc2->SetLineColor(kRed);
+
+    TGeoTranslation *trans_monitor_sc1=new TGeoTranslation(-sc_align_x, 0, sc_align_z);
+    TGeoTranslation *trans_monitor_sc2=new TGeoTranslation(-sc_align_x, 0, sc_align_z + sc_gap);
+
+    FwdVacuum->AddNode(MonitorSc1, 1, trans_monitor_sc1);
+    FwdVacuum->AddNode(MonitorSc2, 1, trans_monitor_sc2);
+  }
 
   // // alternative way: assemblyvolume
   TGeoVolumeAssembly* FwdArm = new TGeoVolumeAssembly("FwdArm");
