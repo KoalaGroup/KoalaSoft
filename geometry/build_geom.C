@@ -36,7 +36,7 @@ TGeoManager* gGeoMan = NULL;  // Pointer to TGeoManager instance
 void create_materials_from_media_file();
 
 // build function for RecArm, default output file is rec.root
-void build_rec(TString FileName="rec.root") {
+void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
   TStopwatch timer;
   timer.Start();
   // Load needed material definition from media.geo file
@@ -48,33 +48,62 @@ void build_rec(TString FileName="rec.root") {
   
   // Medium
   TGeoMedium* AirVolMed   = gGeoMan->GetMedium("air");
+  TGeoMedium* VacuumVolMed = gGeoMan->GetMedium("vacuum");
   TGeoMedium* SiVolMed   = gGeoMan->GetMedium("silicon");
   TGeoMedium* GeVolMed   = gGeoMan->GetMedium("germanium");
+  TGeoMedium* ChamberVolMed = gGeoMan->GetMedium("Aluminum");
 
   // Create the top volume
   // Cave is exactly the same as the KoaCave
   TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed,20000., 20000.,20000.);
   gGeoMan->SetTopVolume(top);
 
-  // Dimensions of the detecors (x,y,z), unit: cm
+  // Chamber:
+  Double_t target_chamber_x = 30./2;
+  Double_t chamber_thickness = 0.5;
+  Double_t adapter_z = 40. - target_chamber_x;
+  Double_t adapter_r = 20./2;
+  Double_t chamber_z = 95.;
+  Double_t chamber_r = 45./2;
+  Double_t rec_center_offset = 5.;
+
+  Int_t nSects = 4;
+  Double_t half_z = (135-target_chamber_x)/2;
+  Double_t z_chamber[] = {-half_z+chamber_thickness, -half_z+adapter_z-chamber_thickness, -half_z+adapter_z-chamber_thickness, -half_z+adapter_z+chamber_z+chamber_thickness};    // in cm
+  Double_t r_chamber[] = {adapter_r,adapter_r,chamber_r,chamber_r};    // in cm
+  TGeoPcon* shape_chamber = new TGeoPcon("shape_chamber", 0., 360., nSects);
+  for (Int_t iSect = 0; iSect < nSects; iSect++) {
+    shape_chamber->DefineSection(iSect, z_chamber[iSect], 0, r_chamber[iSect]+chamber_thickness);
+  }
+
+  Double_t z_vchamber[] = {-half_z, -half_z+adapter_z, -half_z+adapter_z, -half_z+adapter_z+chamber_z};    // in cm
+  TGeoPcon* shape_vchamber = new TGeoPcon("shape_vchamber", 0., 360., nSects);
+  for (Int_t iSect = 0; iSect < nSects; iSect++) {
+    shape_vchamber->DefineSection(iSect, z_vchamber[iSect], 0, r_chamber[iSect]);
+  }
+
+  TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber","shape_chamber-shape_vchamber");
+  TGeoVolume* ChamberVaccum = new TGeoVolume("RecArm_Vacuum", shape_vchamber, VacuumVolMed);
+  TGeoVolume* Chamber = new TGeoVolume("RecArm_Chamber", cs_chamber, ChamberVolMed);
+  Chamber->SetLineColor(kBlue);
+
+  // Detectors: Dimensions of the detecors (x,y,z), unit: cm
   Double_t si_size[3]={0.1/2,5./2,7.68/2};// 64ch, 76.8mm x 50mm x 1mm
   Double_t ge1_size[3]={0.5/2,5.0/2,8.04/2};// 67ch, 80.4mm x 50mm x 5mm
   Double_t ge2_size[3]={1.1/2,5.0/2,8.04/2};// 67ch, 80.4mm x 50mm x 11mm
   Double_t envelop[3]={2.5/2,14.65/2,29.9/2};// envelop based on technical drawing
   TGeoVolume* Si1 = gGeoMan->MakeBox("SensorSi1", SiVolMed, si_size[0],si_size[1],si_size[2]);
   Si1->SetLineColor(kGreen); // set line color 
-  Si1->SetTransparency(70); // set transparency 
+  // Si1->SetTransparency(70); // set transparency 
   TGeoVolume* Si2 = gGeoMan->MakeBox("SensorSi2", SiVolMed, si_size[0],si_size[1],si_size[2]);
   Si2->SetLineColor(kGreen); // set line color 
-  Si2->SetTransparency(70); // set transparency 
+  // Si2->SetTransparency(70); // set transparency 
   TGeoVolume* Ge1 = gGeoMan->MakeBox("SensorGe1", GeVolMed, ge1_size[0],ge1_size[1],ge1_size[2]);
   Ge1->SetLineColor(kRed); // set line color 
-  Ge1->SetTransparency(70); // set transparency 
+  // Ge1->SetTransparency(70); // set transparency 
   TGeoVolume* Ge2 = gGeoMan->MakeBox("SensorGe2", GeVolMed, ge2_size[0],ge2_size[1],ge2_size[2]);
   Ge2->SetLineColor(kRed); // set line color 
-  Ge2->SetTransparency(70); // set transparency 
-  TGeoVolume* RecArm = gGeoMan->MakeBox("RecArm", AirVolMed, envelop[0], envelop[1], envelop[2]);
-  RecArm->SetVisibility(kFALSE);
+  // Ge2->SetTransparency(70); // set transparency 
 
   // Placement
   Double_t si1_align[3]={0.1/2,0.575+0.1+5./2,-29.9/2+1.66+7.68/2};
@@ -83,27 +112,43 @@ void build_rec(TString FileName="rec.root") {
   Double_t ge2_align[3]={1.1/2,-0.575-0.1-5./2,-29.9/2+1.66+8.04/2+5.28+7.68-1.08-1.2+8.04};
 
   TGeoTranslation *trans_si1=new TGeoTranslation(si1_align[0],si1_align[1],si1_align[2]);
-  RecArm->AddNode(Si1, 1, trans_si1);
   TGeoTranslation *trans_si2=new TGeoTranslation(si2_align[0],si2_align[1],si2_align[2]);
-  RecArm->AddNode(Si2, 1, trans_si2);
   TGeoTranslation *trans_ge1=new TGeoTranslation(ge1_align[0],ge1_align[1],ge1_align[2]);
-  RecArm->AddNode(Ge1, 1, trans_ge1);
   TGeoTranslation *trans_ge2=new TGeoTranslation(ge2_align[0],ge2_align[1],ge2_align[2]);
-  RecArm->AddNode(Ge2, 1, trans_ge2);
 
-  // // alternative way: assemblyvolume
-  // TGeoVolumeAssembly* RecArm = new TGeoVolumeAssembly("RecArm");
-  // RecArm->AddNode(Si1, 1, trans_si1);
-  // RecArm->AddNode(Si2, 1, trans_si2);
-  // RecArm->AddNode(Ge1, 1, trans_ge1);
-  // RecArm->AddNode(Ge2, 1, trans_ge2);
+  // alternative way: assemblyvolume
+  TGeoVolumeAssembly* DetectorAssembly = new TGeoVolumeAssembly("RecArm_Detectors");
+  DetectorAssembly->AddNode(Si1, 1, trans_si1);
+  DetectorAssembly->AddNode(Si2, 1, trans_si2);
+  DetectorAssembly->AddNode(Ge1, 1, trans_ge1);
+  DetectorAssembly->AddNode(Ge2, 1, trans_ge2);
 
   // Align
   // RecArm in +x direction
-  Double_t z_offset=-0.12*22;//22 strips offset
+  Double_t z_offset=29.9/2-1.66-0.12*22;//22 strips offset
   Double_t x_offset=100.;
-  TGeoTranslation *trans_zoffset=new TGeoTranslation(x_offset,0.,29.9/2-1.66+z_offset);
-  top->AddNode(RecArm, 1, trans_zoffset);
+
+  Double_t chamber_offset_x = (adapter_z+chamber_z)/2 + target_chamber_x ;
+  Double_t chamber_offset_z = rec_center_offset;
+  Double_t detector_offset_z = x_offset - chamber_offset_x;
+  Double_t detector_offset_x = chamber_offset_z - z_offset;
+  TGeoRotation *rot_chamber=new TGeoRotation("rot_chamber",180,90,90,90,90,0);
+  TGeoRotation *rot_detector=new TGeoRotation("rot_detector",0,90,90,90,90,180);
+  TGeoCombiTrans* ct_chamber=new TGeoCombiTrans("ct_chamber", chamber_offset_x,0,chamber_offset_z,rot_chamber);
+  TGeoCombiTrans* ct_detector=new TGeoCombiTrans("ct_detector", detector_offset_x,0,detector_offset_z,rot_detector);
+  ct_chamber->RegisterYourself();
+  ct_detector->RegisterYourself();
+
+
+  // add to world
+  ChamberVaccum->AddNode(DetectorAssembly, 1, ct_detector);
+  TGeoVolumeAssembly* RecArm = new TGeoVolumeAssembly("RecArm");
+  RecArm->AddNode(ChamberVaccum, 1, ct_chamber);
+  if(WithChamber){
+    RecArm->AddNode(Chamber, 1, ct_chamber);
+  }
+  top->AddNode(RecArm, 1);
+  //
 
   cout<<"Voxelizing."<<endl;
   top->Voxelize("");
@@ -150,7 +195,7 @@ void build_rec(TString FileName="rec.root") {
 }
 
 // build function for Fwd detecor, default output file is fwd.root
-void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false) {
+void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t WithChamber=true) {
   TStopwatch timer;
   timer.Start();
   // Load needed material definition from media.geo file
@@ -253,7 +298,9 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false) {
 
   // // alternative way: assemblyvolume
   TGeoVolumeAssembly* FwdArm = new TGeoVolumeAssembly("FwdArm");
-  FwdArm->AddNode(FwdChamber, 1);
+  if(WithChamber){
+    FwdArm->AddNode(FwdChamber, 1);
+  }
   FwdArm->AddNode(FwdVacuum, 1);
   top->AddNode(FwdArm, 1, trans_zoffset);
   /*test*/
