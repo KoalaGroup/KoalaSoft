@@ -44,6 +44,7 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
 
   // Get the GeoManager for later usage
   gGeoMan = (TGeoManager*) gROOT->FindObject("FAIRGeom");
+  // gGeoMan->SetVisOption(0);
   gGeoMan->SetVisLevel(7);  
   
   // Medium
@@ -83,9 +84,10 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
   }
 
   TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber","shape_chamber-shape_vchamber");
-  TGeoVolume* ChamberVaccum = new TGeoVolume("RecArm_Vacuum", shape_vchamber, VacuumVolMed);
+  TGeoVolume* ChamberVacuum = new TGeoVolume("RecArm_Vacuum", shape_vchamber, VacuumVolMed);
   TGeoVolume* Chamber = new TGeoVolume("RecArm_Chamber", cs_chamber, ChamberVolMed);
   Chamber->SetLineColor(kBlue);
+  Chamber->SetTransparency(60);
 
   // Detectors: Dimensions of the detecors (x,y,z), unit: cm
   Double_t si_size[3]={0.1/2,5./2,7.68/2};// 64ch, 76.8mm x 50mm x 1mm
@@ -118,6 +120,7 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
 
   // alternative way: assemblyvolume
   TGeoVolumeAssembly* DetectorAssembly = new TGeoVolumeAssembly("RecArm_Detectors");
+  // TGeoVolume* DetectorAssembly = gGeoMan->MakeBox("DetectorAssembly",VacuumVolMed ,envelop[0], envelop[1], envelop[2]);
   DetectorAssembly->AddNode(Si1, 1, trans_si1);
   DetectorAssembly->AddNode(Si2, 1, trans_si2);
   DetectorAssembly->AddNode(Ge1, 1, trans_ge1);
@@ -139,11 +142,16 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
   ct_chamber->RegisterYourself();
   ct_detector->RegisterYourself();
 
-
   // add to world
-  ChamberVaccum->AddNode(DetectorAssembly, 1, ct_detector);
+  ChamberVacuum->AddNode(DetectorAssembly, 1, ct_detector);
+
+  /*test*/
+  TGeoVolume* testVol = gGeoMan->MakeBox("testVol", SiVolMed, 5,5,5);
+  testVol->SetLineColor(kBlack);
+  // ChamberVacuum->AddNode(testVol, 1);
+  /*test*/
   TGeoVolumeAssembly* RecArm = new TGeoVolumeAssembly("RecArm");
-  RecArm->AddNode(ChamberVaccum, 1, ct_chamber);
+  RecArm->AddNode(ChamberVacuum, 1, ct_chamber);
   if(WithChamber){
     RecArm->AddNode(Chamber, 1, ct_chamber);
   }
@@ -248,11 +256,9 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t Wit
   /*test*/
 
   TGeoVolume* FwdChamber = new TGeoVolume("FwdChamber", cs_chamber, ChamberVolMed);
-  // TGeoVolume* FwdChamber = new TGeoVolume("FwdChamber", shape_chamber, ChamberVolMed);
-  // FwdChamber->SetVisibility(kTRUE);
   FwdChamber->SetLineColor(kBlue);
+  FwdChamber->SetTransparency(60);
   TGeoVolume* FwdVacuum  = new TGeoVolume("FwdVacuum", cs_vacuum, VacuumVolMed);
-  // TGeoVolume* FwdVacuum  = new TGeoVolume("FwdVacuum", shape_vacuum, VacuumVolMed);
   // FwdVacuum->SetLineColor(kGreen);
   // FwdVacuum->SetVisibility(kFALSE);
 
