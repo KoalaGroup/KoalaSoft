@@ -41,17 +41,18 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   /* if not geometry file is specified, the default one will be used.
    */
   // pipe->SetGeometryFileName("pipe_simple.root");
-  run->AddModule(pipe);
+  // run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
-  // rec_det->SetGeometryFileName("rec_geomanager.root");
+  // rec_det->SetGeometryFileName("rec_withChamber.root");
   // rec_det->SetGeometryFileName("rec.geo");
   run->AddModule(rec_det);
 
   FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  fwd_det->SetGeometryFileName("fwd.root");
-  // fwd_det->SetGeometryFileName("fwd.geo");
+  // fwd_det->SetGeometryFileName("fwd.root");
+  fwd_det->SetGeometryFileName("fwd_withMonitor.root");
+  // fwd_det->SetGeometryFileName("fwd_withMonitor_withChamber.root");
   run->AddModule(fwd_det);
 
 // ------------------------------------------------------------------------

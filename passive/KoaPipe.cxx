@@ -116,7 +116,9 @@ void KoaPipe::ConstructDefaultGeometry()
 
      TGeoCompositeShape* cs_target_chamber = new TGeoCompositeShape("cs_target_chamber","shape_chamber-vshape_chamber-(sshape_target_pipe:ct_sshape_target_pipe)-sshape_front_pipe-(sshape_flange:ct_sshape_flange)");
      TGeoVolume* target_chamber = new TGeoVolume("KoaPipe_TargetChamber", cs_target_chamber, Aluminum);
+     target_chamber->SetLineColor(15);
      TGeoVolume* target_chamber_vacuum = new TGeoVolume("KoaVPipe_TargetChamber",vshape_chamber, Vacuum);
+     target_chamber_vacuum->SetTransparency(100);
 
      TGeoTranslation *trans_target_chamber = new TGeoTranslation(0, 0, front_pipe_z-chamber_z);
      top->AddNode(target_chamber, 1, trans_target_chamber);
@@ -136,6 +138,7 @@ void KoaPipe::ConstructDefaultGeometry()
         shape_target_to_cone->DefineSection(iSect, z_target_to_cone[iSect], r_target_to_cone[iSect], r_target_to_cone[iSect]+pipe_thickness);
     }
     TGeoVolume* pipe_target_to_cone = new TGeoVolume("KoaPipe_TarToCone", shape_target_to_cone, Aluminum);
+    pipe_target_to_cone->SetLineColor(14);
 
     Double_t z_vtarget_to_cone[] = { front_pipe_z , l_target, l_target, l_target+l_snake};    // in cm
     TGeoPcon* vshape_target_to_cone = new TGeoPcon(0.,360.,nSects);
@@ -143,6 +146,7 @@ void KoaPipe::ConstructDefaultGeometry()
       vshape_target_to_cone->DefineSection(iSect, z_vtarget_to_cone[iSect], 0., r_target_to_cone[iSect]);
     }
     TGeoVolume* vpipe_target_to_cone = new TGeoVolume("KoaVPipe_TarToCone", vshape_target_to_cone, Vacuum);
+    vpipe_target_to_cone->SetTransparency(100);
 
     // add to world
     top->AddNode(pipe_target_to_cone, 1);
@@ -159,12 +163,14 @@ void KoaPipe::ConstructDefaultGeometry()
       shape_cone->DefineSection(iSect, z_cone[iSect], r_cone[iSect], r_cone[iSect]+cone_thickness);
     }
     TGeoVolume* pip_cone = new TGeoVolume("KoaPipe_Cone", shape_cone, Mylar);
+    pip_cone->SetLineColor(14);
 
     TGeoPcon* vshape_cone = new TGeoPcon(0., 360., nSects);
     for(Int_t iSect = 0; iSect < nSects; iSect++){
       vshape_cone->DefineSection(iSect, z_cone[iSect], 0., r_cone[iSect]);
     }
     TGeoVolume* vpip_cone = new TGeoVolume("KoaVPipe_Cone", vshape_cone, Vacuum);
+    vpip_cone->SetTransparency(100);
 
     // add to world
     top->AddNode(pip_cone, 1);
@@ -179,12 +185,14 @@ void KoaPipe::ConstructDefaultGeometry()
       shape_end->DefineSection(iSect, z_end[iSect], r_end[iSect], r_end[iSect]+pipe_thickness);
     }
     TGeoVolume* pip_end = new TGeoVolume("KoaPipe_End", shape_end, Aluminum);
+    pip_end->SetLineColor(14);
 
     TGeoPcon* vshape_end = new TGeoPcon(0., 360., nSects);
     for(Int_t iSect = 0; iSect < nSects; iSect++){
       vshape_end->DefineSection(iSect, z_end[iSect], 0., r_end[iSect]);
     }
     TGeoVolume* vpip_end = new TGeoVolume("KoaVPipe_End", vshape_end, Vacuum);
+    vpip_end->SetTransparency(100);
 
     // add to world
     top->AddNode(pip_end, 1);

@@ -3,6 +3,7 @@ eventDisplay()
   //-----User Settings:-----------------------------------------------
   TString  InputFile     ="test.root";
   TString  ParFile       ="params.root";
+  TString  GeoFile       ="geofile_full.root";
   TString  OutFile	 ="tst.root";
     
     
@@ -10,6 +11,7 @@ eventDisplay()
   FairRunAna *fRun= new FairRunAna();
   fRun->SetInputFile(InputFile.Data());
   fRun->SetOutputFile(OutFile.Data());
+  // fRun->SetGeomFile(GeoFile.Data());
 
   FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
   FairParRootFileIo* parInput1 = new FairParRootFileIo();
@@ -26,6 +28,6 @@ eventDisplay()
 //  fMan->AddTask(TorinoDetectorPoints);
   
   
-  fMan->Init();                     
+  fMan->Init(1,4);                     
 
 }
