@@ -517,7 +517,7 @@ Bool_t KoaPpelasticGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
   if(fFromFile){
     // Check for input file
     if ( ! fInputFile ) {
-      LOG(ERROR) << "-E KoaPpelasticGenerator: Input file nor open!" << FairLogger::endl;
+      LOG(ERROR) << "-E KoaPpelasticGenerator: Input file not open!" << FairLogger::endl;
       return kFALSE;
     }
 

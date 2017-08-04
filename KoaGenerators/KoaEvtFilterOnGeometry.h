@@ -25,6 +25,28 @@ class KoaEvtFilterOnGeometry : public FairEvtFilter
   virtual Bool_t EventMatches(Int_t evtNr);
   virtual Bool_t FilterActive() {return kTRUE;}
 
+  void SetX(Double_t range){ fXDistance = range;}
+  void SetYRange(Double_t min, Double_t max){
+    fYMin = min;
+    fYMax = max;
+  }
+  void SetZRange(Double_t min, Double_t max){
+    fZMin = min;
+    fZMax = max;
+  }
+  void SetUnlimitY(Bool_t flag) { fUnlimitY = flag;}
+  void SetUnlimitZ(Bool_t flag) { fUnlimitZ = flag;}
+
+ private:
+  Double_t fXDistance;
+  Double_t fYMin;
+  Double_t fYMax;
+  Double_t fZMin;
+  Double_t fZMax;
+
+  Bool_t   fUnlimitY;
+  Bool_t   fUnlimitZ;
+
   ClassDef(KoaEvtFilterOnGeometry, 1);
 };
 

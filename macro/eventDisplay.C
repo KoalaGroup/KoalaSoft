@@ -1,7 +1,7 @@
 eventDisplay()
 {
   //-----User Settings:-----------------------------------------------
-  TString  InputFile     ="test.root";
+  TString  InputFile     ="test_filtered.root";
   TString  ParFile       ="params.root";
   TString  GeoFile       ="geofile_full.root";
   TString  OutFile	 ="tst.root";
