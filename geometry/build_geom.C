@@ -134,9 +134,9 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
   Double_t chamber_offset_z = rec_center_offset;
   Double_t detector_offset_z = x_offset - chamber_offset_x;
   Double_t detector_offset_x = chamber_offset_z - z_offset;
-  TGeoRotation *rot_chamber=new TGeoRotation("rot_chamber",180,90,90,90,90,0);
+  TGeoRotation *rot_chamber=new TGeoRotation("rot_chamber",180,90,90,270,90,180);
   TGeoRotation *rot_detector=new TGeoRotation("rot_detector",0,90,90,90,90,180);
-  TGeoCombiTrans* ct_chamber=new TGeoCombiTrans("ct_chamber", chamber_offset_x,0,chamber_offset_z,rot_chamber);
+  TGeoCombiTrans* ct_chamber=new TGeoCombiTrans("ct_chamber", -chamber_offset_x,0,chamber_offset_z,rot_chamber);
   TGeoCombiTrans* ct_detector=new TGeoCombiTrans("ct_detector", detector_offset_x,0,detector_offset_z,rot_detector);
   ct_chamber->RegisterYourself();
   ct_detector->RegisterYourself();
@@ -197,7 +197,7 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
 }
 
 // build function for Fwd detecor, default output file is fwd.root
-void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t WithChamber=true) {
+void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t WithChamber=true, Bool_t WithExtra=false) {
   TStopwatch timer;
   timer.Start();
   // Load needed material definition from media.geo file
@@ -227,6 +227,7 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t Wit
   chamber_thickness = 0.5; // to be defined 
 
   // Substracted shape: Cone + EndPipe
+  // a bit longer than actual size
   Int_t nSects = 4;
   Double_t l_cone = 32; // in cm
   Double_t cone_thickness = 0.003; // in cm, 30um
@@ -255,16 +256,16 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t Wit
   // Fwd dectectors: Dimensions of the detecors (x,y,z), unit: cm
   Double_t fwd_x,fwd_y,fwd_z;
   fwd_x = 12./2;// larger than 12cm, to be defined
-  fwd_y = 10./2;
+  fwd_y = 6./2; // 
   fwd_z = 2./2;
   TGeoVolume* SensorSc1 = gGeoMan->MakeBox("SensorSc1", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
   SensorSc1->SetLineColor(38);
   TGeoVolume* SensorSc2 = gGeoMan->MakeBox("SensorSc2", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
   SensorSc2->SetLineColor(38);
 
-  Double_t sc_gap  = 10; // gap between Sc1 and Sc2
+  Double_t sc_gap  = 20; // gap between Sc1 and Sc2
   Double_t sc_align_z = -chamber_z + fwd_z + l_cone;
-  Double_t sc_align_x = -fwd_x-3-1; // 3 is radius of the pipe, 1 is the gap between detector and the pipe
+  Double_t sc_align_x = fwd_x+3+1; // 3 is radius of the pipe, 1 is the gap between detector and the pipe
   TGeoTranslation *trans_sc1=new TGeoTranslation(sc_align_x, 0, sc_align_z);
   TGeoTranslation *trans_sc2=new TGeoTranslation(sc_align_x, 0, sc_align_z + sc_gap);
 
@@ -272,9 +273,6 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t Wit
   Fwd_Detectors->AddNode(SensorSc1, 1);
   Fwd_Detectors->AddNode(SensorSc2, 1, new TGeoTranslation(0,0,sc_gap));
   FwdVacuum->AddNode(Fwd_Detectors, 1, trans_sc1);
-
-  // FwdVacuum->AddNode(SensorSc1, 1, trans_sc1);
-  // FwdVacuum->AddNode(SensorSc2, 1, trans_sc2);
 
   // Add FwdChamber to the top volume
   Double_t l_target = 210; // from KoaPipe, unit in cm
@@ -289,15 +287,29 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t Wit
     TGeoVolume* MonitorSc2 = gGeoMan->MakeBox("MonitorSc2", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
     MonitorSc2->SetLineColor(kRed);
 
-    TGeoTranslation *trans_monitor_sc1=new TGeoTranslation(-sc_align_x, 0, sc_align_z);
-    TGeoTranslation *trans_monitor_sc2=new TGeoTranslation(-sc_align_x, 0, sc_align_z + sc_gap);
+    TGeoTranslation *trans_monitor_sc=new TGeoTranslation(-sc_align_x, 0, sc_align_z);
 
     TGeoVolumeAssembly *Fwd_Monitors = new TGeoVolumeAssembly("Fwd_Monitors");
     Fwd_Monitors->AddNode(MonitorSc1, 1);
     Fwd_Monitors->AddNode(MonitorSc2, 1, new TGeoTranslation(0,0,sc_gap));
-    FwdVacuum->AddNode(Fwd_Monitors, 1, trans_monitor_sc1);
-    // FwdVacuum->AddNode(MonitorSc1, 1, trans_monitor_sc1);
-    // FwdVacuum->AddNode(MonitorSc2, 1, trans_monitor_sc2);
+    FwdVacuum->AddNode(Fwd_Monitors, 1, trans_monitor_sc);
+  }
+
+  /* For explanation */
+  if(WithExtra){
+    TGeoVolume* ExtraSc1 = gGeoMan->MakeBox("ExtraSc1", ScintillatorVolMed, fwd_y, fwd_x, fwd_z);
+    ExtraSc1->SetLineColor(kRed);
+    TGeoVolume* ExtraSc2 = gGeoMan->MakeBox("ExtraSc2", ScintillatorVolMed, fwd_y, fwd_x, fwd_z);
+    ExtraSc2->SetLineColor(kRed);
+
+    TGeoTranslation *trans_extra_sc1=new TGeoTranslation(0, -sc_align_x, sc_align_z);
+    TGeoTranslation *trans_extra_sc2=new TGeoTranslation(0, sc_align_x, sc_align_z);
+
+    TGeoVolumeAssembly *Fwd_Extras = new TGeoVolumeAssembly("Fwd_Extras");
+    Fwd_Extras->AddNode(ExtraSc1, 1);
+    Fwd_Extras->AddNode(ExtraSc2, 1, new TGeoTranslation(0,0,sc_gap));
+    FwdVacuum->AddNode(Fwd_Extras, 1, trans_extra_sc1);
+    FwdVacuum->AddNode(Fwd_Extras, 2, trans_extra_sc2);
   }
 
   // // alternative way: assemblyvolume
