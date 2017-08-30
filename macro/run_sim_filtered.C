@@ -1,11 +1,16 @@
-void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
+void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
 {
+  // Set the random seed
+  gRandom->SetSeed(98989);
     
   // Output file name
-  TString outFile ="test_filtered.root";
+  // TString outFile ="test_filtered.root";
+  TString outFile ="test_filtered_onfly_newcut.root";
+  // TString outFile ="test_filtered_onfly.root";
     
   // Parameter file name
-  TString parFile="params.root";
+  // TString parFile="params_filtered.root";
+  TString parFile="params_filtered_onfly.root";
   
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -37,11 +42,8 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  // FairModule* magnet = new KoaMagnet("Magnet");
-  // run->AddModule(magnet);
-
   FairModule* pipe = new KoaPipe("Pipe");
-  run->AddModule(pipe);
+  // run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
@@ -49,28 +51,19 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   // rec_det->SetGeometryFileName("rec.geo");
   run->AddModule(rec_det);
 
+  FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
+  fwd_det->SetGeometryFileName("fwd.root");
+  run->AddModule(fwd_det);
  // ------------------------------------------------------------------------
 
-
-    // // -----   Magnetic field   -------------------------------------------
-    // // Constant Field
-    // KoaConstField  *fMagField = new KoaConstField();
-    // fMagField->SetField(0., 20. ,0. ); // values are in kG
-    // fMagField->SetFieldRegion(-200, 200,-200, 200, -200, 200); // values are in cm
-    //                       //  (xmin,xmax,ymin,ymax,zmin,zmax)
-    // run->SetField(fMagField);
-    // // --------------------------------------------------------------------
-
-    
-    
   // -----   Create PrimaryGenerator   --------------------------------------
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
     // // Add a box generator also to the run
-    // FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
-    // boxGen->SetPRange(20,20); // GeV/c
-    // boxGen->SetPhiRange(1., 5.); // Azimuth angle range [degree]
-    // boxGen->SetThetaRange(89., 90.); // Polar angle in lab system range [degree]
+    // FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 2212 = proton; 1 = multipl.
+    // boxGen->SetPRange(6,6); // GeV/c
+    // boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
+    // boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
     // boxGen->SetXYZ(0., 0., 0.); // cm
     // primGen->AddGenerator(boxGen);
 
@@ -79,20 +72,25 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
     // primGen->AddGenerator(parGen);
 
     // P-P elastic generator
+    // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("Background-micro.root");
     // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
-  KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(5);
+  KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(2.8);
     primGen->AddGenerator(ppGen);
 
     // Add filter
     KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
+    evtFilter->SetX(-100);
+    evtFilter->SetZRange(-10,40);
+    evtFilter->SetYRange(-10,10);
     primGen->AndFilter(evtFilter);
+    // primGen->AndNotFilter(evtFilter);
 
     run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
  
   //---Store the visualiztion info of the tracks, this make the output file very large!!
   //--- Use it only to display but not for production!
-  run->SetStoreTraj(kTRUE);
+  // run->SetStoreTraj(kTRUE);
 
     
     

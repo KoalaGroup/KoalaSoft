@@ -14,7 +14,7 @@ Bool_t KoaEvtFilterOnGeometry::EventMatches(Int_t evtNr)
   for(Int_t iPart=0; iPart < fParticleList->GetEntriesFast(); iPart++){
     TParticle* particle = (TParticle*)fParticleList->At(iPart);
     if(0 == particle) {continue;}
-    if(particle->Px() > 0){
+    if(( particle->Px()*fXDistance ) > 0){
       Y = fXDistance*(particle->Py()/particle->Px());
       Z = fXDistance*(particle->Pz()/particle->Px());
       if(!fUnlimitY && !fUnlimitZ){
