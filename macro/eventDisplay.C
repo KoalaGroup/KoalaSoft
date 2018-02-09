@@ -1,12 +1,12 @@
-eventDisplay()
+void eventDisplay()
 {
   //-----User Settings:-----------------------------------------------
-  TString  InputFile     ="test_filtered.root";
+  TString  InputFile     ="test.root";
   TString  ParFile       ="params.root";
   TString  GeoFile       ="geofile_full.root";
   TString  OutFile	 ="tst.root";
-    
-    
+
+
   // -----   Reconstruction run   -------------------------------------------
   FairRunAna *fRun= new FairRunAna();
   fRun->SetInputFile(InputFile.Data());
@@ -17,17 +17,17 @@ eventDisplay()
   FairParRootFileIo* parInput1 = new FairParRootFileIo();
   parInput1->open(ParFile.Data());
   rtdb->setFirstInput(parInput1);
-   
+
   FairEventManager *fMan= new FairEventManager();
-  
+
   //----------------------Traks and points -------------------------------------
   FairMCTracks    *Track     = new FairMCTracks("Monte-Carlo Tracks");
 //  FairMCPointDraw *TorinoDetectorPoints = new FairMCPointDraw("FairTestDetectorPoint", kRed, kFullSquare);
- 
+
   fMan->AddTask(Track);
 //  fMan->AddTask(TorinoDetectorPoints);
-  
-  
-  fMan->Init(1,4);                     
+
+
+  fMan->Init(1,4);
 
 }
