@@ -1,0 +1,63 @@
+* Repository
+Official Repository: https://github.com/KoalaGroup/KoalaSoft
+Official Repository(mirror): https://pandaatfair.githost.io/KoalaGroup/KoalaSoft
+
+Configure git to push to multiple remotes simultaneously:
+#+BEGIN_SRC sh
+git remote set-url --add --push origin https://github.com/KoalaGroup/KoalaSoft
+git remote set-url --add --push origin https://pandaatfair.githost.io/KoalaGroup/KoalaSoft
+#+END_SRC
+
+* Install
+
+** FairSoft
+Official Repository: https://github.com/FairRootGroup/FairSoft
+Installation is based on the guide on the official github repository.
+*** Dependencies
+Check the DEPENDECY file in the repository.
+Use OS's package manager to install external dependencies.
+
+*** FairSoft
+    1. checkout the desired branch/tag: 
+    #+BEGIN_SRC sh
+    git tag
+    git checkout -b desired_tag desired_tag
+    #+END_SRC
+    1. mkdir a new installation directory out of the src directory
+    2. change to the src directory, and run /configure.sh/
+    3. Set up the /SIMPATH/ environment variable to the install directory of FairSoft
+    
+** FairRoot
+Official Repository: https://github.com/FairRootGroup/FairRoot
+
+   1. make sure /SIMPATH/ is correctly set, which should point to FairSoft installation directory
+   2. mkdir a new installation directory out of the src directory
+   3. clone the repository and checkout the desired branch/tag
+    #+BEGIN_SRC sh
+    git tag
+    git checkout -b desired_tag desired_tag
+    #+END_SRC
+   4. mkdir a new build directory
+   5. change to build director[fn:1]y
+    #+BEGIN_SRC sh
+    cmake -DCMAKE_INSTALL_DIRECTORY=install_dir ..
+    #+END_SRC
+   6. make && make install
+   7. set up the /FAIRROOTPATH/ environment variable to the install directory of FairRoot
+
+
+** KoalaSoft
+   1. make sure both /SIMPATH/ and /FAIRROOTPATH/ have been setup correctly
+   2. clone the KoalaSoft repository
+   3. enter into source
+   4. enter build directory:
+      #+BEGIN_SRC sh
+      cmake ..
+      make -j8
+      #+END_SRC
+   5. source config.h under build directory before running any macros 
+
+* Footnotes
+
+[fn:1] Some version of FairRoot may require specific version of cmake, which the OS may not have installed. In this case, normally, you can use the version of cmake installed by FairSoft.
+       This practice also applies to project codes based on FairRoot.
