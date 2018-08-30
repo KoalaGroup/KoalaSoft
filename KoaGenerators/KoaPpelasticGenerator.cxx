@@ -48,7 +48,7 @@ void KoaPpelasticGeneratorImp::InitValue()
   Mn=0.938;
   //-----------------
   Pcms=0;
-  Ecms=0;
+  // Ecms=0;
   SqrtS=0;
   Vcms=0;
   Gamma=0;
@@ -79,7 +79,7 @@ void  KoaPpelasticGeneratorImp::Init(Double_t Plab, Double_t tetmin)
   lv += Pproj;
   S = lv.Mag2() ;
   SqrtS=sqrt(S);
-  Ecms=SqrtS/2.;
+  // Ecms=SqrtS/2.;
 
   TVector3 bst = lv.BoostVector();
   Pproj.Boost(-bst);
@@ -423,11 +423,11 @@ Double_t KoaPpelasticGeneratorImp::CalculateParticleBeta(Double_t  momentum )
 {
   Double_t mass = 0.938;
   Double_t Elab=sqrt(mass*mass+momentum*momentum);
-  Double_t S=2.*mass*mass + 2.*mass*Elab;
-  Double_t Ecms=sqrt(S)/2.;                 // Energy of projectile in CMS
-  Double_t Pcms=sqrt(Ecms*Ecms-mass*mass);  // Momentum of projectile in CMS
+  Double_t S_b=2.*mass*mass + 2.*mass*Elab;
+  Double_t Ecms_b=sqrt(S_b)/2.;                 // Energy of projectile in CMS
+  Double_t Pcms_b=sqrt(Ecms_b*Ecms_b-mass*mass);  // Momentum of projectile in CMS
 
-  fBeta=Pcms/Ecms;
+  fBeta=Pcms_b/Ecms_b;
 
   return fBeta;
 }

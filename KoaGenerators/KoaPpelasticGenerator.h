@@ -53,7 +53,7 @@ private:
   Double_t           cs_el;             //pp - XS_elastic 
   Double_t   Pcms;         // momentum of projectile in CMS system
   Double_t   S;            //  Energy in CMS system
-  Double_t   Ecms;         // Energy of 1 proton in CMS system
+  /* Double_t   Ecms;         // Energy of 1 proton in CMS system */
   Double_t SqrtS;         // sqrt of S
   Double_t Vcms;          // velosity in CMS system 
   Double_t Gamma;         // gamma factor in CMS system
