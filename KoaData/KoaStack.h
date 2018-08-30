@@ -48,7 +48,6 @@
 class TClonesArray;
 class TParticle;
 class TRefArray;
-class FairLogger;
 
 class KoaStack : public FairGenericStack
 {
@@ -203,9 +202,6 @@ class KoaStack : public FairGenericStack
 
 
   private:
-    /** FairLogger for debugging and info */
-    FairLogger* fLogger;
-
     /** STL stack (FILO) used to handle the TParticles for tracking **/
     std::stack<TParticle*>  fStack;           //!
 
