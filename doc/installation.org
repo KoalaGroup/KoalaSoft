@@ -55,7 +55,14 @@ Official Repository: https://github.com/FairRootGroup/FairRoot
       cmake ..
       make -j8
       #+END_SRC
-   5. source config.h under build directory before running any macros 
+   5. source /config.h/ under build directory before running any macros 
+
+** Running
+   All simulation are based on ROOT macros. These macros are stored under /macro/ directory. 
+   Right now, two macros are provided:
+   1. /run_sim.C/ will generate events covering the 4pi angle
+   2. /run_sim_filtered.C/ will add a event filter before passing the generated event to the geant engine.
+   Only events within the Recoil detector range will be simulated.
 
 ** Version recommendation
    Both FairSoft and FairRoot are built upon ROOT, Geant4 and the build tool cmake. 
