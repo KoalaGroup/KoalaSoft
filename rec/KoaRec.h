@@ -95,6 +95,7 @@ class KoaRec: public FairDetector
     TLorentzVector fPos;               //!  position at entrance
     TLorentzVector fPosEnd;            //!  position at end
     TLorentzVector fMom;               //!  momentum at entrance
+    TLorentzVector fMomOut;            //!  momentum
     Double32_t     fTime;              //!  time
     Double32_t     fLength;            //!  length
     Double32_t     fELoss;             //!  energy loss
