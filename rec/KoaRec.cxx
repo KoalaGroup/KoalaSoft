@@ -104,10 +104,15 @@ Bool_t  KoaRec::ProcessHits(FairVolume* vol)
        gMC->IsTrackStop()       ||
        gMC->IsTrackDisappeared()   ) {
     fTrackID  = gMC->GetStack()->GetCurrentTrackNumber();
+    
+    gMC->TrackPosition(fPosOut);
+    gMC->TrackMomentum(fMomOut);
+
     fVolumeID = vol->getMCid();
     if (fELoss == 0. ) { return kFALSE; }
     AddHit(fTrackID, fVolumeID, TVector3(fPos.X(),  fPos.Y(),  fPos.Z()),
-           TVector3(fMom.Px(), fMom.Py(), fMom.Pz()), fTime, fLength,
+           TVector3(fPosOut.X(),  fPosOut.Y(),  fPosOut.Z()),
+           TVector3(fMom.Px(), fMom.Py(), fMom.Pz()), TVector3(fMomOut.Px(), fMomOut.Py(), fMomOut.Pz()),fTime, fLength,
            fELoss);
 
     // Increment number of KoaRec det points in TParticle
@@ -219,13 +224,14 @@ void KoaRec::ConstructASCIIGeometry()
 }
 
 KoaRecPoint* KoaRec::AddHit(Int_t trackID, Int_t detID,
-                                      TVector3 pos, TVector3 mom,
+                                      TVector3 pos, TVector3 posOut,
+                            TVector3 mom, TVector3 momOut,
                                       Double_t time, Double_t length,
                                       Double_t eLoss)
 {
   TClonesArray& clref = *fKoaRecPointCollection;
   Int_t size = clref.GetEntriesFast();
-  return new(clref[size]) KoaRecPoint(trackID, detID, pos, mom,
+  return new(clref[size]) KoaRecPoint(trackID, detID, pos, posOut,mom, momOut,
          time, length, eLoss);
 }
 

@@ -63,7 +63,8 @@ class KoaRec: public FairDetector
      *       of type KoaRecPoint to the clones array
     */
     KoaRecPoint* AddHit(Int_t trackID, Int_t detID,
-                             TVector3 pos, TVector3 mom,
+                        TVector3 pos,TVector3 posOut,
+                        TVector3 mom, TVector3 momOut,
                              Double_t time, Double_t length,
                              Double_t eLoss);
 
@@ -91,7 +92,9 @@ class KoaRec: public FairDetector
     Int_t          fTrackID;           //!  track index
     Int_t          fVolumeID;          //!  volume id
     TLorentzVector fPos;               //!  position at entrance
+    TLorentzVector fPosOut;            //!  exit position in global frame
     TLorentzVector fMom;               //!  momentum at entrance
+    TLorentzVector fMomOut;            //!  momentum
     Double32_t     fTime;              //!  time
     Double32_t     fLength;            //!  length
     Double32_t     fELoss;             //!  energy loss
