@@ -20,6 +20,7 @@
 #include <TH2.h>
 #include <TGraph.h>
 #include <TPad.h>
+#include <TVector3.h>
 #endif
 
 #ifndef _ppelast_
@@ -111,9 +112,9 @@ PPElastic *pp = new PPElastic();
    TStopwatch timer;                        // time loop
    timer.Start();
 
+   TFile out(fname,"recreate","ROOT_Tree",9);
 pp->Run(Plab, n, tetmin);
 TTree* fTree = pp->GetTree(); 
-TFile out(fname,"recreate","ROOT_Tree",9);
 
    if(fTree) fTree->Write();
    out.Close();
@@ -544,7 +545,7 @@ return fBeta ;
  
    if (fnt == 0) {
       fnt =  new TTree("data","elasticPP");
- fnt->SetDirectory(0); 
+// fnt->SetDirectory(0); 
    }
   
  TClonesArray* fEvt;

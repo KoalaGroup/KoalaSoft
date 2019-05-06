@@ -40,19 +40,20 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   FairModule* pipe = new KoaPipe("Pipe");
   /* if not geometry file is specified, the default one will be used.
    */
-  // pipe->SetGeometryFileName("pipe_simple.root");
-  // run->AddModule(pipe);
+  //pipe->SetGeometryFileName("pipe_simple.root");
+  run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
-  rec_det->SetGeometryFileName("rec.root");
-  // rec_det->SetGeometryFileName("rec_withChamber.root");
+  //rec_det->SetGeometryFileName("rec.root");
+  rec_det->SetGeometryFileName("rec_withChamber.root");
   // rec_det->SetGeometryFileName("rec.geo");
   run->AddModule(rec_det);
 
   FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
   // fwd_det->SetGeometryFileName("fwd.root");
-  fwd_det->SetGeometryFileName("fwd_withMonitor.root");
+ // fwd_det->SetGeometryFileName("fwd_withMonitor.root");
   // fwd_det->SetGeometryFileName("fwd_withMonitor_withChamber.root");
+  fwd_det->SetGeometryFileName("fwd_withMonitor_withChamber_withExtras.root");
   run->AddModule(fwd_det);
 
 // ------------------------------------------------------------------------
@@ -85,8 +86,8 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
     // primGen->AddGenerator(parGen);
 
     // P-P elastic generator
-    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
-  // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(5);
+//    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
+    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(5);
     primGen->AddGenerator(ppGen);
 
     run->SetGenerator(primGen);
