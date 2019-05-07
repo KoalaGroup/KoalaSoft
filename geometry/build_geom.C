@@ -31,14 +31,46 @@
 
 // some global variables
 TGeoManager* gGeoMan = NULL;  // Pointer to TGeoManager instance
+Double_t cave_size[3]={20000,20000,20000};
 
 // Forward declarations
 void create_materials_from_media_file();
 
 // build function for RecArm, default output file is rec.root
+// ** List of Volumes **
+// - Chamber ("RecArm_Chamber", polycone) : a CompositeShape, only with the recoil chmaber's wall
+// - ChamberVacuum ("RecArm_Vacuum", ploycone) : the vacuum space inside the recoil chamber
+// - Si1, Si2, Ge1, Ge2 ("Sensor_Si1", "Sensor_Si2", "Sensor_Ge1", "Sensor_Ge2", box) : the four recoil block sensors
+// - DetectorAssembly ("RecArm_Detectors", assembly) : a collection of all 4 sensors
+// - RecArm ("RecArm", assembly) : a collection of ChamberVaccum and Chamber (DetectorAssembly is put inside ChamberVacuum)
+// - Top ("top", box) : the same dimension as the cave in KoalaSoft (RecArm is finally put in the Top volume lazily, i.e. no translation and rotation)
+//
+// ** The procedure of building RecArm **
+// 1) read the KoalaSoft's standard media file, then build and get the TGeoMedium needed in recoil detector
+// 2) build the top volume
+// 3) build the RecArm_Chamber and RecArm_Vacuum volume
+//    * consisting of the adapter and the main recoil_chamber
+//    * the reference dimension are for the vacuum space, the chamber dimension is then deduced based on the vacuum dimension and the wall thickness
+//    * the final chamber shape is built by substracting the vacuum space from the bulk chamber, i.e. only the chamber wall left
+// 4) build the sensor assembly
+// 5) place the sensor assembly into the RecArm_Vacuum
+// 6) add the RecArm_Vacuum [and the RecArm_Chamber] into the RecArm assembly
+// 7) add the the RecArm assembly into the top volume
+// 8) check overlap
+
+// ** List of parameters that steers the whole alignment [cm] **
+// - si1/si2/ge1/ge2_vertical_offset : the vertical alignment of each sensor
+// - si1si2_overlap_offset : small offset added to the nominal value
+// - si2ge1_overlap_offset : small offset added to the nominal value
+// - ge1ge2_overlap_offset : small offset added to the nominal value
+// - ip_offset : the offset of the sensor assembly to align to the interaction point
+// - ip_distance : the distance of the sensor assembly to the interaction point
+// - chamber_center_offset : the offset of the chamber center axis to the interaction point
 void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
   TStopwatch timer;
   timer.Start();
+
+  /////// Step 1: get all the medium material used in RecArm //////
   // Load needed material definition from media.geo file
   create_materials_from_media_file();
 
@@ -54,46 +86,56 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
   TGeoMedium* GeVolMed   = gGeoMan->GetMedium("germanium");
   TGeoMedium* ChamberVolMed = gGeoMan->GetMedium("Aluminum");
 
-  // Create the top volume
-  // Cave is exactly the same as the KoaCave
-  TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed,20000., 20000.,20000.);
+  //// Step 2: the top volume //////
+  // Cave is exactly the same as the KoaCave in KoalaSoft
+  TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed,cave_size[0], cave_size[1], cave_size[2]);
   gGeoMan->SetTopVolume(top);
 
-  // Chamber:
-  Double_t target_chamber_x = 30./2;
-  Double_t chamber_thickness = 0.5;
-  Double_t adapter_z = 40. - target_chamber_x;
-  Double_t adapter_r = 20./2;
-  Double_t chamber_z = 95.;
-  Double_t chamber_r = 45./2;
-  Double_t rec_center_offset = 5.;
+  //// Step 3: the chamber & its associated vacuum volume ////
+  // Chamber consists of two cylinder part: the adapter and the main recoil chamber.
+  // The dimesions are:
+  Double_t wall_thickness = 0.5; // thickness of the chamber wall [cm], it should be the same as the wall thickness in KoaPipe
+  Double_t adapter_z = 25; // length of the adapter (vacuum space) [cm]
+  Double_t adapter_r = 10; // radius of the adpater (vacuum space) [cm]
+  Double_t recoil_chamber_z = 95; // length of the main recoil chamber (vacuum space) [cm]
+  Double_t recoil_chamber_r = 45./2; // radius of the main recoil chamber (vacuum space) [cm]
+  Double_t half_z = (adapter_z+recoil_chamber_z)/2; // half of total length of the chamber
 
+
+  // build the Polycone (adapter + recoil_chamber can be represented in one polycone, thus build in one step)
+  // The reference dimension defined above is used for the vacuum space
+  // For the chamber volume, the dimensions are deduced from the reference dimensions plus the wall thickness
+  // The origin is the center of the polycone, the axis of the ploycone is aligned with the z-axis
+  // The adapter cylinder is the lower z-axis, and the recoil_chmaber cylinder is the higher z-axis
+
+  // the chamber vaccum shape
   Int_t nSects = 4;
-  Double_t half_z = (135-target_chamber_x)/2;
-  Double_t z_chamber[] = {-half_z+chamber_thickness, -half_z+adapter_z-chamber_thickness, -half_z+adapter_z-chamber_thickness, -half_z+adapter_z+chamber_z+chamber_thickness};    // in cm
-  Double_t r_chamber[] = {adapter_r,adapter_r,chamber_r,chamber_r};    // in cm
-  TGeoPcon* shape_chamber = new TGeoPcon("shape_chamber", 0., 360., nSects);
-  for (Int_t iSect = 0; iSect < nSects; iSect++) {
-    shape_chamber->DefineSection(iSect, z_chamber[iSect], 0, r_chamber[iSect]+chamber_thickness);
-  }
-
-  Double_t z_vchamber[] = {-half_z, -half_z+adapter_z, -half_z+adapter_z, -half_z+adapter_z+chamber_z};    // in cm
+  Double_t r_vchamber[] = {adapter_r,adapter_r,recoil_chamber_r,recoil_chamber_r};    // in cm
+  Double_t z_vchamber[] = {-half_z, -half_z+adapter_z, -half_z+adapter_z, -half_z+adapter_z+recoil_chamber_z};
   TGeoPcon* shape_vchamber = new TGeoPcon("shape_vchamber", 0., 360., nSects);
   for (Int_t iSect = 0; iSect < nSects; iSect++) {
-    shape_vchamber->DefineSection(iSect, z_vchamber[iSect], 0, r_chamber[iSect]);
+    shape_vchamber->DefineSection(iSect, z_vchamber[iSect], 0, r_vchamber[iSect]);
   }
-
+  // the bulk chamber shape
+  Double_t z_chamber[] = {-half_z+wall_thickness, -half_z+adapter_z-wall_thickness, -half_z+adapter_z-wall_thickness, -half_z+adapter_z+recoil_chamber_z+wall_thickness};    // in cm
+  TGeoPcon* shape_chamber = new TGeoPcon("shape_chamber", 0., 360., nSects);
+  for (Int_t iSect = 0; iSect < nSects; iSect++) {
+    shape_chamber->DefineSection(iSect, z_chamber[iSect], 0, r_vchamber[iSect]+wall_thickness);
+  }
+  // the final chamber shape
+  // Substract the vacuum from the chamber inner space to get the final chamber shape
   TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber","shape_chamber-shape_vchamber");
+  // Build the RecArm_Vaccum and RecArm_Chamber volume
   TGeoVolume* ChamberVacuum = new TGeoVolume("RecArm_Vacuum", shape_vchamber, VacuumVolMed);
   TGeoVolume* Chamber = new TGeoVolume("RecArm_Chamber", cs_chamber, ChamberVolMed);
   Chamber->SetLineColor(16);
   Chamber->SetTransparency(60);
 
-  // Detectors: Dimensions of the detecors (x,y,z), unit: cm
-  Double_t si_size[3]={0.1/2,5./2,7.68/2};// 64ch, 76.8mm x 50mm x 1mm
-  Double_t ge1_size[3]={0.5/2,5.0/2,8.04/2};// 67ch, 80.4mm x 50mm x 5mm
-  Double_t ge2_size[3]={1.1/2,5.0/2,8.04/2};// 67ch, 80.4mm x 50mm x 11mm
-  Double_t envelop[3]={2.5/2,14.65/2,29.9/2};// envelop based on technical drawing
+  //// Step 4: build the sensor assembly ////
+  // Sensor dimensions [x,y,z]=[thickness,width,lenth] unit: cm
+  Double_t si_size[3]={0.1/2,5./2,7.68/2};//  76.8mm x 50mm x 1mm
+  Double_t ge1_size[3]={0.5/2,5.0/2,8.04/2};//  80.4mm x 50mm x 5mm
+  Double_t ge2_size[3]={1.1/2,5.0/2,8.04/2};//  80.4mm x 50mm x 11mm
   TGeoVolume* Si1 = gGeoMan->MakeBox("SensorSi1", SiVolMed, si_size[0],si_size[1],si_size[2]);
   Si1->SetLineColor(38); // set line color 
   // Si1->SetTransparency(70); // set transparency 
@@ -107,59 +149,81 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
   Ge2->SetLineColor(34); // set line color 
   // Ge2->SetTransparency(70); // set transparency 
 
-  // Placement
-  Double_t si1_align[3]={0.1/2,0.575+0.1+5./2,-29.9/2+1.66+7.68/2};
-  Double_t si2_align[3]={0.1/2,-0.575-0.1-5./2,-29.9/2+1.66+7.68/2+5.28};
-  Double_t ge1_align[3]={0.5/2,0.575+0.1+5./2,-29.9/2+1.66+8.04/2+5.28+7.68-1.08};
-  Double_t ge2_align[3]={1.1/2,-0.575-0.1-5./2,-29.9/2+1.66+8.04/2+5.28+7.68-1.08-1.2+8.04};
+  // Placement of the sensors:
+  // * Alignment along the z-axis, from -z->z: Si1(+y), Si2(-y), Ge1(+y), Ge2(-y)
+  // * The edge of Si1 in coincidence with y axis
+  // * The flat plane of the sensor assembly (the side which will face the interaction point) face towards -x
+  Double_t si1_vertical_offset = 1.35/2; // distance between each sensor's edge to the middle line [cm]
+  Double_t si2_vertical_offset = 1.35/2;
+  Double_t ge1_vertical_offset = 1.35/2;
+  Double_t ge2_vertical_offset = 1.35/2;
+  Double_t si1si2_overlap_offset = -0.03; // [cm]
+  Double_t si2ge1_overlap_offset = -0.035; // [cm]
+  Double_t ge1ge2_overlap_offset = 0.02; // [cm]
+  Double_t si1si2_overlap = 2.4 + si1si2_overlap_offset; // overlap between Si1 & Si2, 2.4 is the nominal value [cm]
+  Double_t si2ge1_overlap = 1.08 + si2ge1_overlap_offset; // overlap between Si2 & Ge1, 1.08 is the nominal value [cm]
+  Double_t ge1ge2_overlap = 1.2 + ge1ge2_overlap_offset; // overlap between Ge1 & Ge2, 1.2 is the nominal value [cm]
 
+  Double_t si1_align[3]={si_size[0],si1_vertical_offset+si_size[1], si_size[2]};
+  Double_t si2_align[3]={si_size[0], -si2_vertical_offset-si_size[1], si_size[2]*3-si1si2_overlap};
+  Double_t ge1_align[3]={ge1_size[0], ge1_vertical_offset+ge1_size[1], si_size[2]*4+ge1_size[2]-si1si2_overlap-si2ge1_overlap};
+  Double_t ge2_align[3]={ge2_size[0], -ge2_vertical_offset-ge2_size[1], si_size[2]*4+ge1_size[2]*2+ge2_size[2]-si1si2_overlap-si2ge1_overlap-ge1ge2_overlap};
   TGeoTranslation *trans_si1=new TGeoTranslation(si1_align[0],si1_align[1],si1_align[2]);
   TGeoTranslation *trans_si2=new TGeoTranslation(si2_align[0],si2_align[1],si2_align[2]);
   TGeoTranslation *trans_ge1=new TGeoTranslation(ge1_align[0],ge1_align[1],ge1_align[2]);
   TGeoTranslation *trans_ge2=new TGeoTranslation(ge2_align[0],ge2_align[1],ge2_align[2]);
 
-  // alternative way: assemblyvolume
   TGeoVolumeAssembly* DetectorAssembly = new TGeoVolumeAssembly("RecArm_Detectors");
   DetectorAssembly->AddNode(Si1, 1, trans_si1);
   DetectorAssembly->AddNode(Si2, 1, trans_si2);
   DetectorAssembly->AddNode(Ge1, 1, trans_ge1);
   DetectorAssembly->AddNode(Ge2, 1, trans_ge2);
 
-  // Align
-  // RecArm in +x direction
-  Double_t z_offset=29.9/2-1.66-0.12*22;//22 strips offset
-  Double_t x_offset=100.;
+  /// Step 5:  place the sensor assembly into the chamber vacuum ///
+  Double_t ip_offset=0.12*22;// the interaction point has 22 strips offset [cm]
+  Double_t ip_distance=101.096; //  distance of the sensor place to the interaction point [cm]
+  Double_t chamber_center_offset = 5.; // the axis of the recoil chamber is placed with 5 cm displacement towards the downstream of the beam line, so that the interaction point is aligned with this displaced center instead of the original axis. Thus, the sensor assembly should also be aligned to this displaced center, i.e. the interaction point.
 
-  Double_t chamber_offset_x = (adapter_z+chamber_z)/2 + target_chamber_x ;
-  Double_t chamber_offset_z = rec_center_offset;
-  Double_t detector_offset_z = x_offset - chamber_offset_x;
-  Double_t detector_offset_x = chamber_offset_z - z_offset;
-  TGeoRotation *rot_chamber=new TGeoRotation("rot_chamber",180,90,90,270,90,180);
+  Double_t target_chamber_r = 30./2; // radius of the target chamber cylinder, used to place  [cm]
+  Double_t chamber_offset_x = (adapter_z+recoil_chamber_z)/2 + target_chamber_r ;
+  Double_t chamber_offset_z = chamber_center_offset;
+  Double_t detector_offset_z = ip_distance - chamber_offset_x; // offset of sensor assembly along z-axis (-x in the final position) in the chamber vacuum
+  Double_t detector_offset_x = chamber_offset_z + ip_offset; // offset of sensor assembly along x-axis (z in the final poistion) in the chamber vacuum
+  
+  // Roatate the sensor assembly against the Y-axis in 90 degree
   TGeoRotation *rot_detector=new TGeoRotation("rot_detector",0,90,90,90,90,180);
-  TGeoCombiTrans* ct_chamber=new TGeoCombiTrans("ct_chamber", -chamber_offset_x,0,chamber_offset_z,rot_chamber);
   TGeoCombiTrans* ct_detector=new TGeoCombiTrans("ct_detector", detector_offset_x,0,detector_offset_z,rot_detector);
-  ct_chamber->RegisterYourself();
   ct_detector->RegisterYourself();
 
-  // add to world
   ChamberVacuum->AddNode(DetectorAssembly, 1, ct_detector);
+
+  /// Step 6: add the RecArm_Vacuum and RecArm_Chamber into the RecArm assembly
+  // the alignment here is already the final position in the setup of the cave
+  // * Rotate against Y-axis in 90 degree first, so that the chamber is located in the -x direction
+  // * Then rotate against the X-axis in 180 degree to turn the sensors up side down
+  TGeoRotation *rot_chamber=new TGeoRotation("rot_chamber",180,90,90,270,90,180);
+  TGeoCombiTrans* ct_chamber=new TGeoCombiTrans("ct_chamber", -chamber_offset_x,0,chamber_offset_z,rot_chamber);
+  ct_chamber->RegisterYourself();
 
   TGeoVolumeAssembly* RecArm = new TGeoVolumeAssembly("RecArm");
   RecArm->AddNode(ChamberVacuum, 1, ct_chamber);
   if(WithChamber){
     RecArm->AddNode(Chamber, 1, ct_chamber);
   }
+
+  /// Step 7: add the RecArm in the top volume
   top->AddNode(RecArm, 1);
-  //
 
   cout<<"Voxelizing."<<endl;
   top->Voxelize("");
   gGeoMan->CloseGeometry();
 
+  /// Step 8: check overlap ///
   gGeoMan->CheckOverlaps(0.001);
   gGeoMan->PrintOverlaps();
   gGeoMan->Test();
 
+  /// write to the output file ///
   TFile* outfile = TFile::Open(FileName,"RECREATE");
   top->Write();
   outfile->Close();
@@ -200,6 +264,8 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
 void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t WithChamber=true, Bool_t WithExtra=false) {
   TStopwatch timer;
   timer.Start();
+
+  /////// Step 1: get all the medium material used in RecArm //////
   // Load needed material definition from media.geo file
   create_materials_from_media_file();
 
@@ -214,17 +280,17 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t Wit
   TGeoMedium* VacuumVolMed = gGeoMan->GetMedium("vacuum");
   TGeoMedium* ChamberVolMed = gGeoMan->GetMedium("Aluminum");
 
-  // Create the top volume
+  //// Step 2: the top volume //////
   // Cave is exactly the same as the KoaCave
-  TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed,20000., 20000.,20000.);
+  TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed, cave_size[0], cave_size[1], cave_size[2]);
   gGeoMan->SetTopVolume(top);
 
   // Fwd-chamber: unit: cm
-  Double_t chamber_x, chamber_y, chamber_z, chamber_thickness;
+  Double_t chamber_x, chamber_y, chamber_z, wall_thickness;
   chamber_x = 50./2; // to be defined
   chamber_y = 40./2;// to be defined
   chamber_z = 90./2; // to be defined 
-  chamber_thickness = 0.5; // to be defined 
+  wall_thickness = 0.5; // to be defined 
 
   // Substracted shape: Cone + EndPipe
   // a bit longer than actual size
@@ -241,7 +307,7 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t Wit
 
   // Chamber shape:
   TGeoBBox* shape_chamber = new TGeoBBox("shape_chamber", chamber_x, chamber_y, chamber_z);
-  TGeoBBox* shape_vacuum  = new TGeoBBox("shape_vacuum", chamber_x-chamber_thickness, chamber_y-chamber_thickness, chamber_z-chamber_thickness);
+  TGeoBBox* shape_vacuum  = new TGeoBBox("shape_vacuum", chamber_x-wall_thickness, chamber_y-wall_thickness, chamber_z-wall_thickness);
 
   TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber", "shape_chamber-shape_sub-shape_vacuum");
   TGeoCompositeShape* cs_vacuum = new TGeoCompositeShape("cs_vacuum", "shape_vacuum-shape_sub");

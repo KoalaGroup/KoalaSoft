@@ -57,3 +57,32 @@ void checkPoints(const char* filename)
   TCanvas* clowEPosDist= new TCanvas("clowEPosDist");
   h2lowRec->Draw("colz");
 }
+
+void checkRecSize(const char* filename)
+{
+  TH2D* h2Rec=new TH2D("h2Rec","h2Rec",400,-10,30,200,-7.5,7.5);
+  auto f=new TFile(filename);
+
+  TTree* tree = (TTree*)f->Get("cbmsim");
+  TClonesArray* RecPoints = new TClonesArray("KoaRecPoint");
+  tree->SetBranchAddress("KoaRecPoint",&RecPoints);
+
+  Int_t entries = tree->GetEntries();
+  for(int id=0;id<entries;id++){
+    tree->GetEntry(id);
+    //
+    Int_t recHits = RecPoints->GetEntriesFast();
+
+    if(recHits>0){
+      for(int i=0;i<recHits;i++){
+        KoaRecPoint* recpoint = (KoaRecPoint*)RecPoints->At(i);
+        h2Rec->Fill(recpoint->GetZ(),recpoint->GetY());
+      }
+    }
+  }
+
+  delete f;
+  gStyle->SetOptStat(111111);
+  TCanvas* crec = new TCanvas("crec");
+  h2Rec->Draw("colz");
+}

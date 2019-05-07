@@ -5,8 +5,8 @@
     Pipe: hardcoded in KoaPipe, constructed using TGeo methods directly, type: Polycone(TGeoPcon), material: C+Vacuum,
           Size: length is from [-10m,30m] inner radius is 2.5cm thickness is 0.05cm, related class: KoaPipe
     Magnet: hardcoded in KoaMagnet as KoaPipe (Because Koala do not have magnet, thus this module should not be added in simulaion)
-*** Intial edition
-**** Recoil detector
+*** Intial edition (from the design schematics)
+**** Recoil detector 
 **** Forward detector
 *** Raw edition
 **** Recoil detector
@@ -14,7 +14,35 @@
 *** Fine edition
 **** Recoil detector
 **** Forward detector
+* Version history
+** Before 07.05.2019
+*** Recoil Detector
+   - si1/si2/ge1/ge2_vertical_offset : 1.35/2 cm
+   - si1si2_overlap_offset : 0 cm
+   - si2ge1_overlap_offset : 0 cm
+   - ge1ge2_overlap_offset : 0 cm
+   - ip_offset : 0.12*22 cm
+   - ip_distance : 100 cm
+   - chamber_center_offset : 5 cm
+*** TODO Fwd Detector 
+    - fwd_x : 12/2 cm
+    - fwd_y : 6/2 cm
+    - fwd_z : 2/2 cm
+    - Distance to IP : ~ 500cm [TODO]
 
+** More accurate parameters for beam test 2013/2015
+*** Recoil Detector
+   - si1/si2/ge1/ge2_vertical_offset : 1.35/2 cm
+   - si1si2_overlap_offset : -0.03 cm
+   - si2ge1_overlap_offset : -0.035 cm
+   - ge1ge2_overlap_offset : 0.02 cm
+   - ip_offset : 0.12*22 cm
+   - ip_distance : 101.096 cm
+   - chamber_center_offset : 5 cm
 
-
-
+*** TODO Fwd Detector [same as the previous]
+    - fwd_x : 12/2 cm
+    - fwd_y : 6/2 cm
+    - fwd_z : 2/2 cm
+    - Distance to IP : ~ 500cm [TODO]
+  
