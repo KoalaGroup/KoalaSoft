@@ -39,6 +39,9 @@
    - ip_offset : 0.12*22 cm
    - ip_distance : 101.096 cm
    - chamber_center_offset : 5 cm
+   
+   Verification of the sensor dimenstion and position:
+   [[file:rec_dimension_verification.pdf][Hit distribution in the recoil sensors using isotropically distributed particle source]]
 
 *** TODO Fwd Detector [same as the previous]
     - fwd_x : 12/2 cm
@@ -46,3 +49,4 @@
     - fwd_z : 2/2 cm
     - Distance to IP : ~ 500cm [TODO]
   
+* Anatomy of 
