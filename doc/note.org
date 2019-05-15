@@ -49,4 +49,99 @@
     - fwd_z : 2/2 cm
     - Distance to IP : ~ 500cm [TODO]
   
-* Anatomy of 
+* Anatomy of FairRoot framework
+** Running environment
+*** Common
+*** MC Simulation
+    MC Simulation is based on ROOT VMC package. VMC aims to provide a common interface to various MC engines.
+    Currently, only the interfaces of Geant3 and Geant4 are implemented.
+    
+**** Key classes in VMC
+*****  TVirtualMC
+       TVirtualMC is the interface (encapulate all the internals) to a specific MC engine.
+       Each MC engine should provide a class inheriting TVirtualMC. Normally, they are provided by the MC engine providers.
+       For Geant3/Geant4, they are provided in /geant3/ and /geant4_vmc/ packages respectively, with the class name *TGeant3* and *TGeant4*.
+       User do not need to write his own version of *TVirtualMC* inherited class. It is the responsibility of the MC engine developper.
+       
+       It is a singleton (thread local). And it keeps an reference to gMCApplication.
+
+*****  TVirtualMCApplication
+      User-defined interface class to MC engine. It is a mandatory class, i.e. the user (framework developper)  must implement this class
+      according to his needs. In FairRoot, this class is *FairMCApplication*. It contains necessary hooks which will be called by MC engine
+      in the simulation. In this sense, it acts as an interface to the underlying MC engine. The hooks can be divided into three categories:
+      1. Hooks have to be implemented by the user, like /ConstructGeometry/, /InitGeometry/, /GeneratePrimaries/, /BeginEvent/, /BeginPrimary/,
+         /PreTrack/, /Stepping/, /PostTrack/, /FinishPrimary/, /FinishEvent/
+      2. Hooks with default implementation. Depending on the customization level of user's simulation needs, these hooks can also be overloaded
+         by the user, like: /MisalignGeometry/, /ConstructOpGeometry/, /ConstructSensitiveDetectors/, /AddParticles/, /AddIons/, /TrackingRmax/
+         /TrackingZmax/ etc.
+      3. Hooks related to the multi-thread simulation, like /InitOnWorker/, /BeginRunOnWorker/, /FinishRunOnWorker/, /Merge/.
+      
+      Before a user can instantiate an MC engine, an object from *TVirtualMCApplication* needs to be present.
+****** FairMCApplication
+       Interface from application developper to the framework internals.
+
+****** FairRunSim
+       Interface to *FairMCApplication*, used by the end user directly. Organize the invoking of the functions in *FairMCApplication* to provide
+       the end user a more friedly interface.
+       All running configuration interface is implemented in this class.
+       End-user can control the simulation through the interface provided by this class.
+       
+******* List of functions for configuration and steering:
+******** Configuration:
+         - SetUserConfig --> change member /fUserConfig/, the name of the macro for geant configuration
+         - SetUserCuts   --> change member /fUserCuts/, the name of the macro for geant cuts
+         - SetUserDecay  --> change member /fUserDecay/, the switch flag of using user decay model or the default pythia decay model;
+                             also change member /fUserDecayConfig/ , the name of the macro for decay configuration
+         - AddModule     --> change member /ListOfModules/, the list of geometry setup
+         - SetField      --> change member /fField/, the magnet field
+         - SetGenerator  --> change member /fGen/, the primary generator
+         - SetBeamMom    --> change member /fUseBeamMom/ and /fBeamMom/, the flag and the beam energy value
+         - SetIsMT       --> change member /fIsMT/, MT mode option (G4 only)
+         - SetSimSetup   --> change member /fSimSetup/, A user provided function to do simulation configuration instead of using macro
+                             and the flag /fUseSimSetupFunction/
+
+         - SetMaterials
+         - SetGeoModel
+          
+         - AddNewIon
+         - AddNewParticle
+         - SetPythiaDecayer
+         - SetRadLenRegister
+         - SetRadMapRegister
+         - SetRadGridRegister
+         - SetStoreTraj
+         - SetTrackingDebugMode
+         - AddMesh
+
+******** Steering
+         - Init
+         - Run
+         - StopMCRun
+
+***** TVirtualMCStack 
+***** TVirtualMCDecayer
+***** TVitrualMCSensitiveDetector
+
+**** Running environment
+     *VMCWORKDIR* is the working directory for VMC. The default is the source directory of the application, like /KoalaSoft/.
+     The default value is set by the /config.sh/ script under build directory.
+     *VMCWORKDIR* should contain a subdirectory called /gconfig/, which contains all the macros which may be used for user
+     defined configuration.
+
+**** Workflow
+     1. New *FairMCApplication* (through *FairRunSim*)
+     2. New *TG3/4RunConfiguration* (through the default /g3/4Config.C/ macro)
+     3. New *TGeant3/4* (through the default /g3/4Config.C/ macro)
+
+**** User defined configuration
+     Two ways of passing user's configuration: macros or functions
+     Macros:
+     - g3/4Config.C (Config())
+       1. RunConiguration
+       2. TGeant3/4
+       3. Stack
+       
+     - SetCuts.C (SetCuts())
+
+     Functions
+*** Recontruction & Analysis & Other Tasks
