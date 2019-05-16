@@ -1,33 +1,21 @@
 # The name of our project is “KOALA”.  CMakeLists files in this project can
-# refer to the root source directory of the project as ${KOALA_SOURCE_DIR} 
-# or as ${CMAKE_SOURCE_DIR} and to the root binary directory of the project as 
+# refer to the root source directory of the project as ${KOALA_SOURCE_DIR}
+# or as ${CMAKE_SOURCE_DIR} and to the root binary directory of the project as
 # ${KOALA_BINARY_DIR} or ${CMAKE_BINARY_DIR}.
 # This difference is important for the base classes which are in FAIRROOT 
 # and the experiment part.
 
 # Check if cmake has the required version
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.2 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0 FATAL_ERROR)
 
-### CMP0025   Compiler id for Apple Clang is now AppleClang.
-### CMP0042   MACOSX_RPATH is enabled by default.
-
-foreach(p
-  CMP0025 # CMake 3.0
-  CMP0042 # CMake 3.0
-  )
-  if(POLICY ${p})
-  cmake_policy(SET ${p} NEW)
-  endif()
-endforeach()
-
-
+# Version number of KoalaSoft
+set(KOALASOFT_MAJOR_VERSION 0)
+set(KOALASOFT_MINOR_VERSION 1)
+set(KOALASOFT_PATCH_VERSION 0)
 
 # Set name of our project to KOALASOFT. Has to be done
-# after check of cmake version since this is a new feature                  
-project(KOALASOFT)
-
-#In case you need Fortran 
-#ENABLE_LANGUAGE(Fortran)
+# after check of cmake version since this is a new feature
+project(KOALASOFT VERSION ${KOALASOFT_MAJOR_VERSION}.${KOALASOFT_MINOR_VERSION}.${KOALASOFT_PATCH_VERSION})
 
 # Check for needed environment variables
 IF(NOT DEFINED ENV{FAIRROOTPATH})
@@ -47,8 +35,26 @@ set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules"  ${CMAKE_MO
 set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules_old"  ${CMAKE_MODULE_PATH})
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${CMAKE_MODULE_PATH})
 
-Set(CheckSrcDir "${FAIRROOTPATH}/share/fairbase/cmake/checks")
 
+# where to look for cmake package config files
+if(SIMPATH)
+  set(CMAKE_PREFIX_PATH ${SIMPATH} ${CMAKE_PREFIX_PATH})
+endif()
+
+# check c++11 support of compiler
+Set(CheckSrcDir "${FAIRROOTPATH}/share/fairbase/cmake/checks")
+include(CheckCXX11Features)
+include(CheckSymbolExists)
+
+If(NOT _HAS_CXX11_FLAG)
+  Message(FATAL_ERROR "The used C++ compiler (${CMAKE_CXX_COMPILER}) does not support C++11. CbmRoot can only be compiled with compilers supporting C++11. Please install such a compiler.")
+EndIf()
+
+# set cmake policies
+include(FairRootCmakePolicies)
+set_fairroot_cmake_policies()
+
+# find FairRoot
 find_package(FairRoot)
 
 # Load some basic macros which are needed later on
@@ -56,7 +62,6 @@ include(FairMacros)
 include(WriteConfigFile)
 include(CTest)
 include(CheckCompiler)
-#include(CheckFortran)
 
 #Check the compiler and set the compile and link flags
 If(NOT CMAKE_BUILD_TYPE)
@@ -95,22 +100,24 @@ IF(NOT UNIX)
 ENDIF(NOT UNIX)  
 
 # Check if the external packages are installed into a separate install
-# directory
+# directory, i.e whether FairSoft is installed or not
 CHECK_EXTERNAL_PACKAGE_INSTALL_DIR()
 
 # searches for needed packages
 # REQUIRED means that cmake will stop if this packages are not found
 # For example the framework can run without GEANT4, but ROOT is
 # mandatory
-
-find_package(ROOT 5.32.00 REQUIRED)
-find_package(Pythia8)
-find_package(Pythia6 REQUIRED)
-find_package(GEANT3)
-find_package(GEANT4)
-find_package(GEANT4DATA)
-find_package(GEANT4VMC)
-#find_package(CLHEP)
+# some packages' cmake configuration file (the module method of find_package) are provided by FairRoot such as: ROOT, Pythia6/8, HEPMC
+# others are provided through the config method of find_package by FairSoft such as: FairLogger, Geant3, Geant4, VGM, Geant4MC
+find_package2(PUBLIC ROOT  VERSION 6.10.00  REQUIRED)
+find_package2(PUBLIC FairLogger  VERSION 1.2.0 REQUIRED)
+find_package2(PUBLIC Pythia6)
+find_package2(PUBLIC Pythia8)
+find_package2(PUBLIC Geant3)
+find_package2(PUBLIC Geant4)
+#find_package2(PUBLIC GEANT4DATA)
+Find_Package2(PUBLIC VGM)
+find_package2(PUBLIC Geant4VMC)
 find_package(HEPMC)
 
 Set(Boost_NO_SYSTEM_PATHS TRUE)
@@ -122,15 +129,15 @@ Else(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
   set(BOOST_ROOT ${SIMPATH}/basics/boost)
   set(GSL_DIR ${SIMPATH}/basics/gsl)
 EndIf(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
-Message("-- Looking for Boost ...")
-# If an older version of boost is found both of the variables below are
-# cached and in a second cmake run, a good boost version is found even 
-# if the version is to old. 
-# To overcome this problem both variables are cleared before checking
-# for boost.
+
 Unset(Boost_INCLUDE_DIR CACHE)
 Unset(Boost_LIBRARY_DIRS CACHE)
-find_package(Boost 1.41)
+
+find_package2(PUBLIC Boost
+  VERSION 1.67 ${FairMQ_Boost_VERSION}
+  COMPONENTS thread system timer program_options random filesystem chrono exception regex serialization log log_setup atomic date_time signals ${FairMQ_Boost_COMPONENTS}
+)
+
 If (Boost_FOUND)
   Set(Boost_Avail 1)
 Else (Boost_FOUND)
@@ -146,11 +153,22 @@ SET(FAIRROOT_MAJOR_VERSION 0)
 SET(FAIRROOT_MINOR_VERSION 0)
 SET(FAIRROOT_PATCH_VERSION 0)
 SET(FAIRROOT_VERSION "${FAIRROOT_MAJOR_VERSION}.${FAIRROOT_MINOR_VERSION}.${FAIRROOT_PATCH_VERSION}")
-SET(FAIRROOT_LIBRARY_PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES}
-    VERSION "${FAIRROOT_VERSION}"
-    SOVERSION "${FAIRROOT_MAJOR_VERSION}"
-    SUFFIX ".so"
-)
+
+If(ROOT_FOUND_VERSION LESS 59999)
+  SET(FAIRROOT_LIBRARY_PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES}
+      VERSION "${FAIRROOT_VERSION}"
+      SOVERSION "${FAIRROOT_MAJOR_VERSION}"
+      SUFFIX ".so"
+  )
+Else()
+  SET(FAIRROOT_LIBRARY_PROPERTIES ${FAIRROOT_LIBRARY_PROPERTIES}
+      VERSION "${FAIRROOT_VERSION}"
+      SOVERSION "${FAIRROOT_MAJOR_VERSION}"
+  )
+EndIf()
+
+configure_file(${CMAKE_SOURCE_DIR}/cmake/scripts/FairRootConfigVersion.cmake.in "${CMAKE_BINARY_DIR}/FairRootConfigVersion.cmake" @ONLY)
+
 Generate_Version_Info()
 
 SET(_LIBDIR ${CMAKE_BINARY_DIR}/lib)
@@ -183,4 +201,28 @@ WRITE_CONFIG_FILE(config.sh)
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake 
                ${CMAKE_BINARY_DIR}/CTestCustom.cmake
               )
+# Summary ######################################################################
+if(CMAKE_CXX_FLAGS)
+  message(STATUS "  ")
+  message(STATUS "  ${Cyan}GLOBAL CXX FLAGS${CR}  ${BGreen}${CMAKE_CXX_FLAGS}${CR}")
+endif()
+if(CMAKE_CONFIGURATION_TYPES)
+  message(STATUS "  ")
+  message(STATUS "  ${Cyan}BUILD TYPE         CXX FLAGS${CR}")
+  string(TOUPPER "${CMAKE_BUILD_TYPE}" selected_type)
+  foreach(type IN LISTS CMAKE_CONFIGURATION_TYPES)
+   string(TOUPPER "${type}" type_upper)
+   if(type_upper STREQUAL selected_type)
+     pad("${type}" 18 " " type_padded)
+     message(STATUS "${BGreen}* ${type_padded}${CMAKE_CXX_FLAGS_${type_upper}}${CR}")
+   else()
+     pad("${type}" 18 " " type_padded)
+     message(STATUS "  ${BWhite}${type_padded}${CR}${CMAKE_CXX_FLAGS_${type_upper}}")
+   endif()
+   unset(type_padded)
+   unset(type_upper)
+ endforeach()
+message(STATUS "  ")
+message(STATUS "  (Change the build type with ${BMagenta}-DCMAKE_BUILD_TYPE=...${CR})")
+endif()
 

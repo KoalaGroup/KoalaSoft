@@ -13,13 +13,7 @@
 #ifndef PNDP8GENERATOR_H
 #define PNDP8GENERATOR_H 1
 
-// Avoid the inclusion of dlfcn.h by Pyhtia.h that CINT is not able to process (avoid compile error on GCC > 5)
-#ifdef __CINT__
-#define _DLFCN_H_
-#define _DLFCN_H
-#endif
-
-#include "Basics.h"          // for RndmEngine
+#include "Pythia8/Basics.h"  // for RndmEngine
 #include "FairGenerator.h"   // for FairGenerator
 #include "Pythia8/Pythia.h"  // for Pythia
 #include "Rtypes.h"          // for Double_t, Bool_t, Int_t, etc
