@@ -16,7 +16,7 @@
 #include "TGeoManager.h"
 #include "FairRun.h"                    // for FairRun
 #include "FairRuntimeDb.h"              // for FairRuntimeDb
-#include <iosfwd>                   // for ostream
+#include <iosfwd>                       // for ostream
 #include "TList.h"                      // for TListIter, TList (ptr only)
 #include "TObjArray.h"                  // for TObjArray
 #include "TString.h"                    // for TString
@@ -44,17 +44,22 @@ KoaMagnet::KoaMagnet(const char* name, const char* Title)
 {
 }
 
+KoaMagnet::KoaMagnet(const KoaMagnet& right)
+  : FairModule(right)
+{
+}
+
 void KoaMagnet::ConstructGeometry()
 {
-
+   
     TGeoVolume *top=gGeoManager->GetTopVolume();
 
     // define some materials
     TGeoMaterial *matFe     = new TGeoMaterial("Fe", 55.84, 26, 7.9);
 
     // define some media
-    TGeoMedium *Fe     = new TGeoMedium("Fe", 3, matFe);
-
+    TGeoMedium *Fe     = new TGeoMedium("Fe", 5, matFe);
+    
 
     // magnet yoke
     TGeoBBox *magyoke1 = new TGeoBBox("magyoke1", 350, 350, 125);
@@ -95,7 +100,10 @@ void KoaMagnet::ConstructGeometry()
 
 }
 
-
+FairModule* KoaMagnet::CloneModule() const
+{
+  return new KoaMagnet(*this);
+}
 
 ClassImp(KoaMagnet)
 

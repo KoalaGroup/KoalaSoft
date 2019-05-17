@@ -27,11 +27,14 @@ class KoaCave : public FairModule
     virtual ~KoaCave();
     virtual void ConstructGeometry();
 
+    virtual FairModule* CloneModule() const;
 
   private:
     Double_t world[3];
+
+    KoaCave(const KoaCave&);
+
     ClassDef(KoaCave,1) //PNDCaveSD
 };
 
 #endif //Cave_H
-

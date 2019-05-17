@@ -6,12 +6,8 @@
  *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-
-// -------------------------------------------------------------------------
-// -----                    KoaCave  file                               -----
-// -----                Created 26/03/14  by M. Al-Turany              -----
-// -------------------------------------------------------------------------
 #include "KoaCave.h"
+
 #include "KoaGeoCave.h"                // for KoaGeoCave
 #include "FairGeoInterface.h"           // for FairGeoInterface
 #include "FairGeoLoader.h"              // for FairGeoLoader
@@ -56,3 +52,17 @@ KoaCave::KoaCave(const char* name,  const char* Title)
   world[1] = 0;
   world[2] = 0;
 }
+
+KoaCave::KoaCave(const KoaCave& right)
+  : FairModule(right)
+{
+  world[0] = right.world[0];
+  world[1] = right.world[1];
+  world[2] = right.world[2];
+}
+
+FairModule* KoaCave::CloneModule() const
+{
+  return new KoaCave(*this);
+}
+

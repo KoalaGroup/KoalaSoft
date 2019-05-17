@@ -43,6 +43,10 @@ KoaPipe::KoaPipe(const char * name, const char * title)
 {
 }
 
+KoaPipe::KoaPipe(const KoaPipe& right)
+  : FairModule(right)
+{
+}
 
 // -----  ConstructGeometry  --------------------------------------------------
 void KoaPipe::ConstructGeometry()
@@ -63,6 +67,7 @@ void KoaPipe::ConstructGeometry()
   }
 }
 // ----------------------------------------------------------------------------
+
 
 void KoaPipe::ConstructDefaultGeometry()
 {
@@ -236,7 +241,11 @@ void KoaPipe::ConstructDefaultGeometry()
     TGeoCombiTrans* ct_vcluster_pipe_down = new TGeoCombiTrans("ct_vcluster_pipe_down", 0, -(l_cluster_pipe_down+chamber_thickness)/2-chamber_y,0,rot_sshape_target_pipe);
     top->AddNode(cluster_pipe_down, 1, ct_cluster_pipe_down);
     top->AddNode(vcluster_pipe_down, 1, ct_vcluster_pipe_down);
+}
 
+FairModule* KoaPipe::CloneModule() const
+{
+  return new KoaPipe(*this);
 }
 
 ClassImp(KoaPipe)

@@ -20,12 +20,13 @@
 #include "FairRootManager.h"            // for FairRootManager
 #include "FairLogger.h"                 // for FairLogger, MESSAGE_ORIGIN
 
-#include <iosfwd>                    // for ostream
+#include <iosfwd>                       // for ostream
 #include "TClonesArray.h"               // for TClonesArray
 #include "TIterator.h"                  // for TIterator
 #include "TLorentzVector.h"             // for TLorentzVector
 #include "TParticle.h"                  // for TParticle
 #include "TRefArray.h"                  // for TRefArray
+#include "TVirtualMC.h"                 // for gMC
 
 #include <stddef.h>                     // for NULL
 #include <iostream>                     // for operator<<, etc
@@ -60,6 +61,28 @@ KoaStack::KoaStack(Int_t size)
 
 // -------------------------------------------------------------------------
 
+
+KoaStack::KoaStack(const KoaStack& right)
+  : FairGenericStack(right),
+    fStack(),
+    fParticles(new TClonesArray("TParticle", 100)),
+    fTracks(new TClonesArray("KoaMCTrack", 100)),
+    fStoreMap(),
+    fStoreIter(),
+    fIndexMap(),
+    fIndexIter(),
+    fPointsMap(),
+    fCurrentTrack(),
+    fNPrimaries(),
+    fNParticles(),
+    fNTracks(),
+    fIndex(),
+    fStoreSecondaries(right.fStoreSecondaries),
+    fMinPoints(right.fMinPoints),
+    fEnergyCut(right.fEnergyCut),
+    fStoreMothers(right.fStoreMothers)
+{
+}
 
 
 // -----   Destructor   ----------------------------------------------------
@@ -172,16 +195,14 @@ TParticle* KoaStack::PopPrimaryForTracking(Int_t iPrim)
 
   // Test for index
   if (iPrim < 0 || iPrim >= fNPrimaries) {
-    LOG(FATAL)<<"KoaStack: Primary index out of range! "<< iPrim << FairLogger::endl;
-    Fatal("KoaStack::PopPrimaryForTracking", "Index out of range");
+    LOG(fatal) << "KoaStack: Primary index out of range! " << iPrim;
   }
 
   // Return the iPrim-th TParticle from the fParticle array. This should be
   // a primary.
   TParticle* part = (TParticle*)fParticles->At(iPrim);
   if ( ! (part->GetMother(0) < 0) ) {
-    LOG(FATAL)<< "KoaStack:: Not a primary track! "<< iPrim<<FairLogger::endl;
-    Fatal("KoaStack::PopPrimaryForTracking", "Not a primary track");
+    LOG(fatal) << "KoaStack:: Not a primary track! " << iPrim;
   }
 
   return part;
@@ -196,8 +217,7 @@ TParticle* KoaStack::GetCurrentTrack() const
 {
   TParticle* currentPart = GetParticle(fCurrentTrack);
   if ( ! currentPart) {
-    LOG(WARNING)<<"KoaStack: Current track not found in stack!" << FairLogger::endl;
-    Warning("KoaStack::GetCurrentTrack", "Track not found in stack");
+    LOG(warning) << "KoaStack: Current track not found in stack!";
   }
   return currentPart;
 }
@@ -222,7 +242,7 @@ void KoaStack::AddParticle(TParticle* oldPart)
 void KoaStack::FillTrackArray()
 {
 
-  LOG(DEBUG)<<"KoaStack: Filling MCTrack array..."<<FairLogger::endl;
+  LOG(debug) << "KoaStack: Filling MCTrack array...";
 
   // --> Reset index map and number of output tracks
   fIndexMap.clear();
@@ -236,9 +256,7 @@ void KoaStack::FillTrackArray()
 
     fStoreIter = fStoreMap.find(iPart);
     if (fStoreIter == fStoreMap.end() ) {
-      LOG(FATAL)<<"KoaStack: Particle %i not found in storage map! "<< iPart<<FairLogger::endl;
-      Fatal("KoaStack::FillTrackArray",
-            "Particle not found in storage map.");
+      LOG(fatal) << "KoaStack: Particle " << iPart << " not found in storage map! ";
     }
     Bool_t store = (*fStoreIter).second;
 
@@ -260,7 +278,7 @@ void KoaStack::FillTrackArray()
   fIndexMap[-1] = -1;
 
   // --> Screen output
-  //Print(1);
+  Print(1);
 
 }
 // -------------------------------------------------------------------------
@@ -271,7 +289,7 @@ void KoaStack::FillTrackArray()
 void KoaStack::UpdateTrackIndex(TRefArray* detList)
 {
 
-  LOG(DEBUG)<<"KoaStack: Updating track indizes..."<<FairLogger::endl;
+  LOG(debug) << "KoaStack: Updating track indizes...";
   Int_t nColl = 0;
 
   // First update mother ID in MCTracks
@@ -280,8 +298,7 @@ void KoaStack::UpdateTrackIndex(TRefArray* detList)
     Int_t iMotherOld = track->GetMotherId();
     fIndexIter = fIndexMap.find(iMotherOld);
     if (fIndexIter == fIndexMap.end()) {
-      LOG(FATAL)<<"KoaStack: Particle index" <<iMotherOld<< " not found in dex map! "<<FairLogger::endl;
-      Fatal("KoaStack::UpdateTrackIndex", "Particle index not found in map");
+      LOG(fatal) << "KoaStack: Particle index " << iMotherOld << " not found in dex map! ";
     }
     track->SetMotherId( (*fIndexIter).second );
   }
@@ -313,8 +330,7 @@ void KoaStack::UpdateTrackIndex(TRefArray* detList)
 
         fIndexIter = fIndexMap.find(iTrack);
         if (fIndexIter == fIndexMap.end()) {
-          LOG(FATAL)<<"KoaStack: Particle index " << iTrack<<" not found in index map! "<< FairLogger::endl;
-          Fatal("KoaStack::UpdateTrackIndex", "Particle index not found in map");
+          LOG(fatal) << "KoaStack: Particle index " << iTrack << " not found in index map! ";
         }
         point->SetTrackID((*fIndexIter).second);
         point->SetLink(FairLink("MCTrack", (*fIndexIter).second));
@@ -322,7 +338,7 @@ void KoaStack::UpdateTrackIndex(TRefArray* detList)
 
     }   // Collections of this detector
   }     // List of active detectors
-  LOG(DEBUG)<< "...stack and  "<<nColl<<" collections updated."<<FairLogger::endl;
+  LOG(debug) << "...stack and " << nColl << " collections updated.";
 }
 // -------------------------------------------------------------------------
 
@@ -346,7 +362,11 @@ void KoaStack::Reset()
 // -----   Public method Register   ----------------------------------------
 void KoaStack::Register()
 {
-  FairRootManager::Instance()->Register("MCTrack", "Stack", fTracks,kTRUE);
+  if ( gMC && ( ! gMC->IsMT() ) ) {
+    FairRootManager::Instance()->Register("MCTrack", "Stack", fTracks,kTRUE);
+  } else {
+    FairRootManager::Instance()->RegisterAny("MCTrack",fTracks,kTRUE);
+  }
 }
 // -------------------------------------------------------------------------
 
@@ -413,8 +433,7 @@ Int_t KoaStack::GetCurrentParentTrackNumber() const
 TParticle* KoaStack::GetParticle(Int_t trackID) const
 {
   if (trackID < 0 || trackID >= fNParticles) {
-    LOG(DEBUG)<<"KoaStack: Particle index "<<trackID<<" out of range."<<FairLogger::endl;
-    Fatal("KoaStack::GetParticle", "Index out of range");
+    LOG(fatal) << "KoaStack: Particle index " << trackID << " out of range.";
   }
   return (TParticle*)fParticles->At(trackID);
 }

@@ -8,16 +8,19 @@
 # Check if cmake has the required version
 CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0 FATAL_ERROR)
 
+#######################################################
 # Version number of KoalaSoft
-set(KOALASOFT_MAJOR_VERSION 0)
-set(KOALASOFT_MINOR_VERSION 1)
-set(KOALASOFT_PATCH_VERSION 0)
+set(KOALA_MAJOR_VERSION 0)
+set(KOALA_MINOR_VERSION 1)
+set(KOALA_PATCH_VERSION 0)
 
 # Set name of our project to KOALASOFT. Has to be done
 # after check of cmake version since this is a new feature
-project(KOALASOFT VERSION ${KOALASOFT_MAJOR_VERSION}.${KOALASOFT_MINOR_VERSION}.${KOALASOFT_PATCH_VERSION})
+project(KOALA VERSION ${KOALA_MAJOR_VERSION}.${KOALA_MINOR_VERSION}.${KOALA_PATCH_VERSION})
 
+#######################################################
 # Check for needed environment variables
+# FairSoft and FairRoot should be installed first and the environment variable of FAIRROOTPATH an SIMPATH should be defied
 IF(NOT DEFINED ENV{FAIRROOTPATH})
   MESSAGE(FATAL_ERROR "You did not define the environment variable FAIRROOTPATH which is needed to find FairRoot. Please set this variable and execute cmake again.")
 ENDIF(NOT DEFINED ENV{FAIRROOTPATH})
@@ -29,18 +32,24 @@ ENDIF(NOT DEFINED ENV{SIMPATH})
 SET(SIMPATH $ENV{SIMPATH})
 SET(FAIRROOTPATH $ENV{FAIRROOTPATH})
 
-# where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ 
-# is checked
+#######################################################
+# Set up the directories for include and find_package command
+
+# where to look first for cmake modules, before ${CMAKE_ROOT}/Modules/ is checked
+# module files under these directories are provided by FairRoot
 set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules"  ${CMAKE_MODULE_PATH})
 set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules_old"  ${CMAKE_MODULE_PATH})
+
+# module files under these directories are provided by KoalaSoft
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${CMAKE_MODULE_PATH})
 
-
 # where to look for cmake package config files
+# these config files are provided by the packages themselves
 if(SIMPATH)
   set(CMAKE_PREFIX_PATH ${SIMPATH} ${CMAKE_PREFIX_PATH})
 endif()
 
+#######################################################
 # check c++11 support of compiler
 Set(CheckSrcDir "${FAIRROOTPATH}/share/fairbase/cmake/checks")
 include(CheckCXX11Features)
@@ -50,12 +59,10 @@ If(NOT _HAS_CXX11_FLAG)
   Message(FATAL_ERROR "The used C++ compiler (${CMAKE_CXX_COMPILER}) does not support C++11. CbmRoot can only be compiled with compilers supporting C++11. Please install such a compiler.")
 EndIf()
 
+#######################################################
 # set cmake policies
 include(FairRootCmakePolicies)
 set_fairroot_cmake_policies()
-
-# find FairRoot
-find_package(FairRoot)
 
 # Load some basic macros which are needed later on
 include(FairMacros)
@@ -63,18 +70,30 @@ include(WriteConfigFile)
 include(CTest)
 include(CheckCompiler)
 
+#######################################################
 #Check the compiler and set the compile and link flags
 If(NOT CMAKE_BUILD_TYPE)
   Message("Set BuildType DEBUG")
   set(CMAKE_BUILD_TYPE Debug)
 EndIf(NOT CMAKE_BUILD_TYPE)
+
 Check_Compiler()
 
 
+#######################################################
+# the default directory where the built library, executables and headers
+# will be located. The target specific properties may overwrite this dire-
+# -ctory
 set(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/lib")
 set(EXECUTABLE_OUTPUT_PATH "${CMAKE_BINARY_DIR}/bin")
 set(INCLUDE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/include")
+
+#######################################################
+# the default working directory of KoalaSoft
 Set(VMCWORKDIR ${CMAKE_SOURCE_DIR})
+
+#######################################################
+# [TODO] ???
 Option(USE_PATH_INFO "Information from PATH and LD_LIBRARY_PATH are
 used." OFF)
 If(USE_PATH_INFO)
@@ -88,7 +107,7 @@ Else(USE_PATH_INFO)
   STRING(REGEX MATCHALL "[^:]+" PATH $ENV{PATH})
 EndIf(USE_PATH_INFO)
 
-
+#######################################################
 # Check if the user wants to build the project in the source
 # directory
 CHECK_OUT_OF_SOURCE_BUILD()
@@ -103,6 +122,12 @@ ENDIF(NOT UNIX)
 # directory, i.e whether FairSoft is installed or not
 CHECK_EXTERNAL_PACKAGE_INSTALL_DIR()
 
+#######################################################
+# find all the external packages needed
+
+# find FairRoot
+find_package(FairRoot)
+
 # searches for needed packages
 # REQUIRED means that cmake will stop if this packages are not found
 # For example the framework can run without GEANT4, but ROOT is
@@ -115,20 +140,24 @@ find_package2(PUBLIC Pythia6)
 find_package2(PUBLIC Pythia8)
 find_package2(PUBLIC Geant3)
 find_package2(PUBLIC Geant4)
-#find_package2(PUBLIC GEANT4DATA)
 Find_Package2(PUBLIC VGM)
 find_package2(PUBLIC Geant4VMC)
 find_package(HEPMC)
+find_package2(PUBLIC FairMQ VERSION 1.2.3)
 
-Set(Boost_NO_SYSTEM_PATHS TRUE)
-Set(Boost_NO_BOOST_CMAKE TRUE)
-If(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
+# find boost
+If(FAIRSOFT_EXTERN)
   set(BOOST_ROOT ${SIMPATH})
   set(GSL_DIR ${SIMPATH})
-Else(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
+Else(FAIRSOFT_EXTERN)
   set(BOOST_ROOT ${SIMPATH}/basics/boost)
   set(GSL_DIR ${SIMPATH}/basics/gsl)
-EndIf(${ROOT_LIBRARY_DIR} MATCHES /lib/root)
+EndIf(FAIRSOFT_EXTERN)
+
+if(NOT DEFINED Boost_NO_SYSTEM_PATHS)
+  Set(Boost_NO_SYSTEM_PATHS TRUE)
+endif()
+Set(Boost_NO_BOOST_CMAKE TRUE)
 
 Unset(Boost_INCLUDE_DIR CACHE)
 Unset(Boost_LIBRARY_DIRS CACHE)
@@ -144,10 +173,19 @@ Else (Boost_FOUND)
   Set(Boost_Avail 0)
 EndIf (Boost_FOUND)
 
-# set a variable which should be used in all CMakeLists.txt
-# Defines all basic include directories from fairbase
+#######################################################
+# set some variables which should be used in all CMakeLists.txt
+# BASE_INCLUDE_DIRECTORIES: FairRoot
+# SYSTEM_INCLUDE_DIRECTORIES: ROOT, Boost
+# ROOT_INCLUDE_PATH: FairRoot
+
+# LD_LIBRARY_PATH: Add FairRoot Library path
+# BASE_LINK_DIRECTORIES: ROOT, Boost
+# most external libs are installed under $SIMPATH/lib except ROOT
 SetBasicVariables()
 
+#######################################################
+# [TODO] what's FAIRROOT_LIBRARY_PROPERTIES uesd for
 # Set the library version in the main CMakeLists.txt
 SET(FAIRROOT_MAJOR_VERSION 0)
 SET(FAIRROOT_MINOR_VERSION 0)
@@ -171,11 +209,11 @@ configure_file(${CMAKE_SOURCE_DIR}/cmake/scripts/FairRootConfigVersion.cmake.in 
 
 Generate_Version_Info()
 
+#######################################################
 SET(_LIBDIR ${CMAKE_BINARY_DIR}/lib)
 SET(LD_LIBRARY_PATH  ${_LIBDIR} ${LD_LIBRARY_PATH})
 
-
-
+#######################################################
 # Check if the compiler support specific C++11 features
 # Up to now this is only a check since the code does not use
 # any of the features of the new standard
@@ -185,6 +223,7 @@ IF(HAS_CXX11_SHAREDPOINTER)
   Add_Definitions(-DHAS_SHAREDPOINTER)
 ENDIF(HAS_CXX11_SHAREDPOINTER)
 
+#######################################################
 # Recurse into the given subdirectories.  This does not actually
 # cause another cmake executable to run.  The same process will walk through
 # the project's entire directory structure.
@@ -196,12 +235,15 @@ add_subdirectory (fwd)
 add_subdirectory (passive)
 add_subdirectory (field)  
 
+#######################################################
 WRITE_CONFIG_FILE(config.sh)
  
 configure_file(${CMAKE_SOURCE_DIR}/CTestCustom.cmake 
                ${CMAKE_BINARY_DIR}/CTestCustom.cmake
               )
-# Summary ######################################################################
+
+#######################################################
+# Summary 
 if(CMAKE_CXX_FLAGS)
   message(STATUS "  ")
   message(STATUS "  ${Cyan}GLOBAL CXX FLAGS${CR}  ${BGreen}${CMAKE_CXX_FLAGS}${CR}")

@@ -15,6 +15,7 @@
 #include "Pythia6Generator.h"
 
 #include "FairPrimaryGenerator.h"
+#include "FairLogger.h"
 
 #include <iostream>
 #include <cstdio>
@@ -37,7 +38,7 @@ Pythia6Generator::Pythia6Generator(const char* fileName) {
   if ((fInputFile = fopen(fFileName,"r"))==NULL)
     //  fInputFile = new ifstream(fFileName);
     //  if ( ! fInputFile->is_open() ) 
-    Fatal("Pythia6Generator","Cannot open input file.");
+    LOG(fatal) << "Pythia6Generator: Cannot open input file.";
   
   // fPDG=TDatabasePDG::Instance();
 }

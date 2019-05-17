@@ -17,7 +17,7 @@
 #define MYGEOCAVE_H
 
 #include "FairGeoSet.h"                 // for FairGeoSet
-#include <iosfwd>                    // for fstreamb
+#include <iosfwd>                       // for fstream
 #include "Rtypes.h"                     // for KoaGeoCave::Class, Bool_t, etc
 #include "TString.h"                    // for TString
 

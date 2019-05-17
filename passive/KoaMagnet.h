@@ -26,8 +26,13 @@ class KoaMagnet : public FairModule
     KoaMagnet();
     virtual ~KoaMagnet();
     void ConstructGeometry();
-    ClassDef(KoaMagnet,1)
 
+    virtual FairModule* CloneModule() const;
+
+  private:
+    KoaMagnet(const KoaMagnet&);
+
+    ClassDef(KoaMagnet,1)
 };
 
 #endif //MAGNET_H

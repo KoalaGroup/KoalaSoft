@@ -23,11 +23,14 @@ class KoaPipe : public FairModule {
 
     virtual ~KoaPipe();
     virtual void ConstructGeometry();
+
+    virtual FairModule* CloneModule() const;
    
  private:
     void ConstructDefaultGeometry();
+    KoaPipe(const KoaPipe& rhs);
 
-  ClassDef(KoaPipe,1) //KoaPIPE
+    ClassDef(KoaPipe,1) //KoaPIPE
 
 };
 

@@ -199,7 +199,8 @@ class KoaStack : public FairGenericStack
     TParticle* GetParticle(Int_t trackId) const;
     TClonesArray* GetListOfParticles() { return fParticles; }
 
-
+    /** Clone this object (used in MT mode only) */
+    virtual FairGenericStack* CloneStack() const { return new KoaStack(*this); }
 
   private:
     /** STL stack (FILO) used to handle the TParticles for tracking **/
