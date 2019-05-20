@@ -44,8 +44,8 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
-  //rec_det->SetGeometryFileName("rec.root");
-  rec_det->SetGeometryFileName("rec_withChamber.root");
+  rec_det->SetGeometryFileName("rec.root");
+  // rec_det->SetGeometryFileName("rec_withChamber.root");
   // rec_det->SetGeometryFileName("rec.geo");
   run->AddModule(rec_det);
 

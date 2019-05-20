@@ -1,4 +1,4 @@
- # Create a library called "libKoaData" 
+# Create a library called "libKoaData" 
 
 set(INCLUDE_DIRECTORIES
 ${BASE_INCLUDE_DIRECTORIES}

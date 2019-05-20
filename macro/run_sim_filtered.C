@@ -59,13 +59,13 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   // -----   Create PrimaryGenerator   --------------------------------------
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
-    // // Add a box generator also to the run
-    // FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 2212 = proton; 1 = multipl.
-    // boxGen->SetPRange(6,6); // GeV/c
-    // boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
-    // boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
-    // boxGen->SetXYZ(0., 0., 0.); // cm
-    // primGen->AddGenerator(boxGen);
+    // Add a box generator also to the run
+    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 2212 = proton; 1 = multipl.
+    boxGen->SetPRange(6,6); // GeV/c
+    boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
+    boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
+    boxGen->SetXYZ(0., 0., 0.); // cm
+    primGen->AddGenerator(boxGen);
 
     // // Particle Gun
     // FairParticleGenerator* parGen = new FairParticleGenerator(13, 1, 20,0.5,0);
@@ -74,8 +74,9 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
     // P-P elastic generator
     // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("Background-micro.root");
     // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
-  KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(2.8);
-    primGen->AddGenerator(ppGen);
+  
+  // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(2.8);
+    // primGen->AddGenerator(ppGen);
 
     // Add filter
     KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");

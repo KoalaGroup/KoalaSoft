@@ -54,16 +54,16 @@ void KoaPipe::ConstructGeometry()
   TString notdefined("Not defined");
   TString fileName=GetGeometryFileName();
   if (fileName.EqualTo(notdefined)) {
-    LOG(INFO)<<"Constructing default KoaPipe geometry"<<fileName<<FairLogger::endl;
+    LOG(info)<<"Constructing default KoaPipe geometry"<<fileName;
     ConstructDefaultGeometry();
   } else if (fileName.EndsWith(".root")) {
-    LOG(INFO)<<"Constructing KoaPipe geometry from ROOT file "<<fileName<<FairLogger::endl;
+    LOG(info)<<"Constructing KoaPipe geometry from ROOT file "<<fileName;
     ConstructRootGeometry();
   // } else if (fileName.EndsWith(".geo")){
-    // LOG(INFO)<<"Constructing KoaPipe geometry from ASCII file"<<fileName<<FairLogger::endl;
+    // LOG(info)<<"Constructing KoaPipe geometry from ASCII file"<<fileName;
     // ConstructASCIIGeometry();
   } else{
-    LOG(FATAL) << "Geometry format not supported." << FairLogger::endl;
+    LOG(fatal) << "Geometry format not supported." ;
   }
 }
 // ----------------------------------------------------------------------------

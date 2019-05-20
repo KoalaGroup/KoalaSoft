@@ -441,7 +441,7 @@ Double_t KoaPpelasticGeneratorImp::CalculateParticleBeta(Double_t  momentum )
  TLorentzVector V(0,0,0,0);
 
  if(fPlab<0){
-   LOG(FATAL) << "Set beam momentum first: using SetPlab(Double* plab)" << FairLogger::endl;
+   LOG(fatal) << "Set beam momentum first: using SetPlab(Double* plab)" ;
    return;
  }
  
@@ -490,10 +490,10 @@ KoaPpelasticGenerator::KoaPpelasticGenerator(const Char_t* fileName):
   fFileName(fileName),
   fInternalGenerator()
 {
-  LOG(INFO) << "KoaPpelasticGenerator: get event from ROOT file: " << fFileName << FairLogger::endl;
+  LOG(info) << "KoaPpelasticGenerator: get event from ROOT file: " << fFileName ;
   fInputFile = new TFile(fFileName);
   if(!fInputFile){
-    LOG(FATAL)<< "Cannot open input generator file" << FairLogger::endl;
+    LOG(fatal)<< "Cannot open input generator file" ;
   }
   fInputTree = (TTree*) fInputFile->Get("data");
   fParticles = new TClonesArray("TParticle",100);
@@ -517,13 +517,13 @@ Bool_t KoaPpelasticGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
   if(fFromFile){
     // Check for input file
     if ( ! fInputFile ) {
-      LOG(ERROR) << "-E KoaPpelasticGenerator: Input file not open!" << FairLogger::endl;
+      LOG(error) << "-E KoaPpelasticGenerator: Input file not open!" ;
       return kFALSE;
     }
 
     // Check for number of events in input file
     if ( iEvent > fInputTree->GetEntries() ) {
-      LOG(INFO) << "-E KoaPpelasticGenerator: No more events in input file!" << FairLogger::endl;
+      LOG(info) << "-E KoaPpelasticGenerator: No more events in input file!" ;
       CloseInput();
       return kFALSE;
     }
@@ -542,8 +542,8 @@ Bool_t KoaPpelasticGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
 
       // Check if particle type is known to database
       if ( ! pdgType ) {
-        LOG(WARNING) << "-W KoaPpelasticGenerator: Unknown type " << part->GetPdgCode()
-                     << ", skipping particle." << FairLogger::endl;
+        LOG(warning) << "-W KoaPpelasticGenerator: Unknown type " << part->GetPdgCode()
+                     << ", skipping particle." ;
         continue;
       }
 
@@ -575,8 +575,8 @@ Bool_t KoaPpelasticGenerator::ReadEvent(FairPrimaryGenerator* primGen) {
 void KoaPpelasticGenerator::CloseInput() {
   if(fFromFile){
     if ( fInputFile ) {
-      LOG(INFO) << "-I KoaPpelasticGenerator: Closing input file " << fFileName
-                << FairLogger::endl;
+      LOG(info) << "-I KoaPpelasticGenerator: Closing input file " << fFileName
+                ;
       fInputFile->Close();
       delete fInputFile;
     }

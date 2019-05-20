@@ -157,13 +157,13 @@ void KoaRec::ConstructGeometry()
 {
   TString fileName=GetGeometryFileName();
   if (fileName.EndsWith(".geo")) {
-    LOG(INFO)<<"Constructing KoaRec geometry from ASCII file "<<fileName<<FairLogger::endl;
+    LOG(info)<<"Constructing KoaRec geometry from ASCII file "<<fileName;
     ConstructASCIIGeometry();
   } else if (fileName.EndsWith(".root")) {
-    LOG(INFO)<<"Constructing KoaRec geometry from ROOT file "<<fileName<<FairLogger::endl;
+    LOG(info)<<"Constructing KoaRec geometry from ROOT file "<<fileName;
     ConstructRootGeometry();
   } else {
-    LOG(FATAL) << "Geometry format not supported." << FairLogger::endl;
+    LOG(fatal) << "Geometry format not supported." ;
   }
 }
 
@@ -185,7 +185,7 @@ void KoaRec::ConstructASCIIGeometry()
   FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
   KoaRecGeo*  Geo  = new KoaRecGeo();
-  LOG(DEBUG)<<"Read Geo file "<<GetGeometryFileName()<<FairLogger::endl;
+  LOG(debug)<<"Read Geo file "<<GetGeometryFileName();
   Geo->setGeomFile(GetGeometryFileName());
   geoFace->addGeoModule(Geo);
 
@@ -229,4 +229,25 @@ KoaRecPoint* KoaRec::AddHit(Int_t trackID, Int_t detID,
          time, length, eLoss);
 }
 
+KoaRec::KoaRec(const KoaRec& rhs) :
+  FairDetector(rhs),
+  fTrackID(-1),
+  fVolumeID(-1),
+  fPos(),
+  fMom(),
+  fTime(-1.),
+  fLength(-1.),
+  fELoss(-1),
+  fKoaRecPointCollection(new TClonesArray("KoaRecPoint"))
+{
+  fListOfSensitives.push_back("SensorSi");
+  fListOfSensitives.push_back("SensorGe");
+}
+
+FairModule* KoaRec::CloneModule() const
+{
+  return new KoaRec(*this);
+}
+
 ClassImp(KoaRec)
+

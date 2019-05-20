@@ -157,13 +157,13 @@ void KoaFwd::ConstructGeometry()
 {
   TString fileName=GetGeometryFileName();
   if (fileName.EndsWith(".geo")) {
-    LOG(INFO)<<"Constructing KoaFwd geometry from ASCII file "<<fileName<<FairLogger::endl;
+    LOG(info)<<"Constructing KoaFwd geometry from ASCII file "<<fileName;
     ConstructASCIIGeometry();
   } else if (fileName.EndsWith(".root")) {
-    LOG(INFO)<<"Constructing KoaFwd geometry from ROOT file "<<fileName<<FairLogger::endl;
+    LOG(info)<<"Constructing KoaFwd geometry from ROOT file "<<fileName;
     ConstructRootGeometry();
   } else {
-    LOG(FATAL) << "Geometry format not supported." << FairLogger::endl;
+    LOG(fatal) << "Geometry format not supported." ;
   }
 }
 
@@ -185,7 +185,7 @@ void KoaFwd::ConstructASCIIGeometry()
   FairGeoLoader*    geoLoad = FairGeoLoader::Instance();
   FairGeoInterface* geoFace = geoLoad->getGeoInterface();
   KoaFwdGeo*  Geo  = new KoaFwdGeo();
-  LOG(DEBUG)<<"Read Geo file "<<GetGeometryFileName()<<FairLogger::endl;
+  LOG(debug)<<"Read Geo file "<<GetGeometryFileName();
   Geo->setGeomFile(GetGeometryFileName());
   geoFace->addGeoModule(Geo);
 
