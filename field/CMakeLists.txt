@@ -24,7 +24,7 @@ KoaFieldPar.cxx
 )
 
 set(LINKDEF FieldLinkDef.h)
-Set(LIBRARY_NAME Field)
+Set(LIBRARY_NAME KoaField)
 Set(DEPENDENCIES
     Base 
 )

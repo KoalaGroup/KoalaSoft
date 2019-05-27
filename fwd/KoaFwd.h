@@ -80,6 +80,7 @@ class KoaFwd: public FairDetector
     virtual void   PreTrack() {;}
     virtual void   BeginEvent() {;}
 
+    virtual FairModule* CloneModule() const;
 
   private:
     // Sensitive volume name list, used when importing geometry from ROOT file

@@ -145,3 +145,55 @@
 
      Functions
 *** Recontruction & Analysis & Other Tasks
+** Stack
+*** Class Hierarchy
+    KoaStack --> FairGenericStack --> TVirtualMCStack
+*** Overview
+    MC Stack basically need to provide an interface to pop out track for simulation and also an interface to push back secondaries generated in the simulation for later transportation.
+    The most important functions:
+    - PushTrack
+    - PopNextTrack
+    - PopPrimaryForTracking
+      
+    FairRoot provides FairGenericStack, which further defines interfaces for MCtrack persistence, filtering and fast simulation.
+    The most important functions:
+    - FillTrackArray :: Fill the MCTrack output array, applying the filter criteria
+    - UpdateTrackIndex ::
+    - SetDetArrayList ::
+    - Register ::
+    - CloneStack :: 
+    
+*** Data Structure of Stack
+    How the data structure of Stack is organized is defined by the user himself.
+    KoaStack contains :
+    - fParticles :: an array of TParticles appeared in the simulation (both primaries and secondaries put into or created by the transport engine).
+                    It acts as a record of all the particles in the simulation. The index in this container is the *trackID* (starting from 0).
+    - fTracks :: an array of KoaMCTracks, which are formed from a subset of fParticles. KoaMCTrack is a data class representing a track in the simulation.
+                 KoaMCTrack is built from a TParticle together with the MCHits Number in each detector. Tracks in the simulation need to pass a filter to
+                 be filled into fTracks. fTracks finally can be written to the output file for offline analysis.
+    - fStack :: the underlining FILO stack of TParticles, which is used the FILO stack of TParticles. fStack is used to pop out the next track to be simulated.
+                For each simulated particle, it will be popped out from fStack but it still exists in fParticles.
+    - fDetList :: inherited from FairGenericStack, a list of detectors registering hits in the simulation
+    
+    Auxiliary data members:
+    - fCurrentTrack :: index of current track in fParticles, i.e. the trackID
+    - fNPrimaries :: number of primaries
+    - fNParticles :: size of fParticles
+    - fNTracks ::  size of fTracks
+                  
+    Data members used for filtering:
+    - f
+*** Key functions:
+    Functions to be implemented by user:
+    - PushTrack
+    - CloneStack :: used in MT mode only
+* Migration to Multi Thread Mode
+** Classes to be modified
+*** Stack
+*** Generators
+*** Detector Modules
+** Run time environment
+*** Number of threads
+    #+begin_src shell
+    export G4FORCENUMBEROFTHREADS=threadNumber
+    #+end_src

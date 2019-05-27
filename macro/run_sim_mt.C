@@ -7,6 +7,9 @@ void run_sim_mt(Int_t nEvents = 100, TString mcEngine = "TGeant4", Bool_t isMT=t
   // Parameter file name
   TString parFile="params.root";
   
+  // ----    Debug option   -------------------------------------------------
+  gDebug = 0;
+  // ------------------------------------------------------------------------
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
   timer.Start();
@@ -58,6 +61,7 @@ void run_sim_mt(Int_t nEvents = 100, TString mcEngine = "TGeant4", Bool_t isMT=t
   boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
   boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
   boxGen->SetXYZ(0., 0., 0.); // cm
+  boxGen->SetDebug(kTRUE);
 
   primGen->AddGenerator(boxGen);
   run->SetGenerator(primGen);
@@ -65,6 +69,11 @@ void run_sim_mt(Int_t nEvents = 100, TString mcEngine = "TGeant4", Bool_t isMT=t
   //---Store the visualiztion info of the tracks, this make the output file very large!!
   //--- Use it only to display but not for production!
   run->SetStoreTraj(kFALSE);
+
+  // -----   Initialize simulation run   ------------------------------------
+  UInt_t randomSeed = 123456;
+  TRandom3 random(randomSeed);
+  gRandom = &random;
 
   // -----   Initialize simulation run   ------------------------------------
   run->Init();
@@ -87,16 +96,30 @@ void run_sim_mt(Int_t nEvents = 100, TString mcEngine = "TGeant4", Bool_t isMT=t
   // ------------------------------------------------------------------------
   
   // -----   Finish   -------------------------------------------------------
+  cout << endl << endl;
+  // Extract the maximal used memory an add is as Dart measurement
+  // This line is filtered by CTest and the value send to CDash
+  // FairSystemInfo sysInfo;
+  // Float_t maxMemory=sysInfo.GetMaxMemory();
+  // cout << "<DartMeasurement name=\"MaxMemory\" type=\"numeric/double\">";
+  // cout << maxMemory;
+  // cout << "</DartMeasurement>" << endl;
+
   timer.Stop();
   Double_t rtime = timer.RealTime();
   Double_t ctime = timer.CpuTime();
+
+  Float_t cpuUsage=ctime/rtime;
+  cout << "<DartMeasurement name=\"CpuLoad\" type=\"numeric/double\">";
+  cout << cpuUsage;
+  cout << "</DartMeasurement>" << endl;
+
   cout << endl << endl;
-  cout << "Macro finished succesfully." << endl;
   cout << "Output file is "    << outFile << endl;
   cout << "Parameter file is " << parFile << endl;
-  cout << "Real time " << rtime << " s, CPU time " << ctime 
+  cout << "Real time " << rtime << " s, CPU time " << ctime
        << "s" << endl << endl;
-  // ------------------------------------------------------------------------
+  cout << "Macro finished successfully." << endl;
 }
 
 

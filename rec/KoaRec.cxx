@@ -136,9 +136,14 @@ void KoaRec::Register()
       only during the simulation.
   */
 
-  FairRootManager::Instance()->Register("KoaRecPoint", "KoaRec",
-                                        fKoaRecPointCollection, kTRUE);
-
+  if(!gMC->IsMT()){
+    FairRootManager::Instance()->Register("KoaRecPoint", "KoaRec",
+                                          fKoaRecPointCollection, kTRUE);
+  }
+  else{
+    FairRootManager::Instance()->RegisterAny("KoaRecPoint",
+                                          fKoaRecPointCollection, kTRUE);
+  }
 }
 
 
@@ -229,6 +234,11 @@ KoaRecPoint* KoaRec::AddHit(Int_t trackID, Int_t detID,
          time, length, eLoss);
 }
 
+FairModule* KoaRec::CloneModule() const
+{
+  return new KoaRec(*this);
+}
+
 KoaRec::KoaRec(const KoaRec& rhs) :
   FairDetector(rhs),
   fTrackID(-1),
@@ -242,11 +252,6 @@ KoaRec::KoaRec(const KoaRec& rhs) :
 {
   fListOfSensitives.push_back("SensorSi");
   fListOfSensitives.push_back("SensorGe");
-}
-
-FairModule* KoaRec::CloneModule() const
-{
-  return new KoaRec(*this);
 }
 
 ClassImp(KoaRec)

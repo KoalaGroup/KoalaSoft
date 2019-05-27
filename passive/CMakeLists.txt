@@ -27,7 +27,7 @@ KoaPassiveContFact.cxx
 
 Set(HEADERS )
 Set(LINKDEF PassiveLinkDef.h)
-Set(LIBRARY_NAME Passive)
+Set(LIBRARY_NAME KoaPassive)
 Set(DEPENDENCIES Base GeoBase ParBase Geom Core)
 
 GENERATE_LIBRARY()

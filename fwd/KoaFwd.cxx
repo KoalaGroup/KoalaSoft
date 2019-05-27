@@ -136,8 +136,14 @@ void KoaFwd::Register()
       only during the simulation.
   */
 
-  FairRootManager::Instance()->Register("KoaFwdPoint", "KoaFwd",
-                                        fKoaFwdPointCollection, kTRUE);
+  if(!gMC->IsMT()){
+    FairRootManager::Instance()->Register("KoaFwdPoint", "KoaFwd",
+                                          fKoaFwdPointCollection, kTRUE);
+  }
+  else{
+    FairRootManager::Instance()->RegisterAny("KoaFwdPoint",
+                                          fKoaFwdPointCollection, kTRUE);
+  }
 
 }
 
@@ -227,6 +233,26 @@ KoaFwdPoint* KoaFwd::AddHit(Int_t trackID, Int_t detID,
   Int_t size = clref.GetEntriesFast();
   return new(clref[size]) KoaFwdPoint(trackID, detID, pos, mom,
          time, length, eLoss);
+}
+
+FairModule* KoaFwd::CloneModule() const
+{
+  return new KoaFwd(*this);
+}
+
+KoaFwd::KoaFwd(const KoaFwd& rhs)
+  : FairDetector(rhs),
+    fTrackID(-1),
+    fVolumeID(-1),
+    fPos(),
+    fMom(),
+    fTime(-1.),
+    fLength(-1.),
+    fELoss(-1),
+    fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint"))
+{
+  fListOfSensitives.push_back("SensorSc");
+  fListOfSensitives.push_back("MonitorSc");
 }
 
 ClassImp(KoaFwd)

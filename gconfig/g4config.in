@@ -9,15 +9,18 @@
 # Geant4 configuration macro for Example02
 # (called from Root macro Config.C)
 
-/mcVerbose/all 0
+#/mcVerbose/all 0
 /mcVerbose/runAction 1
 /mcVerbose/composedPhysicsList 1
 #/mcVerbose/trackManager 2
 
-/control/cout/ignoreThreadsExcept 0
+# Omit output from threads except the one from the specified thread
+# /control/cout/ignoreThreadsExcept threadID
+# if threadID is greater than the actual number of threads, no output is hown from worker threads
+# To reset, use -1 as threadID
+/control/cout/ignoreThreadsExcept -1
 
 /run/particle/applyCuts
 
 #/tracking/verbose 1
-#/control/cout/ignoreThreadsExcept 0
 

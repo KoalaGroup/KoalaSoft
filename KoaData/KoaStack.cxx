@@ -1,3 +1,4 @@
+
 /********************************************************************************
  *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
  *                                                                              *
@@ -59,6 +60,19 @@ KoaStack::KoaStack(Int_t size)
 {
 }
 
+// -----   Destructor   ----------------------------------------------------
+KoaStack::~KoaStack()
+{
+  if (fParticles) {
+    fParticles->Delete();
+    delete fParticles;
+  }
+  if (fTracks) {
+    fTracks->Delete();
+    delete fTracks;
+  }
+}
+
 // -------------------------------------------------------------------------
 
 
@@ -85,18 +99,6 @@ KoaStack::KoaStack(const KoaStack& right)
 }
 
 
-// -----   Destructor   ----------------------------------------------------
-KoaStack::~KoaStack()
-{
-  if (fParticles) {
-    fParticles->Delete();
-    delete fParticles;
-  }
-  if (fTracks) {
-    fTracks->Delete();
-    delete fTracks;
-  }
-}
 // -------------------------------------------------------------------------
 
 void KoaStack::PushTrack(Int_t toBeDone, Int_t parentId, Int_t pdgCode,
@@ -253,12 +255,15 @@ void KoaStack::FillTrackArray()
 
   // --> Loop over fParticles array and copy selected tracks
   for (Int_t iPart=0; iPart<fNParticles; iPart++) {
+    Bool_t store = kFALSE;
 
     fStoreIter = fStoreMap.find(iPart);
     if (fStoreIter == fStoreMap.end() ) {
       LOG(fatal) << "KoaStack: Particle " << iPart << " not found in storage map! ";
     }
-    Bool_t store = (*fStoreIter).second;
+    else{
+      store = (*fStoreIter).second;
+    }
 
     if (store) {
       KoaMCTrack* track =
@@ -278,7 +283,7 @@ void KoaStack::FillTrackArray()
   fIndexMap[-1] = -1;
 
   // --> Screen output
-  Print(1);
+  // Print(1);
 
 }
 // -------------------------------------------------------------------------

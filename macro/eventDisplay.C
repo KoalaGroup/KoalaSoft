@@ -3,15 +3,14 @@ void eventDisplay()
   //-----User Settings:-----------------------------------------------
   TString  InputFile     ="test.root";
   TString  ParFile       ="params.root";
-  TString  GeoFile       ="geofile_full.root";
   TString  OutFile	 ="tst.root";
 
 
   // -----   Reconstruction run   -------------------------------------------
   FairRunAna *fRun= new FairRunAna();
-  fRun->SetInputFile(InputFile.Data());
-  fRun->SetOutputFile(OutFile.Data());
-  // fRun->SetGeomFile(GeoFile.Data());
+  FairFileSource *fFileSource = new FairFileSource(InputFile);
+  fRun->SetSource(fFileSource);
+  fRun->SetSink(new FairRootFileSink(OutFile.Data()));
 
   FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
   FairParRootFileIo* parInput1 = new FairParRootFileIo();

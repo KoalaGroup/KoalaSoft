@@ -213,7 +213,7 @@ class KoaStack : public FairGenericStack
     TClonesArray* fParticles;            //!
 
 
-    /** Array of FairMCTracks containg the tracks written to the output **/
+    /** Array of KoaMCTracks containg the tracks written to the output **/
     TClonesArray* fTracks;
 
 
@@ -252,7 +252,7 @@ class KoaStack : public FairGenericStack
     KoaStack(const KoaStack&);
     KoaStack& operator=(const KoaStack&);
 
-    ClassDef(KoaStack,1)
+    ClassDef(KoaStack,2) // Multi-Thread Enabled
 
 
 };
