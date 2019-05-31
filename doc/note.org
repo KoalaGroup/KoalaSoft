@@ -14,6 +14,33 @@
 *** Fine edition
 **** Recoil detector
 **** Forward detector
+** TGeo package in ROOT
+*** MasterToLocal or LocalToMaster
+    The correct way to transform from local coordinate to global coordinate, or vice visa:
+    #+BEGIN_SRC C++
+    // cd to the node where the local coordinate system located
+    geoMan->cd("nodename");
+    // transform from global coordinate to local coordinate
+    geoMan->MasterToLocal(posGlobal,posLocal);
+    // transform from local coordinate to global coordinate
+    geoMan->LocalToMaster(posLocal,posGlobal);
+    #+END_SRC
+
+    *WARNING:* Don't use TGeoNode's MasterToLocal and LocalToMaster, they will give the transformation between local and the node's 
+    mother volume instead of local and global.
+
+*** Node Naming Convention 
+    The name of the nodes in the geometry hierarchy follows the patter "NAMEOFVOLUME_ID".
+    *NAMEOFVOLUME* is the name of the volume, *ID* is the daughter id of this node which is assigned in *AddNode*.
+    
+    In FairROOT, the default daughter id for the geometry constructed from text files is 1.
+    The default daughter id for the geometry imported from root files is 0 (the highest level volume after top volume).
+    For deeper nodes in root file geometry, it depends on the root geometry model, which is decided by user when building the ROOT geometry.
+    
+    Accessing a specific node is based on the geometry directory tree like '/NameOfTopVolume_ID/NameOfNextVolume_ID/..'.
+    Interestingly, the ID suffix of the top volume can be neglected while for other volumes the ID should be included exactly the same.
+    This is reasonable, because there is only one top volume (or world volume) in the geometry model.
+
 * Version history
 ** Before 07.05.2019
 *** Recoil Detector
@@ -187,6 +214,12 @@
     Functions to be implemented by user:
     - PushTrack
     - CloneStack :: used in MT mode only
+*** Questions
+**** TODO In the example implementation, there is a std::stack and a TClonesArray buffer assigned.
+     PopNextTrack pop out the particles from the std::stack, while PopPrimaryForTracking pop out the first several particles
+     from the TClonesArray and transformed into simulation recognized tracks. The problem is the primary particles provide by
+     user are also pushed to the std::stack, which in principle will be pop out for simulation again.
+
 * Migration to Multi Thread Mode
 ** Classes to be modified
 *** Stack
