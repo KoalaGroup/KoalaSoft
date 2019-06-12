@@ -40,6 +40,7 @@ KoaRec::KoaRec()
     fTrackID(-1),
     fVolumeID(-1),
     fPos(),
+    fPosEnd(),
     fMom(),
     fTime(-1.),
     fLength(-1.),
@@ -55,6 +56,7 @@ KoaRec::KoaRec(const char* name, Bool_t active)
     fTrackID(-1),
     fVolumeID(-1),
     fPos(),
+    fPosEnd(),
     fMom(),
     fTime(-1.),
     fLength(-1.),
@@ -105,9 +107,15 @@ Bool_t  KoaRec::ProcessHits(FairVolume* vol)
        gMC->IsTrackDisappeared()   ) {
     fTrackID  = gMC->GetStack()->GetCurrentTrackNumber();
     fVolumeID = vol->getMCid();
+    gMC->TrackPosition(fPosEnd);
     if (fELoss == 0. ) { return kFALSE; }
-    AddHit(fTrackID, fVolumeID, TVector3(fPos.X(),  fPos.Y(),  fPos.Z()),
-           TVector3(fMom.Px(), fMom.Py(), fMom.Pz()), fTime, fLength,
+    AddHit(fTrackID,
+           fVolumeID,
+           TVector3(fPos.X(),  fPos.Y(),  fPos.Z()),
+           TVector3(fPosEnd.X(),  fPosEnd.Y(),  fPosEnd.Z()),
+           TVector3(fMom.Px(), fMom.Py(), fMom.Pz()),
+           fTime,
+           fLength,
            fELoss);
 
     // Increment number of KoaRec det points in TParticle
@@ -223,15 +231,20 @@ void KoaRec::ConstructASCIIGeometry()
   ProcessNodes ( volList );
 }
 
-KoaRecPoint* KoaRec::AddHit(Int_t trackID, Int_t detID,
-                                      TVector3 pos, TVector3 mom,
-                                      Double_t time, Double_t length,
-                                      Double_t eLoss)
+KoaRecPoint* KoaRec::AddHit(Int_t trackID,
+                            Int_t detID,
+                            TVector3 posIn,
+                            TVector3 posEnd,
+                            TVector3 mom,
+                            Double_t time,
+                            Double_t length,
+                            Double_t eLoss)
 {
   TClonesArray& clref = *fKoaRecPointCollection;
   Int_t size = clref.GetEntriesFast();
-  return new(clref[size]) KoaRecPoint(trackID, detID, pos, mom,
-         time, length, eLoss);
+  KoaRecPoint* myPoint = new(clref[size]) KoaRecPoint(trackID, detID, posIn, posEnd, mom, time, length, eLoss);
+  // myPoint->SetLink(FairLink(-1, fEventNr, FairRootManager::Instance()->GetBranchId("MCTrack"), trackID));
+  return myPoint;
 }
 
 FairModule* KoaRec::CloneModule() const
@@ -244,6 +257,7 @@ KoaRec::KoaRec(const KoaRec& rhs) :
   fTrackID(-1),
   fVolumeID(-1),
   fPos(),
+  fPosEnd(),
   fMom(),
   fTime(-1.),
   fLength(-1.),

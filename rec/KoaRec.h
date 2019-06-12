@@ -63,9 +63,9 @@ class KoaRec: public FairDetector
      *       of type KoaRecPoint to the clones array
     */
     KoaRecPoint* AddHit(Int_t trackID, Int_t detID,
-                             TVector3 pos, TVector3 mom,
-                             Double_t time, Double_t length,
-                             Double_t eLoss);
+                        TVector3 pos, TVector3 posEnd,
+                        TVector3 mom, Double_t time,
+                        Double_t length, Double_t eLoss);
 
     /** The following methods can be implemented if you need to make
      *  any optional action in your detector during the transport.
@@ -92,6 +92,7 @@ class KoaRec: public FairDetector
     Int_t          fTrackID;           //!  track index
     Int_t          fVolumeID;          //!  volume id
     TLorentzVector fPos;               //!  position at entrance
+    TLorentzVector fPosEnd;            //!  position at end
     TLorentzVector fMom;               //!  momentum at entrance
     Double32_t     fTime;              //!  time
     Double32_t     fLength;            //!  length

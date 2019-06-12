@@ -6,25 +6,27 @@
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
 #include "KoaRecPoint.h"
-
-#include <iostream>
-using std::cout;
-using std::endl;
-
+#include "FairLogger.h"
 
 // -----   Default constructor   -------------------------------------------
 KoaRecPoint::KoaRecPoint()
   : FairMCPoint()
+  , fX_End(0)
+  , fY_End(0)
+  , fZ_End(0)
 {
 }
 // -------------------------------------------------------------------------
 
 // -----   Standard constructor   ------------------------------------------
 KoaRecPoint::KoaRecPoint(Int_t trackID, Int_t detID,
-                                   TVector3 pos, TVector3 mom,
-                                   Double_t tof, Double_t length,
-                                   Double_t eLoss)
-  : FairMCPoint(trackID, detID, pos, mom, tof, length, eLoss)
+                         TVector3 posIn, TVector3 posEnd,
+                         TVector3 mom, Double_t tof,
+                         Double_t length, Double_t eLoss)
+  : FairMCPoint(trackID, detID, posIn, mom, tof, length, eLoss)
+  , fX_End(posEnd.X())
+  , fY_End(posEnd.Y())
+  , fZ_End(posEnd.Z())
 {
 }
 // -------------------------------------------------------------------------
@@ -36,14 +38,13 @@ KoaRecPoint::~KoaRecPoint() { }
 // -----   Public method Print   -------------------------------------------
 void KoaRecPoint::Print(const Option_t* /*opt*/) const
 {
-  cout << "-I- KoaRecPoint: KoaRec point for track " << fTrackID
-       << " in detector " << fDetectorID << endl;
-  cout << "    Position (" << fX << ", " << fY << ", " << fZ
-       << ") cm" << endl;
-  cout << "    Momentum (" << fPx << ", " << fPy << ", " << fPz
-       << ") GeV" << endl;
-  cout << "    Time " << fTime << " ns,  Length " << fLength
-       << " cm,  Energy loss " << fELoss*1.0e06 << " keV" << endl;
+  LOG(info) << "KoaRecPoint: KoaRec point for track " << fTrackID
+       << " in detector " << fDetectorID ;
+  LOG(info) << "    Position In(" << fX << ", " << fY << ", " << fZ << ") cm" ;
+  LOG(info) << "    Position End(" << fX_End << ", " << fY_End << ", " << fZ_End << ") cm" ;
+  LOG(info) << "    Momentum (" << fPx << ", " << fPy << ", " << fPz << ") GeV";
+  LOG(info) << "    Time " << fTime << " ns,  Length " << fLength
+       << " cm,  Energy loss " << fELoss*1.0e06 << " keV" ;
 }
 // -------------------------------------------------------------------------
 
