@@ -19,7 +19,7 @@
  ** @author Y.Zhou <y.zhou@fz-juelich.de>
  **/
 /* TODO: 1. MasterToLocal
-         2. CMakeList
+         2. CMakeList (usage libs like rec, fwd, and mc)
          3. Check Volume ID and Unique ID
  */
 
@@ -46,15 +46,15 @@ class KoaGeoHandler : public TObject
     /** Destructor **/
     ~KoaGeoHandler() {};
 
-    Int_t GetUniqueDetectorId();
-    Int_t GetUniqueDetectorId(TString volName);
+    // 
+    Int_t Init(Bool_t isSimulation=kFALSE); // set up as simulation handler\
+                                            or not
+    void NavigateTo(TString volName); // Navigate to a specific volume\
+                                      invoked before coordinate transformation
 
-//  Int_t GetDetectorId(Int_t uniqueId);
+    Int_t GetUniqueDetectorId(); // used in simulation run
+    Int_t GetUniqueDetectorId(TString volName); // used in analysis run
 
-    Int_t Init(Bool_t isSimulation=kFALSE);
-
-    void FillDetectorInfoArray(Int_t uniqueId);
-    void NavigateTo(TString volName);
 
     // Implement Interface functions to the TGeoManager to be
     // the same as for the VMC
@@ -70,11 +70,7 @@ class KoaGeoHandler : public TObject
 //  Int_t CheckGeometryVersion();
 
   private:
-
-    Bool_t fIsSimulation; //!
-
-    Int_t fLastUsedDetectorID;  //!
-
+    Bool_t fIsSimulation; //! used in simulaion task or analysis task
     UInt_t fGeoPathHash;        //!
     TGeoVolume* fCurrentVolume; //!
     TGeoBBox* fVolumeShape;     //!

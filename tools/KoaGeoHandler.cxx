@@ -31,7 +31,6 @@ using std::pair;
 KoaGeoHandler::KoaGeoHandler()
   : TObject(),
     fIsSimulation(kFALSE),
-    fLastUsedDetectorID(0),
     fGeoPathHash(0),
     fCurrentVolume(NULL),
     fVolumeShape(NULL),
@@ -49,19 +48,19 @@ Int_t KoaGeoHandler::Init(Bool_t isSimulation)
   return 1;
 }
 
-void KoaGeoHandler::LocalToGlobal(Double_t* local, Double_t* global, Int_t detID)
+void KoaGeoHandler::NavigateTo(TString volName)
 {
-  TString path=ConstructFullPathFromDetID(detID);
-  NavigateTo(path);
-  gGeoManager->LocalToMaster(local, global);
-}
-
-TString KoaGeoHandler::ConstructFullPathFromDetID(Int_t detID)
-{
-  TString volStr   = "/cave_1/tutorial4_0/tut4_det_";
-  TString volPath = volStr;
-  volPath += detID;
-  return volPath;
+  if (fIsSimulation) {
+    LOG(fatal)<<"This methode is not supported in simulation mode";
+  } else {
+    gGeoManager->cd(volName.Data());
+    fGeoPathHash = volName.Hash();
+    fCurrentVolume = gGeoManager->GetCurrentVolume();
+    fVolumeShape = static_cast<TGeoBBox*>(fCurrentVolume->GetShape());
+    Double_t local[3] = {0., 0., 0.};  // Local centre of volume
+    gGeoManager->LocalToMaster(local, fGlobal);
+    LOG(debug2)<<"Pos: "<<fGlobal[0]<<" , "<<fGlobal[1]<<" , "<<fGlobal[2];
+  }
 }
 
 Int_t KoaGeoHandler::GetUniqueDetectorId(TString volName)
@@ -75,47 +74,22 @@ Int_t KoaGeoHandler::GetUniqueDetectorId(TString volName)
 
 Int_t KoaGeoHandler::GetUniqueDetectorId()
 {
-
   Int_t detectorNr=0;
-
   CurrentVolOffID(0, detectorNr);
 
   return detectorNr;
-
-
 }
 
 
-Int_t KoaGeoHandler::VolIdGeo(const char* name) const
+TString KoaGeoHandler::ConstructFullPathFromDetID(Int_t detID)
 {
-  //
-  // Return the unique numeric identifier for volume name
-  //
-
-  Int_t uid = gGeoManager->GetUID(name);
-  if (uid<0) {
-    printf("VolId: Volume %s not found\n",name);
-    return 0;
-  }
-  return uid;
+  TString volStr   = "/cave_1/tutorial4_0/tut4_det_";
+  TString volPath = volStr;
+  volPath += detID;
+  return volPath;
 }
 
-Int_t KoaGeoHandler::VolId(const Text_t* name) const
-{
-  if (fIsSimulation) {
-    return TVirtualMC::GetMC()->VolId(name);
-  } else {
-    //
-    // Return the unique numeric identifier for volume name
-    //
-    char sname[20];
-    Int_t len = strlen(name)-1;
-    if (name[len] != ' ') { return VolIdGeo(name); }
-    strncpy(sname, name, len);
-    sname[len] = 0;
-    return VolIdGeo(sname);
-  }
-}
+
 
 Int_t KoaGeoHandler::CurrentVolID(Int_t& copy) const
 {
@@ -152,7 +126,38 @@ Int_t KoaGeoHandler::CurrentVolOffID(Int_t off, Int_t& copy) const
   }
 }
 
-//_____________________________________________________________________________
+
+Int_t KoaGeoHandler::VolId(const Text_t* name) const
+{
+  if (fIsSimulation) {
+    return TVirtualMC::GetMC()->VolId(name);
+  } else {
+    //
+    // Return the unique numeric identifier for volume name
+    //
+    char sname[20];
+    Int_t len = strlen(name)-1;
+    if (name[len] != ' ') { return VolIdGeo(name); }
+    strncpy(sname, name, len);
+    sname[len] = 0;
+    return VolIdGeo(sname);
+  }
+}
+
+Int_t KoaGeoHandler::VolIdGeo(const char* name) const
+{
+  //
+  // Return the unique numeric identifier for volume name
+  //
+
+  Int_t uid = gGeoManager->GetUID(name);
+  if (uid<0) {
+    printf("VolId: Volume %s not found\n",name);
+    return 0;
+  }
+  return uid;
+}
+
 const char* KoaGeoHandler::CurrentVolName() const
 {
   if (fIsSimulation) {
@@ -185,22 +190,11 @@ const char* KoaGeoHandler::CurrentVolOffName(Int_t off) const
   }
 }
 
-
-void KoaGeoHandler::NavigateTo(TString volName)
+void KoaGeoHandler::LocalToGlobal(Double_t* local, Double_t* global, Int_t detID)
 {
-  if (fIsSimulation) {
-    LOG(fatal)<<"This methode is not supported in simulation mode";
-  } else {
-    gGeoManager->cd(volName.Data());
-    fGeoPathHash = volName.Hash();
-    fCurrentVolume = gGeoManager->GetCurrentVolume();
-    fVolumeShape = static_cast<TGeoBBox*>(fCurrentVolume->GetShape());
-    Double_t local[3] = {0., 0., 0.};  // Local centre of volume
-    gGeoManager->LocalToMaster(local, fGlobal);
-    LOG(debug2)<<"Pos: "<<fGlobal[0]<<" , "<<fGlobal[1]<<" , "<<fGlobal[2];
-//    fGlobalMatrix = gGeoManager->GetCurrentMatrix();
-  }
+  TString path=ConstructFullPathFromDetID(detID);
+  NavigateTo(path);
+  gGeoManager->LocalToMaster(local, global);
 }
-
 
 ClassImp(KoaGeoHandler)
