@@ -14,6 +14,7 @@ ${BASE_INCLUDE_DIRECTORIES}
 #put here all directories where header files are located
 ${CMAKE_SOURCE_DIR}/KoaData
 ${CMAKE_SOURCE_DIR}/rec
+${CMAKE_SOURCE_DIR}/tools
 
 )
 
@@ -40,6 +41,8 @@ Set(LINKDEF KoaRecLinkDef.h)
 Set(LIBRARY_NAME KoaRec)
 Set(DEPENDENCIES
     Base
+    Geom
+    KoaTools
 )
 
 GENERATE_LIBRARY()

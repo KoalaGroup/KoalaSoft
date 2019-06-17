@@ -10,24 +10,43 @@
 #include "TClonesArray.h"
 #include "TMath.h"
 #include "FairLogger.h"
+#include "KoaGeoHandler.h"
+#include "KoaMapEncoder.h"
+#include "KoaRecPoint.h"
+// #include "FairEvtFilterParams.h"
 
 // ---- Default constructor -------------------------------------------
 KoaAnaSolidAngle::KoaAnaSolidAngle()
   :FairTask("KoaAnaSolidAngle"),
    fMCEntryNo(0),
+   fMCEntryFromExternal(kFALSE),
    fOutputFile(),
-   fFileName("NrOfHitsDistribution.txt")
+   fFileName("NrOfHitsDistribution.txt"),
+   fSi1NrHit{0},
+   fSi2NrHit{0},
+   fGe1NrHit{0},
+   fGe2NrHit{0},
+   fGeoHandler(nullptr)
 {
   LOG(debug) << "Defaul Constructor of KoaAnaSolidAngle";
   for(int i=0;i<48;i++){
     if(fSi1NrHit[i])
-      LOG(fatal) << "Array not initialized to zero in KoaAnaSolidAngle";
+      LOG(fatal) << "Array not initialized to zero in KoaAnaSolidAngle" << fSi1NrHit[i];
+  }
+  for(int i=0;i<64;i++){
+    if(fSi2NrHit[i])
+      LOG(fatal) << "Array not initialized to zero in KoaAnaSolidAngle" << fSi1NrHit[i];
+  }
+  for(int i=0;i<32;i++){
+    if(fGe1NrHit[i] || fGe2NrHit[i])
+      LOG(fatal) << "Array not initialized to zero in KoaAnaSolidAngle" << fSi1NrHit[i];
   }
 }
 
 // ---- Destructor ----------------------------------------------------
 KoaAnaSolidAngle::~KoaAnaSolidAngle()
 {
+  delete fGeoHandler;
   LOG(debug) << "Destructor of KoaAnaSolidAngle";
 }
 
@@ -61,17 +80,25 @@ InitStatus KoaAnaSolidAngle::Init()
       // return kERROR;
   }
 
-  // Create the TClonesArray for the output data and register
-  // it in the IO manager
-  /*
-    <OutputDataLevel> = new TClonesArray("OutputDataLevelName", 100);
-    ioman->Register("OutputDataLevelName","OutputDataLevelName",<OutputDataLevel>,kTRUE);
-  */
+  // read no event based object ??
+  // FairEvtFilterParams* filterStats = static_cast<FairEvtFilterParams*>(ioman->GetObject("FairEvtFilter"));
+  // if(!filterStats){
+  //   LOG(fatal) << "Can't get filterStats using standard method";
+  // }
+  // else{
+  //   LOG(info) << "Events generated: " << filterStats->fGeneratedEvents ;
+  // }
 
   // Do whatever else is needed at the initilization stage
   // Create histograms to be filled
   // initialize variables
   fOutputFile.open(fFileName.Data(),std::fstream::out);
+
+  fNrHit.clear();
+
+  // KoaGeoHandler uses gGeoManager internally, so it must be constructed after parameter input
+  // gGeoManager is only available after parameter reading from BaseParSet
+  fGeoHandler = new KoaGeoHandler(kFALSE);
 
   return kSUCCESS;
 }
@@ -80,6 +107,8 @@ InitStatus KoaAnaSolidAngle::Init()
 InitStatus KoaAnaSolidAngle::ReInit()
 {
   LOG(debug) << "Initilization of KoaAnaSolidAngle";
+
+  fNrHit.clear();
   return kSUCCESS;
 }
 
@@ -87,8 +116,29 @@ InitStatus KoaAnaSolidAngle::ReInit()
 void KoaAnaSolidAngle::Exec(Option_t* /*option*/)
 {
   LOG(debug) << "Exec of KoaAnaSolidAngle";
+  //
+  if(!fMCEntryFromExternal)
+    fMCEntryNo++;
+  //
+  fNrPoints = fPoints->GetEntriesFast();
+  Double_t global[3], local[3];
+  for(Int_t iPoint =0; iPoint<fNrPoints; iPoint++){
+    KoaRecPoint* curPoint = (KoaRecPoint*)fPoints->At(iPoint);
+    Int_t detID = curPoint->GetDetectorID();
+    global[0]=curPoint->GetX();
+    global[1]=curPoint->GetY();
+    global[2]=curPoint->GetZ();
+    fGeoHandler->RecGlobalToLocal(global,local,detID);
 
-  fMCEntryNo++;
+    Int_t chID = fGeoHandler->RecPositionToDetCh(local,detID);
+    auto search = fNrHit.find(chID);
+    if(search == fNrHit.end()){
+      fNrHit[chID] = 1;
+    }
+    else{
+      search->second++;
+    }
+  }
 }
 
 // ---- Finish --------------------------------------------------------
@@ -96,6 +146,37 @@ void KoaAnaSolidAngle::Finish()
 {
   LOG(debug) << "Finish of KoaAnaSolidAngle";
 
+  KoaMapEncoder* encoder = KoaMapEncoder::Instance();
+  Int_t detID, chID;
+  for(auto& ch: fNrHit){
+    chID = encoder->DecodeChannelID(ch.first, detID);
+    switch(detID){
+    case 0:
+      {
+        fSi1NrHit[chID] = ch.second;
+        break;
+      }
+    case 1:
+      {
+        fSi2NrHit[chID] = ch.second;
+        break;
+      }
+    case 2:
+      {
+        fGe1NrHit[chID] = ch.second;
+        break;
+      }
+    case 3:
+      {
+        fGe2NrHit[chID] = ch.second;
+        break;
+      }
+    default:
+      break;
+    }
+  }
+
+  //
   Write();
   fOutputFile.close();
 }
@@ -115,29 +196,39 @@ void KoaAnaSolidAngle::Write()
   fOutputFile << "Si1 (solid angle of each channel):" << std::endl;
   for(Long_t nr : fSi1NrHit){
     ch_id++;
-    fOutputFile << ch_id << ", " <<  pi*nr/fMCEntryNo << std::endl;
+    fOutputFile << ch_id << ", " <<  4*pi*nr/fMCEntryNo \
+                << ", " << nr << ", " << fMCEntryNo << std::endl;
   }
 
   fOutputFile << "Si2 (solid angle of each channel):" << std::endl;
   ch_id=0;
   for(Long_t nr : fSi2NrHit){
     ch_id++;
-    fOutputFile << ch_id << ", " << pi*nr/fMCEntryNo << std::endl;
+    fOutputFile << ch_id << ", " << 4*pi*nr/fMCEntryNo \
+                << ", " << nr << ", " << fMCEntryNo << std::endl;
   }
 
   fOutputFile << "Ge1 (solid angle of each channel):" << std::endl;
   ch_id=0;
   for(Long_t nr : fGe1NrHit){
     ch_id++;
-    fOutputFile << ch_id << ", " << pi*nr/fMCEntryNo << std::endl;
+    fOutputFile << ch_id << ", " << 4*pi*nr/fMCEntryNo \
+                << ", " << nr << ", " << fMCEntryNo << std::endl;
   }
 
   fOutputFile << "Ge2 (solid angle of each channel):" << std::endl;
   ch_id=0;
   for(Long_t nr : fGe2NrHit){
     ch_id++;
-    fOutputFile << ch_id << ", " << pi*nr/fMCEntryNo << std::endl;
+    fOutputFile << ch_id << ", " << 4*pi*nr/fMCEntryNo \
+                << ", " << nr << ", " << fMCEntryNo << std::endl;
   }
+}
+
+void KoaAnaSolidAngle::SetMCEntryNo(Long_t entryNr)
+{
+  fMCEntryFromExternal = kTRUE;
+  fMCEntryNo = entryNr;
 }
 
 ClassImp(KoaAnaSolidAngle)

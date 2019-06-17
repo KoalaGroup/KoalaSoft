@@ -6,6 +6,7 @@
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
 #include "KoaRec.h"
+#include "KoaGeoHandler.h"
 
 #include "KoaRecPoint.h"
 #include "KoaRecGeo.h"
@@ -45,7 +46,8 @@ KoaRec::KoaRec()
     fTime(-1.),
     fLength(-1.),
     fELoss(-1),
-    fKoaRecPointCollection(new TClonesArray("KoaRecPoint"))
+    fKoaRecPointCollection(new TClonesArray("KoaRecPoint")),
+    fGeoHandler(new KoaGeoHandler(kTRUE))
 {
   fListOfSensitives.push_back("SensorSi");
   fListOfSensitives.push_back("SensorGe");
@@ -61,7 +63,8 @@ KoaRec::KoaRec(const char* name, Bool_t active)
     fTime(-1.),
     fLength(-1.),
     fELoss(-1),
-    fKoaRecPointCollection(new TClonesArray("KoaRecPoint"))
+    fKoaRecPointCollection(new TClonesArray("KoaRecPoint")),
+    fGeoHandler(new KoaGeoHandler(kTRUE))
 {
   fListOfSensitives.push_back("SensorSi");
   fListOfSensitives.push_back("SensorGe");
@@ -73,6 +76,8 @@ KoaRec::~KoaRec()
     fKoaRecPointCollection->Delete();
     delete fKoaRecPointCollection;
   }
+
+  delete fGeoHandler;
 }
 
 void KoaRec::Initialize()
@@ -106,9 +111,14 @@ Bool_t  KoaRec::ProcessHits(FairVolume* vol)
        gMC->IsTrackStop()       ||
        gMC->IsTrackDisappeared()   ) {
     fTrackID  = gMC->GetStack()->GetCurrentTrackNumber();
-    fVolumeID = vol->getMCid();
+    // fVolumeID = vol->getMCid();
+    fVolumeID = fGeoHandler->GetRecDetId(vol->GetName());
+    Int_t copy=0;
+    std::cout<<vol->GetName()<<",volumeID="<< vol->getVolumeId()<<",modID="<<\
+      vol->getModId()<<",MCid="<<vol->getMCid()<<",CurrentVolID="<<gMC->CurrentVolOffID(0,copy)<<\
+      ", volumeName="<< gMC->CurrentVolName()<<", volPath="<< gMC->CurrentVolPath()<< std::endl;
     gMC->TrackPosition(fPosEnd);
-    if (fELoss == 0. ) { return kFALSE; }
+    if (fELoss == 0. && gMC->TrackPid()!=0) { return kFALSE; }
     AddHit(fTrackID,
            fVolumeID,
            TVector3(fPos.X(),  fPos.Y(),  fPos.Z()),

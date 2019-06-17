@@ -5,12 +5,10 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
     
   // Output file name
   // TString outFile ="test_filtered.root";
-  TString outFile ="test_filtered_onfly_newcut.root";
-  // TString outFile ="test_filtered_onfly.root";
+  TString outFile =Form("filtered_solidAngle_%d.root",nEvents);
     
   // Parameter file name
-  // TString parFile="params_filtered.root";
-  TString parFile="params_filtered_onfly.root";
+  TString parFile=Form("params_filtered_solidAngle_%d.root",nEvents);
   
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -60,8 +58,8 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
     // Add a box generator also to the run
-    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 2212 = proton; 1 = multipl.
-    boxGen->SetPRange(6,6); // GeV/c
+    FairBoxGenerator* boxGen = new FairBoxGenerator(0, 1); //0 = rootino/geantino, 2212 = proton; 1 = multipl.
+    boxGen->SetPRange(3.4,3.4); // GeV/c
     boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
     boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // cm
@@ -75,12 +73,12 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
     // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("Background-micro.root");
     // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
   
-  // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(2.8);
+    // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(2.8);
     // primGen->AddGenerator(ppGen);
 
     // Add filter
     KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
-    evtFilter->SetX(-100);
+    evtFilter->SetX(-101);
     evtFilter->SetZRange(-10,40);
     evtFilter->SetYRange(-10,10);
     primGen->AndFilter(evtFilter);
@@ -111,6 +109,7 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
    
   // -----   Start run   ----------------------------------------------------
    run->Run(nEvents);
+   // primGen->WriteEvtFilterStatsToRootFile(); // depracted
     
   //You can export your ROOT geometry ot a separate file
   run->CreateGeometryFile("geofile_full.root");

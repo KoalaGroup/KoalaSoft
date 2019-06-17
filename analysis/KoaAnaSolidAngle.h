@@ -10,8 +10,10 @@
 
 #include "FairTask.h"
 #include <fstream>
+#include <map>
 
 class TClonesArray;
+class KoaGeoHandler;
 
 class KoaAnaSolidAngle : public FairTask
 {
@@ -44,6 +46,8 @@ class KoaAnaSolidAngle : public FairTask
     /** Finish task called at the end of the run **/
     virtual void Finish();
 
+    void SetMCEntryNo(Long_t entryNo);
+
  public:
     void SetOutFileName(const char* filename);
 
@@ -56,12 +60,16 @@ class KoaAnaSolidAngle : public FairTask
  private:
     /** Input array from previous already existing data level **/
     TClonesArray* fPoints;
+    KoaGeoHandler* fGeoHandler;
 
     Long_t fSi1NrHit[48];
     Long_t fSi2NrHit[64];
     Long_t fGe1NrHit[32];
     Long_t fGe2NrHit[32];
+    std::map<Int_t,Long_t> fNrHit;
+    Bool_t fMCEntryFromExternal;
     Long_t fMCEntryNo;
+    Long_t fNrPoints;
 
     TString fFileName;
     std::ofstream fOutputFile;

@@ -1,11 +1,11 @@
 void testSegmentation(const char *filename)
 {
-  // sensor_edge[i][j], index i represents Sensor from Si1, Si2, Ge1 to Ge2
-  // index j represents the edge from -z, +z, -y, +y
-  // Based on the build_geom.C on 09.05.2019
   Double_t sensor_edge_minusz[4]={-2.64,2.61,9.175,16.035};
   Double_t sensor_edge_minusy[4]={-5.675,0.675,-5.675,0.675};
 
+  // sensor_edge[i][j], index i represents Sensor from Si1, Si2, Ge1 to Ge2
+  // index j represents the edge from -z, +z, -y, +y
+  // Based on the build_geom.C on 09.05.2019
   Double_t sensor_edge[4][4]={
     {sensor_edge_minusz[0],sensor_edge_minusz[0]+7.68,sensor_edge_minusy[0],sensor_edge_minusy[0]+5}
     {sensor_edge_minusz[1],sensor_edge_minusz[1]+7.68,sensor_edge_minusy[1],sensor_edge_minusy[1]+5}

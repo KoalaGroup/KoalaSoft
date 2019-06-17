@@ -77,7 +77,7 @@ Int_t KoaMapEncoder::EncodeChannelID(Int_t det, Int_t ch)
 
 Int_t KoaMapEncoder::DecodeChannelID(Int_t id, Int_t& det)
 {
-  det = id & 0xFF000000;
+  det = (id>>24) & 0xFF;
   return (id&0xFFFFFF);
 }
 

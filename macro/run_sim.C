@@ -2,11 +2,14 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
 {
     
   // Output file name
-  TString outFile ="test.root";
+  TString outFile =Form("test_solidAngle_%d.root",nEvents);
     
   // Parameter file name
-  TString parFile="params.root";
+  TString parFile=Form("params_solidAngle_%d.root",nEvents);
   
+  // ----    Debug option   -------------------------------------------------
+  gDebug = 0;
+
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
   timer.Start();
@@ -74,12 +77,12 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
   
     // // Add a box generator also to the run
-    // FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
-    // boxGen->SetPRange(20,20); // GeV/c
-    // boxGen->SetPhiRange(1., 5.); // Azimuth angle range [degree]
-    // boxGen->SetThetaRange(89., 90.); // Polar angle in lab system range [degree]
-    // boxGen->SetXYZ(0., 0., 0.); // cm
-    // primGen->AddGenerator(boxGen);
+    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 2212 = proton, 13 = muon; 1 = multipl.
+    boxGen->SetPRange(3.4,3.4); // GeV/c
+    boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
+    boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
+    boxGen->SetXYZ(0., 0., 0.); // cm
+    primGen->AddGenerator(boxGen);
 
     // // Particle Gun
     // FairParticleGenerator* parGen = new FairParticleGenerator(13, 1, 20,0.5,0);
@@ -87,15 +90,15 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
 
     // P-P elastic generator
 //    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
-    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(5);
-    primGen->AddGenerator(ppGen);
+    // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(5);
+    // primGen->AddGenerator(ppGen);
 
     run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
  
   //---Store the visualiztion info of the tracks, this make the output file very large!!
   //--- Use it only to display but not for production!
-  run->SetStoreTraj(kTRUE);
+  // run->SetStoreTraj(kTRUE);
 
     
     

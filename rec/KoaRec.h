@@ -17,6 +17,7 @@
 class KoaRecPoint;
 class FairVolume;
 class TClonesArray;
+class KoaGeoHandler;
 
 class KoaRec: public FairDetector
 {
@@ -99,8 +100,9 @@ class KoaRec: public FairDetector
     Double32_t     fELoss;             //!  energy loss
 
     /** container for data points */
-
     TClonesArray*  fKoaRecPointCollection;  //!
+
+    KoaGeoHandler* fGeoHandler; //!
 
     KoaRec(const KoaRec&);
     KoaRec& operator=(const KoaRec&);
