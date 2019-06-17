@@ -16,69 +16,91 @@
  ** Helper class to extract information from the GeoManager which is
  ** needed in many other classes.. This helper class should be a
  ** single place to hold all these functions.
+ **
+ ** Major functions:
+ **   1. Keep a list of TGeoHMatrix for coordinate transformation from global to local,
+ **      and vice visa.
+ **   2. Keep a list of mapping relation between strip id to readout channel id (caveat:
+ **      readout channel mapping to electronics channel is save in KoaMapHandler)
+ **   3. Keep a list of readout channel id mapping to local position of strip range.
+ **   4. Keep a list of normalized detector id, which is the uniquely assigned to each
+ **      sensor volume in simulaion and recognized in digitisation (i.e. volID in MCPoint)
+ **
+ ** This class is designed to be used intensely in simulaion/digitisation/reconstruction/
+ ** anaylsis.
+ **
  ** @author Y.Zhou <y.zhou@fz-juelich.de>
  **/
 /* TODO: 1. MasterToLocal
          2. CMakeList (usage libs like rec, fwd, and mc)
          3. Check Volume ID and Unique ID
+         4. Implementation to be done for Fwd detector
  */
 
 #ifndef KOAGEOHANDLER_H
 #define KOAGEOHANDLER_H 1
 
 #include "TObject.h"                    // for TObject
+#include <map>                          // for map
+#include "TGeoMatrix.h"
 
 #include "Rtypes.h"                     // for Int_t, Double_t, Bool_t, etc
 #include "TString.h"                    // for TString
 
-class TGeoBBox;
-class TGeoVolume;
-class TGeoHMatrix;
+class KoaMapEncoder;
 
 class KoaGeoHandler : public TObject
 {
   public:
-
-    /** Constructor **/
-    KoaGeoHandler();
-
-
-    /** Destructor **/
+    KoaGeoHandler(Bool_t IsSim=kFALSE);
     ~KoaGeoHandler() {};
 
     // 
-    Int_t Init(Bool_t isSimulation=kFALSE); // set up as simulation handler\
-                                            or not
+    Int_t GetRecDetId(const char* volName); // used in simulation run
+    TString GetRecDetName(Int_t detId);
+    TString GetRecDetPath(Int_t detId);
+
+    //
+    void RecLocalToGlobal(Double_t* local, Double_t* global, Int_t detID);
+    void RecGlobalToLocal(Double_t* global, Double_t* local, Int_t detID);
+
+    // hitPos here is the local coordinate in the sensor volume
+    // return value is the encoded readout channel
+    Int_t RecPositionToDetCh(Double_t* hitPos, Int_t detID);
+    // return value is the center position of this channel along z-axis
+    // here detChId is the encoded readout channel id
+    Double_t RecDetChToPosition(Int_t detChId, Double_t& lower, Double_t& higher);
+
+    //
     void NavigateTo(TString volName); // Navigate to a specific volume\
                                       invoked before coordinate transformation
+    typedef struct{
+      Double_t center;
+      Double_t lower;
+      Double_t higher;
+    } StripRange;
 
-    Int_t GetUniqueDetectorId(); // used in simulation run
-    Int_t GetUniqueDetectorId(TString volName); // used in analysis run
+ private:
+    Int_t InitMatrix(); // Init the transformation matrix from gGeoManager, which is not\
+                        available immediately in simulation
+    Int_t Init(); // Init all the other mappings, which are available both in simulation\
+                  and analysis
 
+ private:
+    KoaMapEncoder*  fMapEncoder;
+    TString         fRecPath; // node path for recoil detector
+    TString         fFwdPath;
 
-    // Implement Interface functions to the TGeoManager to be
-    // the same as for the VMC
-    Int_t CurrentVolOffID(Int_t off, Int_t& copy) const;
-    Int_t CurrentVolID(Int_t& copy) const;
-    Int_t VolId(const Text_t* name) const;
-    Int_t VolIdGeo(const char* name) const;
-    const char* CurrentVolName() const;
-    const char* CurrentVolOffName(Int_t off) const;
+    Bool_t fIsSimulation; //! used in simulation task or analysis task
+    std::map<Int_t, TString>      fRecDetPath;
+    std::map<Int_t, TGeoHMatrix*> fRecDetMatrix;
+    std::map<Int_t, Double_t>     fRecDetPosition; // position of sensor centor in global coordinate
+    std::map<Int_t, Double_t>     fRecDetDimension; // half length of sensor size along z-axis
+    // mapping from encoded readout channel id to local strip range in sensor volume
+    std::map<Int_t, StripRange>   fRecChIdToStripRange;
 
-    void LocalToGlobal(Double_t* local, Double_t* global, Int_t detID);
-
-//  Int_t CheckGeometryVersion();
-
-  private:
-    Bool_t fIsSimulation; //! used in simulaion task or analysis task
-    UInt_t fGeoPathHash;        //!
-    TGeoVolume* fCurrentVolume; //!
-    TGeoBBox* fVolumeShape;     //!
-    Double_t fGlobal[3];        //! Global centre of volume
-    TGeoHMatrix* fGlobalMatrix; //!
-
-
-    TString ConstructFullPathFromDetID(Int_t detID);
+    // mapping from encoded strip id to encoded readout channel id
+    std::map<Int_t, Int_t>        fRecStripIdToChId;
 
     KoaGeoHandler(const KoaGeoHandler&);
     KoaGeoHandler operator=(const KoaGeoHandler&);

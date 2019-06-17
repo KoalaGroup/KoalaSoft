@@ -28,12 +28,16 @@ link_directories( ${LINK_DIRECTORIES})
 set(SRCS
 #Put here your sourcefiles
 KoaGeoHandler.cxx
+KoaMapHandler.cxx
+KoaMapEncoder.cxx
 )
 
 Set(LINKDEF KoaToolsLinkDef.h)
 Set(LIBRARY_NAME KoaTools)
 Set(DEPENDENCIES
     Base
+    Geom
+    Core
 )
 
 GENERATE_LIBRARY()
