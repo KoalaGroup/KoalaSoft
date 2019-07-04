@@ -1,0 +1,7 @@
+* Use cases
+** Case 1
+   Simulation --> Tasks --> FileSink
+** Case 2
+   DaqRawBinFile --> Unpack --> Tasks --> FileSink
+** Case 3
+   DaqRawBinOnline --> Unpack --> Tasks --> OnlineMonitor
