@@ -1,7 +1,119 @@
 * Use cases
 ** Case 1
    Simulation --> Tasks --> FileSink
+
 ** Case 2
    DaqRawBinFile --> Unpack --> Tasks --> FileSink
+
+*** Reference examples
+**** FairRoot/MQ/Lmd
+     1. FairMQLmdSampler (get a raw event from binary file, like ems_event buffer)
+     2. FairMQUnpacker<FairMBSUnpacker> (FairMBSUnpacker inherits from FairUnpack)
+     3. BaseMQFileSink<RootDefaultInputPolicy, RootOutFileManager<FairMBSRawItem>>
+     
+*** Notes
+    - FairMQLmdSampler has a very interesting implementation of reading a series of binary raw files for unpacking.
+    - A similar version based on FairRootManager & FairRunOnline & FairRunAna is available under advanced/MbsTutorial
+      In that version, FairMBSUnpack is almost the same as the implementation of FairMBSUnpacker in MQ example except the Register().
+      It uses FairRootManager to register the output object to root file.
+      * FairSource <-- FairOnlineSource <-- FairMbsSource <-- FairLmdSource
+      * FairUnpack <-- FairMBSUnpack
+      * FairLmdSource is equivalent to FairMQLmdSampler, it get an event buffer from the raw binary file. Besides, it also integrates
+        the unpacker to unpack the raw binary to raw object.
+
 ** Case 3
    DaqRawBinOnline --> Unpack --> Tasks --> OnlineMonitor
+
+** Case 4
+   RootFile --> Tasks --> RootFile/OnlineMonitor
+
+*** Reference example
+**** Non-MQ example: advanced/MbsTutorial
+     Use FairRunOnline as a wrapper of THttpServer. FairRunOnline is a singleton, and provides the registration of the objects
+     to be displayed in THttpServer.
+
+**** MQ example: MQ/histogramServer
+     Use FairMQExHistoServer as a wrapper of THttpServer. FairMQExHistoDevice is used as histogram generator for this test.
+     FairMQExHistoServer receives histograms arrays from FairMQExHistoDevice, registers them in THttpServer and updates them accordingly.
+
+     The request to THttpServer is processed in an thread.
+
+     The transportation between FairMQExHistoServer and FairMQExHistoDevice is PUB/SUB pattern.
+     FairMQExHistoDevice is the publisher and FairMQExHistoServer is the subscriber.
+
+*** Notes
+**** About THttpServer
+     1. One should specify sub-folder name, where objects will be registered. If sub-folder name does not starts with slash `/`, than top-name folder `/Objects/` will be prepended.
+     2. THttpServer does not take ownership over registered objects - they should be deleted by user.
+     3. ProcessRequests() should be invoked in compiled code for replying the requests from clients, f.g updating histograms.
+  
+*  Design Strategy
+** Simulation
+*** Reference example: MQ/pixelDetector/FairMQSimDevice
+    This example is mature enough to be used directly. FairMQSimDevice is a wrapper of FairRunSim.
+    And runMQSim.cxx acts like the macro run_sim.C in FairRoot conventional pipeline.
+
+    * All the configurations related to the simulation is processed in runMQSim.cxx
+      1) Sink: FairOnlineSink
+    * The loop is driven eventually by FairRunSim
+    * The message sending is passed to the control of FairRunSim through FairOnlineSink, which is accomplished through
+      a handle to FairMQSimDevice (which will send the branch objects through SendBranches)
+    * FairMQSimDevice needs to connect to the parameter server. It asks the parameter server for the run id, and also pushes all the paramter containers to the parameter server
+    * FairDetectors are provided as TObjArray
+    * Multiple tasks can be passed to the simulation chain as TObjArray
+    * The simulated output objects will be pushed to channels named like: channelName#branchName# or channelName#all#. 
+      Otherwise, the channel will be ignored.
+     
+
+** Sampler
+*** Reference examples
+**** MQ/pixelDetector/FairMQPixelSampler
+     * A wrapper of FairSource, which should be very flexible
+     * The Ack channel is very useful
+     * Multiple branches can be read and pushed to output stream using FairMQParts
+     * [Bug] FairRunAna not needed
+
+** Unpacker
+** Processor
+*** Reference example: MQ/pixelDetector/FairMQPixelTaskProcessor
+**** FairMQPixelTaskProcessor:
+     * One input channel, one output channel, one parameter channel
+     * One template parameter, which should inherit from FairTask.
+       Despite overloading the member functions used in conventional FairRoot pipeline, three new member functions need to be implemented to be used in MQ-based pipeline:
+       These functions basically deals with the configuration of the three lists to be used in MQ-based pipeline:
+       1) GetParList(TList* parList): add the parameter container needed in this task to the parameter list
+       2) InitMQ(TList*): new output objects and other initialization
+       3) ExecMQ(TList* inputList, TList* outputList): get the objects from inputList, add the objects to outputList
+     * Three member lists: input (fInput), output (fOutput), parameter (fParCList)
+       fInput and fParCList are filled from the upstream message, and fOutput will be converted to downstream message.
+     * Common/General parameter/objects which is managed in the template, and each individual task does not need to manage
+       1) EventHeader/MCEventHeader (fEventHeader/fMCEventHeader)
+       2) GeoParSet (fGeoPar)
+     * Input stream/list comes from upstream device. It contains:
+       1) EventHeader/MCEventHeader based on analysis/simulation source
+       2) Objects from upstream output stream
+     * Output stream consists of
+       1) EventHeader/MCEventHeader from the input stream
+       2) One object from the input stream (i.e. fDataToKeep)
+       3) New objects generated in this task
+     * The conventional pipeline implementation of the FairTask is independent from the MQ-based implementation.
+       But both of them are wrapped in the same FairTask, so that the same task class can be used in both pipelines without any change of the code.
+     * FairGeoParSet is managed in FairMQPixelTaskProcessor, so individual task needs not to consider about it, just use it ( through gGeoManager)
+
+*** TODO [Bug] UpdateParameters may have a bug relating to undeleted old parameter container after updating
+*** TODO [Bug] In ProcessData, the cloned objectToKeep is never deleted, which may bring memory overflow.
+     
+    
+*** Notes
+    1. Scripting graphics:
+       * Artist-mode & Ditaa
+       * PlantUML
+       * Graphivz
+       * AsciiDoc
+** Sink
+**** MQ/pixelDetector/FairMQPixelFileSink is too specific for Pixel example
+
+** Parameter
+** OnlineMonitor
+** Controller??
+** Serialization & Deserializatioin
