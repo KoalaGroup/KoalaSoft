@@ -72,7 +72,15 @@
      * The Ack channel is very useful
      * Multiple branches can be read and pushed to output stream using FairMQParts
      * [Bug] FairRunAna not needed
-
+     * PixelDigiSource/PixelDigiBinSource act as the alternate source for text/binary digi files.
+       They are descendents of FairSource. A customized version of EventHeader (PixelEventHeader) can be used is the analysis (see run_dAsciiSource.C)
+**** Requirements
+     Sources of Sampler:
+     1. KoalaEms raw binary files on disk, waiting for decoding
+     2. KoalaEms raw binary dataout stream from networks socket, for online monitoring
+     3. ROOT files on disk (any stages after decoding), waiting for further analysis
+     4. KoalaSoft simulation engine which will generate the MC events (this source is listed for completion purpose, it is implemented in Simulation device
+     
 ** Unpacker
 ** Processor
 *** Reference example: MQ/pixelDetector/FairMQPixelTaskProcessor
