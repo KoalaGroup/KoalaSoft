@@ -5,22 +5,6 @@
 ** Case 2
    DaqRawBinFile --> Unpack --> Tasks --> FileSink
 
-*** Reference examples
-**** FairRoot/MQ/Lmd
-     1. FairMQLmdSampler (get a raw event from binary file, like ems_event buffer)
-     2. FairMQUnpacker<FairMBSUnpacker> (FairMBSUnpacker inherits from FairUnpack)
-     3. BaseMQFileSink<RootDefaultInputPolicy, RootOutFileManager<FairMBSRawItem>>
-     
-*** Notes
-    - FairMQLmdSampler has a very interesting implementation of reading a series of binary raw files for unpacking.
-    - A similar version based on FairRootManager & FairRunOnline & FairRunAna is available under advanced/MbsTutorial
-      In that version, FairMBSUnpack is almost the same as the implementation of FairMBSUnpacker in MQ example except the Register().
-      It uses FairRootManager to register the output object to root file.
-      * FairSource <-- FairOnlineSource <-- FairMbsSource <-- FairLmdSource
-      * FairUnpack <-- FairMBSUnpack
-      * FairLmdSource is equivalent to FairMQLmdSampler, it get an event buffer from the raw binary file. Besides, it also integrates
-        the unpacker to unpack the raw binary to raw object.
-
 ** Case 3
    DaqRawBinOnline --> Unpack --> Tasks --> OnlineMonitor
 
@@ -74,6 +58,11 @@
      * [Bug] FairRunAna not needed
      * PixelDigiSource/PixelDigiBinSource act as the alternate source for text/binary digi files.
        They are descendents of FairSource. A customized version of EventHeader (PixelEventHeader) can be used is the analysis (see run_dAsciiSource.C)
+
+**** MQ/pixelDetector/FairMQPixelSamplerBin
+     * An example to show the different payload message (POD class for transportation)
+     * Simplified source (only FairFileSource implemented)
+
 **** Requirements
      Sources of Sampler:
      1. KoalaEms raw binary files on disk, waiting for decoding
@@ -82,6 +71,39 @@
      4. KoalaSoft simulation engine which will generate the MC events (this source is listed for completion purpose, it is implemented in Simulation device
      
 ** Unpacker
+   It's essentially a special type of Sampler. It will deal with KoalaEms raw event data instead of ROOT file branches.
+
+*** Reference examples
+**** MQ verion: MQ/Lmd
+     1. FairMQLmdSampler (get a raw event from binary file, like ems_event buffer)
+     2. FairMQUnpacker<FairMBSUnpacker> (FairMBSUnpacker inherits from FairUnpack)
+     3. BaseMQFileSink<RootDefaultInputPolicy, RootOutFileManager<FairMBSRawItem>>
+     4. FairMQLmdSampler has a very interesting implementation of reading a series of binary raw files for unpacking.
+    
+**** Non-MQ version: Advanced/MbsTutorial 
+     A similar version based on FairRunOnline (FairRunAna can not be used for unpacking task).
+
+     * FairLmdSource is the source: FairSource <-- FairOnlineSource <-- FairMbsSource <-- FairLmdSource
+     * FairRunOnline is the steering class, which use FairLmdSource by SetSource()
+     * FairLmdSource needs to set upacker: FairUnpack <-- FairMBSUnpack
+     * FairRunOnline will init unpackers through the hook in FairLmdSource
+     * FairRootFileSink use FairRootManager to register the output object to root file.
+       
+**** Comparison between MQ and non-MQ version
+    | Features             | MQ                                                                                    | non-MQ                                               |
+    | reading binary files | FairMQLmdSampler                                                                      | FairLmdSource                                        |
+    | unpacking algorithm  | FairMBSUnpacker, which is wrapped in the device FairMQUnpacker                        | FairMBSUnpack, which is wrapperred inf FairLmdSource |
+    | steering             | No central steering, each device init itself, the pipeline driven by FairMQLmdSampler | FairRunOnline takes care of everything               |
+    | writing to ROOT file | BaseMQFileSink                                                                        | FairRootFileSink                                  |
+
+    * FairLmdSource is equivalent to FairMQLmdSampler, it get an event buffer from the raw binary file. Besides, it also integrates
+      the unpacker to unpack the raw binary to raw object.
+    * FairMBSUnpack is almost the same as the implementation of FairMBSUnpacker in MQ version except the Register() member function.
+      They both inherit from FairUnpack, it should be possible to use the same unpack class in both non-MQ and MQ versions of Unpacker.
+
+*** Notes
+
+
 ** Processor
 *** Reference example: MQ/pixelDetector/FairMQPixelTaskProcessor
 **** FairMQPixelTaskProcessor:
@@ -121,7 +143,13 @@
 ** Sink
 **** MQ/pixelDetector/FairMQPixelFileSink is too specific for Pixel example
 
-** Parameter
-** OnlineMonitor
-** Controller??
-** Serialization & Deserializatioin
+
+** Parameter Server
+   Use the default FairRoot ParameterMQServer.
+
+** TODO Histogram Server
+   Based on THttpServer. Work in subscription mode, using bind method. 
+   Receive histograms from any tasks, and categarize them in THttpServer.
+   
+** GUI Controller?? And Ack channel ??
+** Optimization of Serialization & Deserializatioin (i.e. Message payload design)
