@@ -11,7 +11,7 @@ fFilterMaxTries(999999){ }
 // -------------------------------------------------------------------------
 
 // -----   constructor with parameters   -------------------------------------------
-FairEvtFilterParams::FairEvtFilterParams(Int_t FailedFilterEvents, Int_t GeneratedEvents, Int_t FilterMaxTries) {
+FairEvtFilterParams::FairEvtFilterParams(Long_t FailedFilterEvents, Long_t GeneratedEvents, Long_t FilterMaxTries) {
 	fFailedFilterEvents=FailedFilterEvents;
 	fGeneratedEvents=GeneratedEvents;
 	fFilterMaxTries=FilterMaxTries;

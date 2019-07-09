@@ -120,7 +120,10 @@ void KoaAnaSolidAngle::Exec(Option_t* /*option*/)
   if(!fMCEntryFromExternal)
     fMCEntryNo++;
   //
+  std::map<Int_t, Int_t> mulithit;
   fNrPoints = fPoints->GetEntriesFast();
+  if(fNrPoints>1) LOG(warning) << "More than 1 hit point!";
+
   Double_t global[3], local[3];
   for(Int_t iPoint =0; iPoint<fNrPoints; iPoint++){
     KoaRecPoint* curPoint = (KoaRecPoint*)fPoints->At(iPoint);
@@ -131,6 +134,15 @@ void KoaAnaSolidAngle::Exec(Option_t* /*option*/)
     fGeoHandler->RecGlobalToLocal(global,local,detID);
 
     Int_t chID = fGeoHandler->RecPositionToDetCh(local,detID);
+
+    auto it = mulithit.find(chID);
+    if(it != mulithit.end()){
+      LOG(warning) << "mulithit  in the same strip exists!";
+    }
+    else{
+      mulithit[chID] = 1;
+    }
+
     auto search = fNrHit.find(chID);
     if(search == fNrHit.end()){
       fNrHit[chID] = 1;

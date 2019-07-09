@@ -61,6 +61,7 @@ void checkPoints(const char* filename)
 void checkRecSize(const char* filename)
 {
   TH2D* h2Rec=new TH2D("h2Rec","h2Rec",400,-10,30,200,-7.5,7.5);
+  TH1D* h1Rec=new TH1D("h1Rec","Multiplicity", 10, 0,10);
   auto f=new TFile(filename);
 
   TTree* tree = (TTree*)f->Get("cbmsim");
@@ -72,6 +73,7 @@ void checkRecSize(const char* filename)
     tree->GetEntry(id);
     //
     Int_t recHits = RecPoints->GetEntriesFast();
+    h1Rec->Fill(recHits);
 
     if(recHits>0){
       for(int i=0;i<recHits;i++){
@@ -85,4 +87,6 @@ void checkRecSize(const char* filename)
   gStyle->SetOptStat(111111);
   TCanvas* crec = new TCanvas("crec");
   h2Rec->Draw("colz");
+  TCanvas* cmulti = new TCanvas("cmulti");
+  h1Rec->Draw();
 }

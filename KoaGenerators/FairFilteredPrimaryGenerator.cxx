@@ -4,6 +4,7 @@
 
 
 #include "FairFilteredPrimaryGenerator.h"
+#include "FairLogger.h"
 
 #include "FairGenerator.h"              // for FairGenerator
 #include "FairGenericStack.h"           // for FairGenericStack

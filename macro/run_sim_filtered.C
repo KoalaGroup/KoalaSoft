@@ -24,7 +24,8 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   run->SetName(mcEngine);              // Transport engine
 
   // the output root where simulation result (hits and digits) are saved
-  run->SetOutputFile(outFile);          // Output file
+  // run->SetOutputFile(outFile);          // Output file
+  run->SetSink(new FairRootFileSink(outFile));
   FairRuntimeDb* rtdb = run->GetRuntimeDb();
   // ------------------------------------------------------------------------
   
