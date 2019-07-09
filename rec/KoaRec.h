@@ -1,8 +1,8 @@
 /********************************************************************************
  *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
  *                                                                              *
- *              This software is distributed under the terms of the             * 
- *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
+ *              This software is distributed under the terms of the             *
+ *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
 #ifndef KOAREC_H
@@ -85,7 +85,7 @@ class KoaRec: public FairDetector
 
   private:
     // Sensitive volume name list, used when importing geometry from ROOT file
-    std::vector<std::string> fListOfSensitives;  
+    std::vector<std::string> fListOfSensitives;
 
     /** Track information to be stored until the track leaves the
     active volume.
@@ -95,7 +95,6 @@ class KoaRec: public FairDetector
     TLorentzVector fPos;               //!  position at entrance
     TLorentzVector fPosEnd;            //!  position at end
     TLorentzVector fMom;               //!  momentum at entrance
-    TLorentzVector fMomOut;            //!  momentum
     Double32_t     fTime;              //!  time
     Double32_t     fLength;            //!  length
     Double32_t     fELoss;             //!  energy loss
