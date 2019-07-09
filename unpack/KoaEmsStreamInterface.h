@@ -1,0 +1,4 @@
+class KoaEmsStreamInterface: public KoaEmsInterface
+{
+  
+};

@@ -1,0 +1,4 @@
+class KoaEmsFileInterface: public KoaEmsInterface
+{
+  
+};

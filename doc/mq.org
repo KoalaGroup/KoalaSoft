@@ -121,8 +121,20 @@
       They both inherit from FairUnpack, it should be possible to use the same unpack class in both non-MQ and MQ versions of Unpacker.
     * A class like FairUnpack should be defined in KoalaSoft, since FairUnpack has some Mbs/Lmd specific members.
 
-*** Notes
-
+*** Design
+    * The design of the unpack algorithm should be compatible with both MQ and non-MQ version
+    * Decoder functions:
+      1. Unpack raw ems event into module-based branches
+      2. Assemble sub-events from different modules based on timestamp
+      3. Send the decoded event to the next device 
+    * To save the module-based branches into disk file, it's better to implement it at Assemble stage
+    * The Decoder Device should have two template parameter: DecoderDevice<Unpacker, Assembler>.
+      The aim is to reuse Unpacker and Assembler in non-MQ version.
+      Unpacker will do the job of function 1, Assembler will do the job of function 2.
+    * The job of receiving ems raw event and sending out the assembled event is done by the DecoderDevice itself.
+    * Unpacker and Assembler better work in their own thread, separated from the master thread.
+    * If Unpacker is designed to work in its own thread, a FIFO buffer for the incoming ems raw event is needed.
+      std::queue can be used for this purpose.
 
 ** Processor
 *** Reference example: MQ/pixelDetector/FairMQPixelTaskProcessor
