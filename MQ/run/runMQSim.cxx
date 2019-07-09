@@ -4,16 +4,18 @@
 #include "KoaMQSimDevice.h"
 #include "FairRuntimeDb.h"
 #include "FairModule.h"
-#include "FairCave.h"
-#include "FairPrimaryGenerator.h"
-#include "FairBoxGenerator.h"
+#include "KoaCave.h"
+#include "KoaPipe.h"
+#include "KoaRec.h"
+#include "KoaFwd.h"
+#include "KoaEvtFilterOnGeometry.h"
+#include "FairFilteredPrimaryGenerator.h"
+#include "KoaPpelasticGenerator.h"
 #include "FairParRootFileIo.h"
 #include "FairParAsciiFileIo.h"
 
-#include "Pixel.h"
-#include "PixelDigitize.h"
-
 #include "KoaMQSimSink.h"
+#include "KoaAnaSolidAngle.h"
 
 #include "TRandom.h"
 #include "TRint.h"
@@ -62,7 +64,7 @@ FairMQDevicePtr getDevice(const FairMQProgOptions& config)
   run->SetMaterials       ("media.geo");
 
   TObjArray* detArray = new TObjArray();
-  FairModule* cave= new FairCave("CAVE");
+  FairModule* cave= new KoaCave("CAVE");
   cave->SetGeometryFileName("cave.geo");
   detArray->Add(cave);
 
@@ -116,8 +118,8 @@ FairMQDevicePtr getDevice(const FairMQProgOptions& config)
       // run->SetFirstParameter(parIo1);
 
       TObjArray* taskArray = new TObjArray();
-      PixelDigitize* digiTask = new PixelDigitize();
-      taskArray->Add(digiTask);
+      KoaAnaSolidAngle* task1 = new KoaAnaSolidAngle();
+      taskArray->Add(task1);
       run->SetTaskArray(taskArray);
     }
   // ---------------------------------------------------

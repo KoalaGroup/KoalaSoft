@@ -15,7 +15,7 @@ set(INCLUDE_DIRECTORIES
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
-Include_Directories(${SYSTEM_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
@@ -70,3 +70,5 @@ Set(DEPENDENCIES
 GENERATE_LIBRARY()
 
 Install(FILES ${NO_DICT_HEADERS} DESTINATION include)
+
+add_subdirectory(run)
