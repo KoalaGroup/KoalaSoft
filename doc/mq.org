@@ -47,7 +47,10 @@
     * Multiple tasks can be passed to the simulation chain as TObjArray
     * The simulated output objects will be pushed to channels named like: channelName#branchName# or channelName#all#. 
       Otherwise, the channel will be ignored.
-     
+
+*** Implementations
+    1. KoaMQSimDevice: modified from FairMQSimDevice
+    2. KoaMQSimSink:
 
 ** Sampler
 *** Reference examples
@@ -100,6 +103,7 @@
       the unpacker to unpack the raw binary to raw object.
     * FairMBSUnpack is almost the same as the implementation of FairMBSUnpacker in MQ version except the Register() member function.
       They both inherit from FairUnpack, it should be possible to use the same unpack class in both non-MQ and MQ versions of Unpacker.
+    * A class like FairUnpack should be defined in KoalaSoft, since FairUnpack has some Mbs/Lmd specific members.
 
 *** Notes
 

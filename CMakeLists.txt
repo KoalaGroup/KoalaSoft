@@ -43,8 +43,6 @@ set(CMAKE_MODULE_PATH "${FAIRROOTPATH}/share/fairbase/cmake/modules_old"  ${CMAK
 # module files under these directories are provided by KoalaSoft
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${CMAKE_MODULE_PATH})
 
-# where to look for cmake package config files
-# these config files are provided by the packages themselves
 if(SIMPATH)
   set(CMAKE_PREFIX_PATH ${SIMPATH} ${CMAKE_PREFIX_PATH})
 endif()
@@ -132,17 +130,19 @@ find_package(FairRoot)
 # REQUIRED means that cmake will stop if this packages are not found
 # For example the framework can run without GEANT4, but ROOT is
 # mandatory
+<<<<<<< 718b91259252a0756b263de1f8eabf448a51096a
 # some packages' cmake configuration file (the module method of find_package) are provided by FairRoot such as: ROOT, Pythia6/8, HEPMC
 # others are provided through the config method of find_package by FairSoft such as: FairLogger, Geant3, Geant4, VGM, Geant4MC
-find_package2(PUBLIC ROOT  VERSION 6.10.00  REQUIRED)
-find_package2(PUBLIC FairLogger  VERSION 1.2.0 REQUIRED)
-find_package2(PUBLIC Pythia6)
+find_package2(PUBLIC ROOT 6.10.00 REQUIRED)
+find_package2(PUBLIC Pythia6 REQUIRED)
 find_package2(PUBLIC Pythia8)
-find_package2(PUBLIC Geant3)
-find_package2(PUBLIC Geant4)
+find_package2(PUBLIC GEANT3)
+find_package2(PUBLIC GEANT4)
+find_package2(PUBLIC GEANT4DATA)
+find_package2(PUBLIC GEANT4VMC)
 Find_Package2(PUBLIC VGM)
-find_package2(PUBLIC Geant4VMC)
-find_package(HEPMC)
+#find_package(CLHEP)
+find_package2(PUBLIC HEPMC)
 find_package2(PUBLIC FairMQ VERSION 1.2.3)
 
 # find boost
@@ -236,6 +236,7 @@ add_subdirectory (passive)
 add_subdirectory (field)  
 add_subdirectory (tools)  
 add_subdirectory (analysis)  
+add_subdirectory (MQ)  
 
 #######################################################
 WRITE_CONFIG_FILE(config.sh)
