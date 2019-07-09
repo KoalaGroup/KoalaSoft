@@ -128,11 +128,7 @@ find_package(FairRoot)
 
 # searches for needed packages
 # REQUIRED means that cmake will stop if this packages are not found
-# For example the framework can run without GEANT4, but ROOT is
-# mandatory
-<<<<<<< 718b91259252a0756b263de1f8eabf448a51096a
-# some packages' cmake configuration file (the module method of find_package) are provided by FairRoot such as: ROOT, Pythia6/8, HEPMC
-# others are provided through the config method of find_package by FairSoft such as: FairLogger, Geant3, Geant4, VGM, Geant4MC
+# For example the framework can run without GEANT4, but ROOT is mandatory
 find_package2(PUBLIC ROOT 6.10.00 REQUIRED)
 find_package2(PUBLIC Pythia6 REQUIRED)
 find_package2(PUBLIC Pythia8)

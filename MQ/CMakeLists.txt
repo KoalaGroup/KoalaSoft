@@ -12,6 +12,7 @@
 set(INCLUDE_DIRECTORIES
   ${BASE_INCLUDE_DIRECTORIES}
   ${CMAKE_SOURCE_DIR}
+  ${FairMQ_INCDIR}/fairmq/options
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -26,9 +27,23 @@ ${FAIRROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 Set(NO_DICT_SRCS
+  KoaMQSimDevice.cxx
+  KoaMQSimSink.cxx
+
+  KoaMQEmsSampler.cxx
+  KoaMQSampler.cxx
+
+  KoaMQTaskProcessor.cxx
 )
 
 Set(NO_DICT_HEADERS
+  KoaMQSimDevice.h
+  KoaMQSimSink.h
+
+  KoaMQEmsSampler.h
+  KoaMQSampler.h
+
+  KoaMQTaskProcessor.h
 )
 
 set(SRCS
@@ -37,17 +52,18 @@ set(SRCS
 Set(HEADERS 
 )
 
-Set(LINKDEF PixelLinkDef.h)
-Set(LIBRARY_NAME Pixel)
+Set(LINKDEF KoaMQLinkDef.h)
+Set(LIBRARY_NAME KoaMQ)
 Set(DEPENDENCIES
     Base 
     GeoBase
     ParBase
-    MCStack
     FairMQ::FairMQ
     BaseMQ 
-    Gen
-    Passive
+    KoaRec
+    KoaFwd
+    KoaPassive
+    KoaGen
     ${Boost_THREAD_LIBRARY} 
     ${Boost_SYSTEM_LIBRARY} 
     ${Boost_SERIALIZATION_LIBRARY} 
