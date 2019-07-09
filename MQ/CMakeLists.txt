@@ -11,7 +11,6 @@
 
 set(INCLUDE_DIRECTORIES
   ${BASE_INCLUDE_DIRECTORIES}
-  ${CMAKE_SOURCE_DIR}
   ${FairMQ_INCDIR}/fairmq/options
 )
 
@@ -32,8 +31,6 @@ Set(NO_DICT_SRCS
 
   KoaMQEmsSampler.cxx
   KoaMQSampler.cxx
-
-  KoaMQTaskProcessor.cxx
 )
 
 Set(NO_DICT_HEADERS
@@ -52,7 +49,7 @@ set(SRCS
 Set(HEADERS 
 )
 
-Set(LINKDEF KoaMQLinkDef.h)
+# Set(LINKDEF KoaMQLinkDef.h)
 Set(LIBRARY_NAME KoaMQ)
 Set(DEPENDENCIES
     Base 

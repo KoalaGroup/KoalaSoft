@@ -81,17 +81,4 @@ class KoaRecPoint : public FairMCPoint
 
 };
 
-inline void KoaRecPoint::SetPositionOut(TVector3 pos) {
-	fXfOut = pos.X();
-	fYfOut = pos.Y();
-	fZfOut = pos.Z();
-}
-
-
-inline void KoaRecPoint::SetMomentumOut(TVector3 mom) {
-  fPxfOut = mom.Px();
-  fPyfOut = mom.Py();
-  fPzfOut = mom.Pz();
-}
-
 #endif

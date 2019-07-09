@@ -140,6 +140,7 @@ Find_Package2(PUBLIC VGM)
 #find_package(CLHEP)
 find_package2(PUBLIC HEPMC)
 find_package2(PUBLIC FairMQ VERSION 1.2.3)
+find_package2(PUBLIC FairLogger  VERSION 1.2.0 REQUIRED)
 
 # find boost
 If(FAIRSOFT_EXTERN)
