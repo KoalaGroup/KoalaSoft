@@ -5,6 +5,22 @@
 ** Case 2
    DaqRawBinFile --> Unpack --> Tasks --> FileSink
 
+*** Reference examples
+**** FairRoot/MQ/Lmd
+     1. FairMQLmdSampler (get a raw event from binary file, like ems_event buffer)
+     2. FairMQUnpacker<FairMBSUnpacker> (FairMBSUnpacker inherits from FairUnpack)
+     3. BaseMQFileSink<RootDefaultInputPolicy, RootOutFileManager<FairMBSRawItem>>
+     
+*** Notes
+    - FairMQLmdSampler has a very interesting implementation of reading a series of binary raw files for unpacking.
+    - A similar version based on FairRootManager & FairRunOnline & FairRunAna is available under advanced/MbsTutorial
+      In that version, FairMBSUnpack is almost the same as the implementation of FairMBSUnpacker in MQ example except the Register().
+      It uses FairRootManager to register the output object to root file.
+      * FairSource <-- FairOnlineSource <-- FairMbsSource <-- FairLmdSource
+      * FairUnpack <-- FairMBSUnpack
+      * FairLmdSource is equivalent to FairMQLmdSampler, it get an event buffer from the raw binary file. Besides, it also integrates
+        the unpacker to unpack the raw binary to raw object.
+
 ** Case 3
    DaqRawBinOnline --> Unpack --> Tasks --> OnlineMonitor
 
@@ -157,3 +173,4 @@
    
 ** GUI Controller?? And Ack channel ??
 ** Optimization of Serialization & Deserializatioin (i.e. Message payload design)
+
