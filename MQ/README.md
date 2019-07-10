@@ -74,10 +74,21 @@ FairMQParts
   - BranchList (TList): name of all the branches in the cbmout tree
   - cbmroot (TFolder):
     - EvtHeader (TFolder): objects of FairEventHeader and FairMCEventHeader
-    - Koala (TFolder): objects of TClonesArray
+    - Koala (TFolder**: objects of TClonesArray
 
 ## Histogram Server ##
 
+### KoaMQHistServer ###
+**Functions:**
+
+**Usage:**
+
+**Channels:**
+
+**Messages**
+
+**Notes:**
+- Work in SUBSCRIBE-type bind-method, tasks which generates histograms in PUBLISH-type connect-method
 ## Auxiliary Devices ##
 Some of the auxiliary devices are common devices from FairMQ or FairRoot codebase.
 
