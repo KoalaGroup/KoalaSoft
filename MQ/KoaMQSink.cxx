@@ -1,0 +1,157 @@
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             *
+ *              GNU Lesser General Public Licence (LGPL) version 3,             *
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
+/**
+ * KoaMQSink.cxx
+ *
+ * @since 2019-07-10
+ * @author Y.Zhou
+ * @modified from FairMQPixelFileSink
+ */
+
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
+
+#include "RootSerializer.h"
+
+#include "FairMCEventHeader.h"
+#include "KoaMQSink.h"
+#include "FairMQLogger.h"
+
+using namespace std;
+
+KoaMQSink::KoaMQSink()
+  : FairMQDevice()
+  , fInputChannelName("data-in")
+  , fAckChannelName("")
+  , fFileName()
+  , fTreeName()
+ 
+  , fBranchNames()
+  , fClassNames()
+  , fFileOption()
+  , fFlowMode(false)
+  , fWrite(false)
+
+  , fOutFile(NULL)
+  , fTree(NULL)
+  , fNObjects(0)
+  , fOutputObjects(new TObject*[1000])
+  , fFolder(NULL)
+{
+}
+
+void KoaMQSink::Init()
+{
+  fFileName          = fConfig->GetValue<std::string>             ("file-name");
+  fClassNames        = fConfig->GetValue<std::vector<std::string>>("class-name");
+  fBranchNames       = fConfig->GetValue<std::vector<std::string>>("branch-name");
+  fInputChannelName  = fConfig->GetValue<std::string>             ("in-channel");
+  fAckChannelName    = fConfig->GetValue<std::string>             ("ack-channel");
+
+  LOG(INFO) << "SHOULD CREATE THE FILE AND TREE";
+  fFileOption = "RECREATE";
+  fTreeName = "cbmout";  
+
+  // [TODO] What about other ways to add suffix ??
+  if ( ::getenv("DDS_SESSION_ID") ) {
+    std::string DDS_SESSION_ID = ::getenv("DDS_SESSION_ID");
+    if ( fFileName.length() > 5 ) {
+      DDS_SESSION_ID = "." + DDS_SESSION_ID + ".root";
+      fFileName.replace(fFileName.length()-5,5,DDS_SESSION_ID.c_str());
+    }
+  }
+  
+  fOutFile = TFile::Open(fFileName.c_str(),fFileOption.c_str());
+  
+  fTree = new TTree(fTreeName.c_str(), "/cbmroot");
+
+  fFolder = new TFolder("cbmroot", "Main Output Folder");
+  TFolder* foldEventHeader = fFolder->AddFolder("EvtHeader","EvtHeader");
+  TFolder* foldKoala       = fFolder->AddFolder("Koala","Koala");
+  
+  TList* BranchNameList = new TList();
+  
+  for ( fNObjects = 0 ; fNObjects < fBranchNames.size() ; fNObjects++ ) {
+    LOG(INFO) << "Creating output branch \"" << fClassNames[fNObjects] << "\" with name \"" << fBranchNames[fNObjects] << "\"";
+    if      ( fClassNames[fNObjects].find("TClonesArray(") == 0 ) {
+      fClassNames   [fNObjects] = fClassNames[fNObjects].substr(13,fClassNames[fNObjects].length()-12-2);
+      fOutputObjects            [fNObjects] = new    TClonesArray(fClassNames[fNObjects].c_str());
+      fTree->Branch(fBranchNames[fNObjects].c_str(),"TClonesArray", &fOutputObjects[fNObjects]);
+      foldKoala->Add(fOutputObjects[fNObjects]);
+      BranchNameList->AddLast(new TObjString(fBranchNames[fNObjects].c_str()));
+    }
+    else if ( fClassNames[fNObjects].find("FairEventHeader") == 0 ) {
+      fOutputObjects            [fNObjects] = new    FairEventHeader();
+      fTree->Branch(fBranchNames[fNObjects].c_str(),"FairEventHeader", &fOutputObjects[fNObjects]);
+      foldEventHeader->Add(fOutputObjects[fNObjects]);
+      BranchNameList->AddLast(new TObjString(fBranchNames[fNObjects].c_str()));
+    }
+    else if ( fClassNames[fNObjects].find("FairMCEventHeader") == 0 ) {
+      fOutputObjects            [fNObjects] = new    FairMCEventHeader();
+      fTree->Branch(fBranchNames[fNObjects].c_str(),"FairMCEventHeader", &fOutputObjects[fNObjects]);
+      foldEventHeader->Add(fOutputObjects[fNObjects]);
+      BranchNameList->AddLast(new TObjString(fBranchNames[fNObjects].c_str()));
+    }
+    else {
+      LOG(ERROR) << "!!! Unknown output object \"" << fClassNames[fNObjects] << "\" !!!";
+    }
+  }  
+
+  fFolder->Write();
+  BranchNameList->Write("BranchList", TObject::kSingleKey);
+  BranchNameList->Delete();
+  delete BranchNameList;
+  
+  OnData(fInputChannelName, &KoaMQSink::StoreData);
+}
+
+bool KoaMQSink::StoreData(FairMQParts& parts, int /*index*/)
+{
+  // retrieve the input branches, and fill in the output tree based on the same branch name
+  std::vector<TObject*> tempObjects;
+  for ( int ipart = 0 ; ipart < parts.Size() ; ipart++ ) {
+    TObject* obj = nullptr;
+    Deserialize<RootSerializer>(*parts.At(ipart),obj);
+    tempObjects.push_back(obj);
+    for ( unsigned int ibr = 0 ; ibr < fBranchNames.size() ; ibr++ ) {
+      if ( strcmp(tempObjects.back()->GetName(),fBranchNames[ibr].data()) == 0 ) {
+        fOutputObjects[ibr] = tempObjects.back();
+        fTree->SetBranchAddress(fBranchNames[ibr].c_str(),&fOutputObjects[ibr]);
+      }
+    }
+  }
+  fTree->Fill();
+  
+  for ( unsigned int ipart = 0 ; ipart < tempObjects.size() ; ipart++ )
+    {
+      if ( tempObjects[ipart] )
+        delete tempObjects[ipart];
+    }
+  tempObjects.clear();
+  
+  if ( fAckChannelName != "" ) {
+    unique_ptr<FairMQMessage> msg(NewMessage());
+    Send(msg, fAckChannelName);
+  }
+
+  return true;
+}
+
+KoaMQSink::~KoaMQSink()
+{
+  if (fTree) {
+    fTree->Write();
+    delete fTree;
+  }
+
+  if (fOutFile) {
+    if (fOutFile->IsOpen())
+      fOutFile->Close();
+    delete fOutFile;
+  }
+}

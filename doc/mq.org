@@ -76,12 +76,13 @@
      * Multiple branches can be read and pushed to output stream using FairMQParts
      * [Bug] FairRunAna not needed
      * PixelDigiSource/PixelDigiBinSource act as the alternate source for text/binary digi files.
-       They are descendents of FairSource. A customized version of EventHeader (PixelEventHeader) can be used is the analysis (see run_dAsciiSource.C)
+       They are descendents of FairSource. A customized version of EventHeader (PixelEventHeader)
+       can be used is the analysis (see run_dAsciiSource.C)
 
 **** MQ/pixelDetector/FairMQPixelSamplerBin
      * An example to show the different payload message (POD class for transportation)
      * Simplified source (only FairFileSource implemented)
-
+       
 **** Requirements
      Sources of Sampler:
      1. KoalaEms raw binary files on disk, waiting for decoding
@@ -135,6 +136,7 @@
     * Unpacker and Assembler better work in their own thread, separated from the master thread.
     * If Unpacker is designed to work in its own thread, a FIFO buffer for the incoming ems raw event is needed.
       std::queue can be used for this purpose.
+    * Non-MQ version: KoaDigiSource
 
 ** Processor
 *** Reference example: MQ/pixelDetector/FairMQPixelTaskProcessor
@@ -173,6 +175,10 @@
        * Graphivz
        * AsciiDoc
 ** Sink
+*** Design requirements
+    1. Same structure as conventional FairRootManager output structure
+    2. All classes can be stored in the output TTree, not only TClonesArray but also other classes
+
 **** MQ/pixelDetector/FairMQPixelFileSink is too specific for Pixel example
 
 
@@ -182,6 +188,15 @@
 ** TODO Histogram Server
    Based on THttpServer. Work in subscription mode, using bind method. 
    Receive histograms from any tasks, and categarize them in THttpServer.
+   
+*** Reference example: MQ/histogramServer
+    1. The device which generate the histograms should
+       * Send histograms in TObjArray
+       * Send the incremental histogram data instead of the accumulated data, i.e. reset histograms after sending.
+    2. Histogram generators work in PUBLISH type and connect method, histogram server work in SUBSCRIBE type and bind method
+    3. Histogram server receives the histogram and add the bin data to existing histogram with name, or create a new one
+    4. 
+
    
 ** GUI Controller?? And Ack channel ??
 ** Optimization of Serialization & Deserializatioin (i.e. Message payload design)

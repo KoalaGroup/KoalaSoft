@@ -31,6 +31,8 @@ Set(NO_DICT_SRCS
 
   KoaMQEmsSampler.cxx
   KoaMQSampler.cxx
+
+  KoaMQSink.cxx
 )
 
 Set(NO_DICT_HEADERS
@@ -39,6 +41,8 @@ Set(NO_DICT_HEADERS
 
   KoaMQEmsSampler.h
   KoaMQSampler.h
+
+  KoaMQSink.h
 
   KoaMQTaskProcessor.h
 )

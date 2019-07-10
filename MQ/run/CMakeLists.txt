@@ -33,6 +33,7 @@ set(INCLUDE_DIRECTORIES
     ${CMAKE_SOURCE_DIR}/KoaGenerators
     ${CMAKE_SOURCE_DIR}/analysis
     ${CMAKE_SOURCE_DIR}/MQ
+    ${CMAKE_SOURCE_DIR}/unpack
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -147,10 +148,14 @@ link_directories(${LINK_DIRECTORIES})
 
 Set(Exe_Names
     koala-simulation
+    koala-sampler
+    koala-sink
 )
 
 set(Exe_Source
     runMQSim.cxx
+    runMQSampler.cxx
+    runMQSink.cxx
 )
 
 
@@ -175,6 +180,7 @@ ForEach(_file RANGE 0 ${_length})
       KoaAna
       KoaGen
       KoaMQ
+      # KoaUnpack
       )
     GENERATE_EXECUTABLE()
 EndForEach(_file RANGE 0 ${_length})

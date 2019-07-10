@@ -69,11 +69,12 @@ void KoaMQSampler::InitTask()
     if ( fInputObjects[fNObjects] ) {
       LOG(info) << "Activated object \"" << fInputObjects[fNObjects] << "\" with name \"" << fBranchNames[ibrn] << "\" (" << branchStat << "), it got name: \"" << fInputObjects[fNObjects]->GetName() << "\"";
       if ( strcmp(fInputObjects[fNObjects]->GetName(),fBranchNames[ibrn].c_str()) )
-	if ( strcmp(fInputObjects[fNObjects]->ClassName(),"TClonesArray") == 0 ) 
-	  ((TClonesArray*)fInputObjects[fNObjects])->SetName(fBranchNames[ibrn].c_str());
+        if ( strcmp(fInputObjects[fNObjects]->ClassName(),"TClonesArray") == 0 ) 
+          ((TClonesArray*)fInputObjects[fNObjects])->SetName(fBranchNames[ibrn].c_str());
       fNObjects++;
     }
   }
+
   if ( fMaxIndex < 0 )
     fMaxIndex = fSource->CheckMaxEventNo();
   LOG(info) << "Input source has " << fMaxIndex << " events.";
@@ -96,9 +97,7 @@ bool KoaMQSampler::ConditionalRun()
 
   if ( readEventReturn != 0 ) return false;
   
-  TMessage* message[1000];
   FairMQParts parts;
-  
   for ( int iobj = 0 ; iobj < fNObjects ; iobj++ ) {
     FairMQMessagePtr mess(NewMessage());
     Serialize<RootSerializer>(*mess,fInputObjects[iobj]);
@@ -123,21 +122,17 @@ void KoaMQSampler::PostRun()
 
 void KoaMQSampler::ListenForAcks()
 {
-  if (fAckChannelName != "")
-      {
-          Long64_t numAcks = 0;
-          do
-              {
-                  unique_ptr<FairMQMessage> ack(NewMessage());
-                  if (Receive(ack, fAckChannelName) >= 0)
-                      {
-                          numAcks++;
-                      }
-              }
-          while (numAcks < fMaxIndex);
-          
-          LOG(info) << "Acknowledged " << numAcks << " messages.";
+  if(fAckChannelName != "") {
+    Long64_t numAcks = 0;
+    do {
+      unique_ptr<FairMQMessage> ack(NewMessage());
+      if (Receive(ack, fAckChannelName) >= 0) {
+        numAcks++;
       }
+    } while (numAcks < fMaxIndex);
+          
+    LOG(info) << "Acknowledged " << numAcks << " messages.";
+  }
 }
 
 KoaMQSampler::~KoaMQSampler()
