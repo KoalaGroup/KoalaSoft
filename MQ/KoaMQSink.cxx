@@ -55,7 +55,7 @@ void KoaMQSink::Init()
 
   LOG(INFO) << "SHOULD CREATE THE FILE AND TREE";
   fFileOption = "RECREATE";
-  fTreeName = "cbmout";  
+  fTreeName = "cbmsim";  
 
   // [TODO] What about other ways to add suffix ??
   if ( ::getenv("DDS_SESSION_ID") ) {
@@ -68,9 +68,9 @@ void KoaMQSink::Init()
   
   fOutFile = TFile::Open(fFileName.c_str(),fFileOption.c_str());
   
-  fTree = new TTree(fTreeName.c_str(), "/cbmroot");
+  fTree = new TTree(fTreeName.c_str(), "/cbmout");
 
-  fFolder = new TFolder("cbmroot", "Main Output Folder");
+  fFolder = new TFolder("cbmout", "Main Output Folder");
   TFolder* foldEventHeader = fFolder->AddFolder("EvtHeader","EvtHeader");
   TFolder* foldKoala       = fFolder->AddFolder("Koala","Koala");
   
