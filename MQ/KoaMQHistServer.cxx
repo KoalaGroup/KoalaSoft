@@ -58,23 +58,39 @@ bool KoaMQHistServer::ReceiveData(FairMQParts& parts, int /*index*/)
       TObject* obj = arrayObj->At(i);
       std::string obj_name = obj->GetName();
       auto search = fMapObj.find(obj_name);
-      if(search == fMapHist.end()){ // register new objects
+      if(search == fMapObj.end()){ // New objects received
         TObject* new_obj = obj->Clone();
+
+        // For primitive objects like TH1 and TGraph
+        // Just insert and register directly 
         fMapObj.emplace(obj_name, new_obj);
         fServer.Register(folder, new_obj);
+
+        // For complex objects like THStack and TMultiGraph
+        // Reseat the member pointers first, then insert and register
+        // TODO
       }
-      else{ // already exists
-        if (obj->InheritsFrom("TH1")) {
+      else{ // Objects already registered before
+        if (obj->InheritsFrom("TH1")) { // For Histograms, just add the objects
           TH1* h1 = (TH1)
         }
-        else{
-            
+        else if(obj->InheritsFrom("THStack")
+             || obj->InheritsFrom("TMultiGraph")){ // For THStack and TMultiGraph, just ignore the new objects
+           continue; 
+        }
+        else{ // For all other objects, for example Graphs, delete the previous and replace with the current one
+          
         }
       }
     }
 
-    
+    // delete all the array memebers.
+    arrayObj->Delete();
   }
+
+  // delete the temporary object
+  delete tempObject;
+
     // {
     //     TObjArray* arrayHisto = static_cast<TObjArray*>(tempObject);
     //     TH1* histogram_new;
