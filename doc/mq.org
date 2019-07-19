@@ -138,6 +138,17 @@
       std::queue can be used for this purpose.
     * Non-MQ version: KoaDigiSource
 
+** Sink
+*** Design requirements
+    1. Same structure as conventional FairRootManager output structure
+    2. All classes can be stored in the output TTree, not only TClonesArray but also other classes
+
+**** MQ/pixelDetector/FairMQPixelFileSink is too specific for Pixel example
+
+
+** Parameter Server
+   Use the default FairRoot ParameterMQServer.
+
 ** Processor
 *** Reference example: MQ/pixelDetector/FairMQPixelTaskProcessor
 **** FairMQPixelTaskProcessor:
@@ -166,7 +177,16 @@
 
 *** TODO [Bug] UpdateParameters may have a bug relating to undeleted old parameter container after updating
 *** TODO [Bug] In ProcessData, the cloned objectToKeep is never deleted, which may bring memory overflow.
-     
+
+*** Design Requirements     
+    1. For tasks, is a interface class needed?
+    2. How is the collection object serialized/desesialized
+       - TCollection-based collections can be transported without problem
+       - How about THStack and TMultiGraph:
+         * Use TList internally to keep collection of TH1 and TGraph
+         * When the same histogram and graph is referenced in two different THStack and TMultiGraph
+           Will it be the same object referenced, when transport them in separate message.
+    3. What about other graphics like 2D, 3D geometry models.
     
 *** Notes
     1. Scripting graphics:
@@ -174,17 +194,6 @@
        * PlantUML
        * Graphivz
        * AsciiDoc
-** Sink
-*** Design requirements
-    1. Same structure as conventional FairRootManager output structure
-    2. All classes can be stored in the output TTree, not only TClonesArray but also other classes
-
-**** MQ/pixelDetector/FairMQPixelFileSink is too specific for Pixel example
-
-
-** Parameter Server
-   Use the default FairRoot ParameterMQServer.
-
 ** TODO Histogram Server
    Based on THttpServer. Work in subscription mode, using bind method. 
    Receive histograms from any tasks, and categarize them in THttpServer.
@@ -197,7 +206,11 @@
     3. Histogram server receives the histogram and add the bin data to existing histogram with name, or create a new one
     4. 
 
-   
+*** Design requirements
+    1. How to deal with the updating of TGraph
+    2. How to deal with  collection class like THStack and TMultiGraph
+    4. 
+
 ** GUI Controller?? And Ack channel ??
 ** Optimization of Serialization & Deserializatioin (i.e. Message payload design)
 

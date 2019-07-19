@@ -35,11 +35,18 @@ class KoaMQHistoServer : public FairMQDevice
 
     virtual void PostRun();
 
+ private:
+    InitHttp(); // Initialize THttpServer in constructor
+    DefaultHttpItemField(); // Default THttpServer setting
+    RegisterHttpCommand(); // Add command button to THttpServer
+
+    TObject* RegisterHttpObject(const std::string& name);
+
   private:
     std::string fInputChannelName;
 
-    TObjArray fArrayHisto;
-    TObjArray fArrayGraph;
+    // histograms and graphs need different process
+    std::unordered_map<std::string, TObject*> fMapObj;
 
     int fNMessages;
 
@@ -47,8 +54,6 @@ class KoaMQHistoServer : public FairMQDevice
 
     std::thread fThread;
     bool fStopThread;
-
-    int FindHistogram(const std::string& name);
 
     KoaMQHistoServer(const KoaMQHistoServer&);
     KoaMQHistoServer& operator=(const KoaMQHistoServer&);

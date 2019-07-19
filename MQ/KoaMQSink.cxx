@@ -113,6 +113,7 @@ void KoaMQSink::Init()
 bool KoaMQSink::StoreData(FairMQParts& parts, int /*index*/)
 {
   // retrieve the input branches, and fill in the output tree based on the same branch name
+
   std::vector<TObject*> tempObjects;
   for ( int ipart = 0 ; ipart < parts.Size() ; ipart++ ) {
     TObject* obj = nullptr;
@@ -127,6 +128,8 @@ bool KoaMQSink::StoreData(FairMQParts& parts, int /*index*/)
   }
   fTree->Fill();
   
+  // TODO:
+  // use std::unique_ptr<TObject*> for tempObjects to get rid of explict delete expression
   for ( unsigned int ipart = 0 ; ipart < tempObjects.size() ; ipart++ )
     {
       if ( tempObjects[ipart] )
