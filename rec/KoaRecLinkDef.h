@@ -16,5 +16,6 @@
 #pragma link C++ class KoaRecGeoPar;
 #pragma link C++ class KoaRec;
 #pragma link C++ class KoaRecPoint+;
+#pragma link C++ class KoaRecDigi+;
 
 #endif
