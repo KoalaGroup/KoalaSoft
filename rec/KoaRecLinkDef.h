@@ -17,5 +17,6 @@
 #pragma link C++ class KoaRec;
 #pragma link C++ class KoaRecPoint+;
 #pragma link C++ class KoaRecDigi+;
+#pragma link C++ class KoaRecDigitizationIdeal+;
 
 #endif

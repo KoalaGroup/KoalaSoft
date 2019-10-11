@@ -72,6 +72,8 @@ class KoaRecDigi : public FairTimeStamp
 		void SetCharge(double charge){fCharge = charge;}
     void AddCharge(double charge){fCharge += charge;}
 
+    void SetDetectorID(Int_t detID) { fDetID=detID; }
+
 		virtual void Print() {
 			std::cout << *this;
 		}

@@ -36,6 +36,7 @@ KoaRecGeo.cxx
 KoaRecGeoPar.cxx
 KoaRecPoint.cxx
 KoaRecDigi.cxx
+KoaRecDigitizationIdeal.cxx
 )
 
 Set(LINKDEF KoaRecLinkDef.h)

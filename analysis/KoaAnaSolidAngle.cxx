@@ -77,7 +77,7 @@ InitStatus KoaAnaSolidAngle::Init()
   fPoints = static_cast<TClonesArray*>(ioman->GetObject("KoaRecPoint"));
   if ( ! fPoints ) {
     LOG(warn) << "No input KoaRecPoint array";
-      // return kERROR;
+      return kERROR;
   }
 
   // read no event based object ??
