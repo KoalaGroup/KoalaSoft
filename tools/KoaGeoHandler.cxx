@@ -382,7 +382,11 @@ void KoaGeoHandler::RecGlobalToLocal(Double_t* global, Double_t* local, Int_t de
 Int_t KoaGeoHandler::RecPositionToDetCh(Double_t* hitPos, Int_t detID)
 {
   Int_t strip_ch = (hitPos[2] + fRecDetDimension[detID])/STRIPWIDTH;
-  return fRecStripIdToChId[fMapEncoder->EncodeChannelID(detID,strip_ch)];
+  strip_ch = fMapEncoder->EncodeChannelID(detID,strip_ch);
+  auto search = fRecStripIdToChId.find(strip_ch);
+  if(search == fRecStripIdToChId.end())
+    strip_ch--;
+  return fRecStripIdToChId[strip_ch];
 }
 
 Double_t KoaGeoHandler::RecDetChToPosition(Int_t detChId, Double_t& lower, Double_t& higher)

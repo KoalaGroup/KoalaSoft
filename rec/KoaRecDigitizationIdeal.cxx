@@ -97,7 +97,6 @@ void KoaRecDigitizationIdeal::Exec(Option_t* /*option*/)
 
   Reset();
 
-  fDigis->Delete();
   //
   Int_t fNrPoints = fPoints->GetEntriesFast();
   for(Int_t iPoint =0; iPoint<fNrPoints; iPoint++){
