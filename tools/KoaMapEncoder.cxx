@@ -44,6 +44,28 @@ void KoaMapEncoder::Init()
 
   fVolNameToDetectorID["SensorSc1"]=4;
   fVolNameToDetectorID["SensorSc2"]=5;
+
+  //-------------------------------------//
+  fDetectorIDToChNr[0]=48;
+  fDetectorIDToChNr[1]=64;
+  fDetectorIDToChNr[2]=32;
+  fDetectorIDToChNr[3]=32;
+  fDetectorIDToChNr[4]=1;
+  fDetectorIDToChNr[5]=1;
+
+  //-------------------------------------//
+  for(int detID=fRecDetIDRange[0];detID<=fRecDetIDRange[1];detID++){
+    for(int chID=0;chID<fDetectorIDToChNr[detID];chID++){
+      fChIDs.emplace_back(EncodeChannelID(detID,chID));
+    }
+  }
+
+  for(int detID=fRecDetIDRange[0];detID<=fFwdDetIDRange[1];detID++){
+    for(int chID=0;chID<fDetectorIDToChNr[detID];chID++){
+      fChIDs.emplace_back(EncodeChannelID(detID,chID));
+    }
+  }
+
 }
 
 
