@@ -137,7 +137,7 @@ Bool_t Pythia8Generator::ReadEvent(FairPrimaryGenerator* cpg)
   return kTRUE;
 }
 // -------------------------------------------------------------------------
-void Pythia8Generator::SetParameters(char* par)
+void Pythia8Generator::SetParameters(const char* par)
 {
   // Set Parameters
     fPythia.readString(par);

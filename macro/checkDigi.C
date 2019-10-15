@@ -52,7 +52,7 @@ void checkDigi(const char* filename)
     for(int i=0;i<digis;i++){
       KoaRecDigi* digi=(KoaRecDigi*)RecDigis->At(i);
       ch_id = encoder->DecodeChannelID(digi->GetDetID(), det_id);
-      charge = digi->GetCharge();
+      charge = 1000*digi->GetCharge();
 
       h2map_EnergyVsPosition[det_id]->Fill(ch_id+1, charge);
       h1map_Energy[digi->GetDetID()]->Fill(charge);
