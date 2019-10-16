@@ -30,6 +30,7 @@ FairFilteredPrimaryGenerator.cxx
 FairEvtFilter.cxx
 FairEvtFilterParams.cxx
 KoaEvtFilterOnGeometry.cxx
+KoaPPElasticIdealGenerator.cxx
 )
 
 set(LINKDEF  GenLinkDef.h)

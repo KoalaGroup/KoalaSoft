@@ -20,6 +20,7 @@
 #pragma link C++ class  Pythia8Generator+;
 #pragma link C++ class  KoaPpelasticGenerator+;
 #pragma link C++ class  KoaPpelasticGeneratorImp+;
+#pragma link C++ class  KoaPPElasticIdealGenerator+;
 
 #pragma link C++ class  FairFilteredPrimaryGenerator+;
 #pragma link C++ class  FairEvtFilter+;

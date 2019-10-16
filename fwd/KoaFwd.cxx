@@ -105,7 +105,7 @@ Bool_t  KoaFwd::ProcessHits(FairVolume* vol)
        gMC->IsTrackDisappeared()   ) {
     fTrackID  = gMC->GetStack()->GetCurrentTrackNumber();
     fVolumeID = vol->getMCid();
-    std::cout<<vol->GetName()<<",volumeID="<< vol->getVolumeId()<<",modID="<<\
+    // std::cout<<vol->GetName()<<",volumeID="<< vol->getVolumeId()<<",modID="<<\
       vol->getModId()<<",MCid="<<vol->getMCid()<<std::endl;
     if (fELoss == 0. ) { return kFALSE; }
     AddHit(fTrackID, fVolumeID, TVector3(fPos.X(),  fPos.Y(),  fPos.Z()),

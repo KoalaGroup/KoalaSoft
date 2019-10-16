@@ -114,7 +114,7 @@ Bool_t  KoaRec::ProcessHits(FairVolume* vol)
     // fVolumeID = vol->getMCid();
     fVolumeID = fGeoHandler->GetRecDetId(vol->GetName());
     Int_t copy=0;
-    std::cout<<vol->GetName()<<",volumeID="<< vol->getVolumeId()<<",modID="<<\
+    // std::cout<<vol->GetName()<<",volumeID="<< vol->getVolumeId()<<",modID="<<\
       vol->getModId()<<",MCid="<<vol->getMCid()<<",CurrentVolID="<<gMC->CurrentVolOffID(0,copy)<<\
       ", volumeName="<< gMC->CurrentVolName()<<", volPath="<< gMC->CurrentVolPath()<< std::endl;
     gMC->TrackPosition(fPosEnd);
