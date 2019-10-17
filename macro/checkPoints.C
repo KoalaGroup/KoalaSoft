@@ -8,7 +8,7 @@ void checkPoints(const char* filename)
   TH2D* h2lowRec=new TH2D("h2lowRec","h2lowRec",400,-10,30,200,-7.5,7.5);
 
   TFile* f = new TFile(filename);
-  TTree* tree = (TTree*)f->Get("cbmsim");
+  TTree* tree = (TTree*)f->Get("koalasim");
   TClonesArray* RecPoints = new TClonesArray("KoaRecPoint");
   TClonesArray* FwdPoints = new TClonesArray("KoaFwdPoint");
   tree->SetBranchAddress("KoaRecPoint",&RecPoints);
@@ -64,7 +64,7 @@ void checkRecSize(const char* filename)
   TH1D* h1Rec=new TH1D("h1Rec","Multiplicity", 10, 0,10);
   auto f=new TFile(filename);
 
-  TTree* tree = (TTree*)f->Get("cbmsim");
+  TTree* tree = (TTree*)f->Get("koalasim");
   TClonesArray* RecPoints = new TClonesArray("KoaRecPoint");
   tree->SetBranchAddress("KoaRecPoint",&RecPoints);
 
