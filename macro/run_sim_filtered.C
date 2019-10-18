@@ -8,7 +8,7 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   TString outFile =Form("filtered_solidAngle_%d.root",nEvents);
     
   // Parameter file name
-  TString parFile=Form("params_filtered_solidAngle_%d.root",nEvents);
+  TString parFile=Form("filtered_solidAngle_param_%d.root",nEvents);
   
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -41,13 +41,11 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  FairModule* pipe = new KoaPipe("Pipe");
+  // FairModule* pipe = new KoaPipe("Pipe");
   // run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
-  // rec_det->SetGeometryFileName("rec_geomanager.root");
-  // rec_det->SetGeometryFileName("rec.geo");
   run->AddModule(rec_det);
 
   FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
@@ -80,12 +78,12 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
     // Add filter
     KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
     evtFilter->SetX(-101);
-    evtFilter->SetZRange(-10,40);
+    evtFilter->SetZRange(-3,30);
     evtFilter->SetYRange(-10,10);
     primGen->AndFilter(evtFilter);
     // primGen->AndNotFilter(evtFilter);
 
-    run->SetGenerator(primGen);
+  run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
  
   //---Store the visualiztion info of the tracks, this make the output file very large!!

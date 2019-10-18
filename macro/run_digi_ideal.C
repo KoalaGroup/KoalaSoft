@@ -5,19 +5,20 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_digi_ideal(Long_t nEvents)
+void run_digi_ideal(const char* data, const char* para)
 {
   // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
   Int_t iVerbose = 0; // just forget about it, for the moment
 
   // Input file (MC events)
-  TString inFile = Form("filtered_solidAngle_%ld.root",nEvents);
+  TString inFile(data);
 
   // Parameter file
-  TString parFile = Form("params_filtered_solidAngle_%ld.root",nEvents);
+  TString parFile(para);
 
   // Output file
-  TString outFile = Form("digi_ideal_%ld.root",nEvents);
+  TString outFile(data);
+  outFile.ReplaceAll(".root","_digi.root");
 
 
   // -----   Timer   --------------------------------------------------------

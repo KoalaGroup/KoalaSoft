@@ -11,10 +11,10 @@ void ana_solidAngle(Long_t nEvents, Long_t NrGenerated)
   Int_t iVerbose = 0; // just forget about it, for the moment
 
   // Input file (MC events)
-  TString inFile = Form("filtered_solidAngle_%ld.root",nEvents);
+  TString inFile = Form("solidAngle_%ld.root",nEvents);
 
   // Parameter file
-  TString parFile = Form("params_filtered_solidAngle_%ld.root",nEvents);
+  TString parFile = Form("solidAngle_param_%ld.root",nEvents);
 
   // Output file
   TString outFile = Form("solidAngle_%ld.root",nEvents);

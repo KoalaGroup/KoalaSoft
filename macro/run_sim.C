@@ -2,10 +2,10 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
 {
     
   // Output file name
-  TString outFile =Form("test_solidAngle_%d.root",nEvents);
+  TString outFile =Form("solidAngle_%d.root",nEvents);
     
   // Parameter file name
-  TString parFile=Form("params_solidAngle_%d.root",nEvents);
+  TString parFile=Form("solidAngle_param_%d.root",nEvents);
   
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -40,60 +40,32 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  FairModule* pipe = new KoaPipe("Pipe");
+  // FairModule* pipe = new KoaPipe("Pipe");
   /* if not geometry file is specified, the default one will be used.
    */
   //pipe->SetGeometryFileName("pipe_simple.root");
-  run->AddModule(pipe);
+  // run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
-  // rec_det->SetGeometryFileName("rec_withChamber.root");
-  // rec_det->SetGeometryFileName("rec.geo");
   run->AddModule(rec_det);
 
   FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  // fwd_det->SetGeometryFileName("fwd.root");
- // fwd_det->SetGeometryFileName("fwd_withMonitor.root");
-  // fwd_det->SetGeometryFileName("fwd_withMonitor_withChamber.root");
-  fwd_det->SetGeometryFileName("fwd_withMonitor_withChamber_withExtras.root");
+  fwd_det->SetGeometryFileName("fwd.root");
   run->AddModule(fwd_det);
 
-// ------------------------------------------------------------------------
-
-
-    // // -----   Magnetic field   -------------------------------------------
-    // // Constant Field
-    // KoaConstField  *fMagField = new KoaConstField();
-    // fMagField->SetField(0., 20. ,0. ); // values are in kG
-    // fMagField->SetFieldRegion(-200, 200,-200, 200, -200, 200); // values are in cm
-    //                       //  (xmin,xmax,ymin,ymax,zmin,zmax)
-    // run->SetField(fMagField);
-    // // --------------------------------------------------------------------
-
-    
-    
   // -----   Create PrimaryGenerator   --------------------------------------
   FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
   
-    // // Add a box generator also to the run
+    // Add a box generator also to the run
     FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 2212 = proton, 13 = muon; 1 = multipl.
     boxGen->SetPRange(3.4,3.4); // GeV/c
     boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
     boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // cm
-    primGen->AddGenerator(boxGen);
 
-    // // Particle Gun
-    // FairParticleGenerator* parGen = new FairParticleGenerator(13, 1, 20,0.5,0);
-    // primGen->AddGenerator(parGen);
-
-    // P-P elastic generator
-//    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator("PPelast.root");
-    // KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(5);
-    // primGen->AddGenerator(ppGen);
-
-    run->SetGenerator(primGen);
+  primGen->AddGenerator(boxGen);
+  run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
  
   //---Store the visualiztion info of the tracks, this make the output file very large!!

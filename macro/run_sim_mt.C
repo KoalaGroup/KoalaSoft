@@ -2,10 +2,10 @@ void run_sim_mt(Int_t nEvents = 100, TString mcEngine = "TGeant4", Bool_t isMT=t
 {
     
   // Output file name
-  TString outFile ="test.root";
+  TString outFile ="mt_test.root";
     
   // Parameter file name
-  TString parFile="params.root";
+  TString parFile="mt_param.root";
   
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -36,34 +36,27 @@ void run_sim_mt(Int_t nEvents = 100, TString mcEngine = "TGeant4", Bool_t isMT=t
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  FairModule* pipe = new KoaPipe("Pipe");
-  // if no geometry file is specified, the default one will be used.
-  //pipe->SetGeometryFileName("pipe_simple.root");
-  run->AddModule(pipe);
+  // FairModule* pipe = new KoaPipe("Pipe");
+  // run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
   // rec_det->SetGeometryFileName("rec_withChamber.root");
-  // rec_det->SetGeometryFileName("rec.geo");
   run->AddModule(rec_det);
 
   FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  // fwd_det->SetGeometryFileName("fwd.root");
- // fwd_det->SetGeometryFileName("fwd_withMonitor.root");
-  // fwd_det->SetGeometryFileName("fwd_withMonitor_withChamber.root");
-  fwd_det->SetGeometryFileName("fwd_withMonitor_withChamber_withExtras.root");
+  fwd_det->SetGeometryFileName("fwd.root");
   run->AddModule(fwd_det);
 
   // -----   Create PrimaryGenerator   --------------------------------------
   FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
-  FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
-  boxGen->SetPRange(20,20); // GeV/c
-  boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
-  boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
-  boxGen->SetXYZ(0., 0., 0.); // cm
-  boxGen->SetDebug(kTRUE);
-
-  primGen->AddGenerator(boxGen);
+    FairBoxGenerator* boxGen = new FairBoxGenerator(13, 1); // 13 = muon; 1 = multipl.
+    boxGen->SetPRange(20,20); // GeV/c
+    boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
+    boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
+    boxGen->SetXYZ(0., 0., 0.); // cm
+    // boxGen->SetDebug(kTRUE);
+    primGen->AddGenerator(boxGen);
   run->SetGenerator(primGen);
  
   //---Store the visualiztion info of the tracks, this make the output file very large!!

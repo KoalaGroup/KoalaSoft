@@ -26,6 +26,12 @@
 #include "TString.h"
 #include "TList.h"
 #include "TROOT.h"
+#include "FairSystemInfo.h"
+#include "FairGeoLoader.h"
+#include "FairGeoInterface.h"
+#include "FairGeoBuilder.h"
+#include "FairGeoMedium.h"
+#include "FairGeoMedia.h"
 
 #include <iostream>
 
@@ -261,7 +267,8 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true) {
 }
 
 // build function for Fwd detecor, default output file is fwd.root
-void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t WithChamber=true, Bool_t WithExtra=false) {
+void build_fwd(TString FileName="fwd.root")//, Bool_t WithMonitor=false, Bool_t WithChamber=true, Bool_t WithExtra=false)
+{
   TStopwatch timer;
   timer.Start();
 
@@ -285,106 +292,107 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithMonitor=false, Bool_t Wit
   TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed, cave_size[0], cave_size[1], cave_size[2]);
   gGeoMan->SetTopVolume(top);
 
-  // Fwd-chamber: unit: cm
-  Double_t chamber_x, chamber_y, chamber_z, wall_thickness;
-  chamber_x = 50./2; // to be defined
-  chamber_y = 40./2;// to be defined
-  chamber_z = 90./2; // to be defined 
-  wall_thickness = 0.5; // to be defined 
+  // Fwd-vacuum: unit: cm
+  Double_t vacuum_x, vacuum_y, vacuum_z;
+  vacuum_x = 50./2; // to be defined
+  vacuum_y = 40./2;// to be defined
+  vacuum_z = 90./2; // to be defined 
 
   // Substracted shape: Cone + EndPipe
   // a bit longer than actual size
-  Int_t nSects = 4;
-  Double_t l_cone = 32; // in cm
-  Double_t cone_thickness = 0.003; // in cm, 30um
-  Double_t pipe_thickness = 0.5;
-  Double_t z_cone[] = {-chamber_z-l_cone, -chamber_z+l_cone, -chamber_z+l_cone, chamber_z+1};
-  Double_t r_cone[] = {10+cone_thickness+10-3, 3+cone_thickness, 3+pipe_thickness, 3+pipe_thickness};
-  TGeoPcon* shape_sub = new TGeoPcon("shape_sub", 0., 360., nSects);
-  for(Int_t iSect = 0; iSect < nSects; iSect++){
-    shape_sub->DefineSection(iSect, z_cone[iSect], 0, r_cone[iSect]);
-  }
+  // Int_t nSects = 4;
+  // Double_t l_cone = 32; // in cm
+  // Double_t cone_thickness = 0.003; // in cm, 30um
+  // Double_t pipe_thickness = 0.5;
+  // Double_t z_cone[] = {-chamber_z-l_cone, -chamber_z+l_cone, -chamber_z+l_cone, chamber_z+1};
+  // Double_t r_cone[] = {10+cone_thickness+10-3, 3+cone_thickness, 3+pipe_thickness, 3+pipe_thickness};
+  // TGeoPcon* shape_sub = new TGeoPcon("shape_sub", 0., 360., nSects);
+  // for(Int_t iSect = 0; iSect < nSects; iSect++){
+  //   shape_sub->DefineSection(iSect, z_cone[iSect], 0, r_cone[iSect]);
+  // }
 
   // Chamber shape:
-  TGeoBBox* shape_chamber = new TGeoBBox("shape_chamber", chamber_x, chamber_y, chamber_z);
-  TGeoBBox* shape_vacuum  = new TGeoBBox("shape_vacuum", chamber_x-wall_thickness, chamber_y-wall_thickness, chamber_z-wall_thickness);
+  // TGeoBBox* shape_chamber = new TGeoBBox("shape_chamber", chamber_x, chamber_y, chamber_z);
+  TGeoBBox* shape_vacuum  = new TGeoBBox("shape_vacuum", vacuum_x, vacuum_y, vacuum_z);
 
-  TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber", "shape_chamber-shape_sub-shape_vacuum");
-  TGeoCompositeShape* cs_vacuum = new TGeoCompositeShape("cs_vacuum", "shape_vacuum-shape_sub");
+  // TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber", "shape_chamber-shape_sub-shape_vacuum");
+  // TGeoCompositeShape* cs_vacuum = new TGeoCompositeShape("cs_vacuum", "shape_vacuum-shape_sub");
 
-  TGeoVolume* FwdChamber = new TGeoVolume("Fwd_Chamber", cs_chamber, ChamberVolMed);
-  FwdChamber->SetLineColor(16);
-  FwdChamber->SetTransparency(60);
-  TGeoVolume* FwdVacuum  = new TGeoVolume("Fwd_Vacuum", cs_vacuum, VacuumVolMed);
+  // TGeoVolume* FwdChamber = new TGeoVolume("Fwd_Chamber", cs_chamber, ChamberVolMed);
+  // FwdChamber->SetLineColor(16);
+  // FwdChamber->SetTransparency(60);
+  TGeoVolume* FwdVacuum  = new TGeoVolume("FwdArm_Vacuum", shape_vacuum, VacuumVolMed);
   // FwdVacuum->SetLineColor(kGreen);
   // FwdVacuum->SetVisibility(kFALSE);
 
-  // Fwd dectectors: Dimensions of the detecors (x,y,z), unit: cm
-  Double_t fwd_x,fwd_y,fwd_z;
-  fwd_x = 12./2;// larger than 12cm, to be defined
-  fwd_y = 6./2; // 
-  fwd_z = 2./2;
-  TGeoVolume* SensorSc1 = gGeoMan->MakeBox("SensorSc1", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+  // Fwd dectectors: Dimensions of the detecors (x_low, x_high, ,y,z), unit: cm
+  Double_t fwd_x_low,fwd_x_high, fwd_y,fwd_z;
+  fwd_x_low = 1./2;//  width on the edge
+  fwd_x_high = 2./2;// width on the light guide end
+  fwd_y = 0.6/2; // thickness
+  fwd_z = 9./2; // length
+  TGeoVolume* SensorSc1 = gGeoMan->MakeTrd1("SensorSc1", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
   SensorSc1->SetLineColor(38);
-  TGeoVolume* SensorSc2 = gGeoMan->MakeBox("SensorSc2", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+  TGeoVolume* SensorSc2 = gGeoMan->MakeTrd1("SensorSc2", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
   SensorSc2->SetLineColor(38);
 
-  Double_t sc_gap  = 20; // gap between Sc1 and Sc2
-  Double_t sc_align_z = -chamber_z + fwd_z + l_cone;
-  Double_t sc_align_x = fwd_x+3+1; // 3 is radius of the pipe, 1 is the gap between detector and the pipe
-  TGeoTranslation *trans_sc1=new TGeoTranslation(sc_align_x, 0, sc_align_z);
-  TGeoTranslation *trans_sc2=new TGeoTranslation(sc_align_x, 0, sc_align_z + sc_gap);
+  // alight the surface of first scint to the center of vacuum box
+  Double_t sc_gap  = 20; // gap between Sc1 and Sc2, unit: cm
+  Double_t sc_align_z = fwd_y;
+  Double_t sc_align_x = fwd_z + 2.8; // 2.8 is the distance to the beam center, unit: cm
 
-  TGeoVolumeAssembly *Fwd_Detectors = new TGeoVolumeAssembly("Fwd_Detectors");
-  Fwd_Detectors->AddNode(SensorSc1, 1);
-  Fwd_Detectors->AddNode(SensorSc2, 1, new TGeoTranslation(0,0,sc_gap));
-  FwdVacuum->AddNode(Fwd_Detectors, 1, trans_sc1);
+  TGeoRotation *rot_sc = new TGeoRotation("rot_sc", 90, 90, 0, 0, 90, 0);
+  TGeoCombiTrans *ct_sc1=new TGeoCombiTrans("ct_sc1",sc_align_x, 0, sc_align_z, rot_sc);
+  TGeoCombiTrans *ct_sc2=new TGeoCombiTrans("ct_sc2",sc_align_x, 0, sc_align_z+sc_gap, rot_sc);
 
-  // Add FwdChamber to the top volume
-  Double_t l_target = 210; // from KoaPipe, unit in cm
-  Double_t l_snake  = 257.3;
-  Double_t z_offset= l_target + l_snake + chamber_z;
+  TGeoVolumeAssembly *Fwd_Detectors = new TGeoVolumeAssembly("FwdArm_Detectors");
+  Fwd_Detectors->AddNode(SensorSc1, 1, ct_sc1);
+  Fwd_Detectors->AddNode(SensorSc2, 1, ct_sc2);
+  FwdVacuum->AddNode(Fwd_Detectors, 1);
+
+  // Add FwdVacuum to the top volume
+  Double_t z_offset= 460; // distance of the surface of the first scint to IP
   TGeoTranslation *trans_zoffset=new TGeoTranslation(0., 0., z_offset);
 
   /* Beam Profile Monitor detector*/
-  if(WithMonitor){
-    TGeoVolume* MonitorSc1 = gGeoMan->MakeBox("MonitorSc1", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
-    MonitorSc1->SetLineColor(kRed);
-    TGeoVolume* MonitorSc2 = gGeoMan->MakeBox("MonitorSc2", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
-    MonitorSc2->SetLineColor(kRed);
+  // if(WithMonitor){
+  //   TGeoVolume* MonitorSc1 = gGeoMan->MakeBox("MonitorSc1", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+  //   MonitorSc1->SetLineColor(kRed);
+  //   TGeoVolume* MonitorSc2 = gGeoMan->MakeBox("MonitorSc2", ScintillatorVolMed, fwd_x, fwd_y, fwd_z);
+  //   MonitorSc2->SetLineColor(kRed);
 
-    TGeoTranslation *trans_monitor_sc=new TGeoTranslation(-sc_align_x, 0, sc_align_z);
+  //   TGeoTranslation *trans_monitor_sc=new TGeoTranslation(-sc_align_x, 0, sc_align_z);
 
-    TGeoVolumeAssembly *Fwd_Monitors = new TGeoVolumeAssembly("Fwd_Monitors");
-    Fwd_Monitors->AddNode(MonitorSc1, 1);
-    Fwd_Monitors->AddNode(MonitorSc2, 1, new TGeoTranslation(0,0,sc_gap));
-    FwdVacuum->AddNode(Fwd_Monitors, 1, trans_monitor_sc);
-  }
+  //   TGeoVolumeAssembly *Fwd_Monitors = new TGeoVolumeAssembly("Fwd_Monitors");
+  //   Fwd_Monitors->AddNode(MonitorSc1, 1);
+  //   Fwd_Monitors->AddNode(MonitorSc2, 1, new TGeoTranslation(0,0,sc_gap));
+  //   FwdVacuum->AddNode(Fwd_Monitors, 1, trans_monitor_sc);
+  // }
 
   /* For explanation */
-  if(WithExtra){
-    TGeoVolume* ExtraSc1 = gGeoMan->MakeBox("ExtraSc1", ScintillatorVolMed, fwd_y, fwd_x, fwd_z);
-    ExtraSc1->SetLineColor(kRed);
-    TGeoVolume* ExtraSc2 = gGeoMan->MakeBox("ExtraSc2", ScintillatorVolMed, fwd_y, fwd_x, fwd_z);
-    ExtraSc2->SetLineColor(kRed);
+  // if(WithExtra){
+  //   TGeoVolume* ExtraSc1 = gGeoMan->MakeBox("ExtraSc1", ScintillatorVolMed, fwd_y, fwd_x, fwd_z);
+  //   ExtraSc1->SetLineColor(kRed);
+  //   TGeoVolume* ExtraSc2 = gGeoMan->MakeBox("ExtraSc2", ScintillatorVolMed, fwd_y, fwd_x, fwd_z);
+  //   ExtraSc2->SetLineColor(kRed);
 
-    TGeoTranslation *trans_extra_sc1=new TGeoTranslation(0, -sc_align_x, sc_align_z);
-    TGeoTranslation *trans_extra_sc2=new TGeoTranslation(0, sc_align_x, sc_align_z);
+  //   TGeoTranslation *trans_extra_sc1=new TGeoTranslation(0, -sc_align_x, sc_align_z);
+  //   TGeoTranslation *trans_extra_sc2=new TGeoTranslation(0, sc_align_x, sc_align_z);
 
-    TGeoVolumeAssembly *Fwd_Extras = new TGeoVolumeAssembly("Fwd_Extras");
-    Fwd_Extras->AddNode(ExtraSc1, 1);
-    Fwd_Extras->AddNode(ExtraSc2, 1, new TGeoTranslation(0,0,sc_gap));
-    FwdVacuum->AddNode(Fwd_Extras, 1, trans_extra_sc1);
-    FwdVacuum->AddNode(Fwd_Extras, 2, trans_extra_sc2);
-  }
+  //   TGeoVolumeAssembly *Fwd_Extras = new TGeoVolumeAssembly("Fwd_Extras");
+  //   Fwd_Extras->AddNode(ExtraSc1, 1);
+  //   Fwd_Extras->AddNode(ExtraSc2, 1, new TGeoTranslation(0,0,sc_gap));
+  //   FwdVacuum->AddNode(Fwd_Extras, 1, trans_extra_sc1);
+  //   FwdVacuum->AddNode(Fwd_Extras, 2, trans_extra_sc2);
+  // }
 
-  // // alternative way: assemblyvolume
-  TGeoVolumeAssembly* FwdArm = new TGeoVolumeAssembly("Fwd");
-  FwdArm->AddNode(FwdVacuum, 1);
-  if(WithChamber){
-    FwdArm->AddNode(FwdChamber, 1);
-  }
-  top->AddNode(FwdArm, 1, trans_zoffset);
+  // alternative way: assemblyvolume
+  TGeoVolumeAssembly* FwdArm = new TGeoVolumeAssembly("FwdArm");
+  FwdArm->AddNode(FwdVacuum, 1, trans_zoffset);
+  // if(WithChamber){
+  //   FwdArm->AddNode(FwdChamber, 1);
+  // }
+  top->AddNode(FwdArm, 1);
 
   cout<<"Voxelizing."<<endl;
   top->Voxelize("");

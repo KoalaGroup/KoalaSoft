@@ -6,8 +6,19 @@
           Size: length is from [-10m,30m] inner radius is 2.5cm thickness is 0.05cm, related class: KoaPipe
     Magnet: hardcoded in KoaMagnet as KoaPipe (Because Koala do not have magnet, thus this module should not be added in simulaion)
 *** Intial edition (from the design schematics)
-**** Recoil detector 
+**** Recoil detector
+***** List of ROOT geometry files
+      - rec.root : most simplified version, only recoil sensors in vacuum
+      - rec_withChamber.root : recoil sensors in vacuum
+
 **** Forward detector
+***** List of ROOT geometry files
+      - fwd.root : most simplified version, only two scintillator detectors in vacuum
+      - fwd_withChamber.root : [TODO]<2019-10-18 Fr> two scint detectors + chamber
+      - fwd_withMonitor.root : [TODO]<2019-10-18 Fr> two scint detectors + two scint monitors in vacuum
+      - fwd_withMonitor_withChamber.root : [TODO]<2019-10-18 Fr> two scint detectors + two scint monitors in chamber
+      - fwd_withMonitor_withChamber_withExtras.root : [TODO]<2019-10-18 Fr> full set of scints in chamber
+
 *** Raw edition
 **** Recoil detector
 **** Forward detector
@@ -51,11 +62,14 @@
    - ip_offset : 0.12*22 cm
    - ip_distance : 100 cm
    - chamber_center_offset : 5 cm
-*** TODO Fwd Detector 
-    - fwd_x : 12/2 cm
-    - fwd_y : 6/2 cm
-    - fwd_z : 2/2 cm
-    - Distance to IP : ~ 500cm [TODO]
+*** DONE Fwd Detector 
+    CLOSED: [2019-10-18 Fr 11:42]
+    Shape: TGeoTrd1
+    - fwd_x_low : 1/2 cm
+    - fwd_x_high: 2/2 cm
+    - fwd_y : 0.6/2 cm
+    - fwd_z : 9/2 cm
+    - Distance to IP : 460/480 cm
 
 ** More accurate parameters for beam test 2013/2015
 *** Recoil Detector
@@ -69,13 +83,16 @@
    
    Verification of the sensor dimenstion and position:
    [[file:rec_dimension_verification.pdf][Hit distribution in the recoil sensors using isotropically distributed particle source]]
+    
+** TODO <2019-10-18 Fr> Pipe
+   - New pipe dimension to host fwd detectors
+   - Pipe segmentation
+   - Pipe diameter of Fwd section: 20 cm
+ 
+** TODO <2019-10-18 Fr> A modifiable geometry model needed for small changes in simulation
 
-*** TODO Fwd Detector [same as the previous]
-    - fwd_x : 12/2 cm
-    - fwd_y : 6/2 cm
-    - fwd_z : 2/2 cm
-    - Distance to IP : ~ 500cm [TODO]
-  
+** <2019-10-18 Fr> For simplified geometry, no chamber involved, the Cave material is changed to vacuum from air
+
 * Anatomy of FairRoot framework
 ** Running environment
 *** Common

@@ -1,11 +1,11 @@
-void run_sim_elastic_ideal(Int_t nEvents = 100, TString mcEngine = "TGeant4")
+void run_sim_pythia(Int_t nEvents = 100, TString mcEngine = "TGeant4")
 {
     
   // Output file name
-  TString outFile =Form("elastic_ideal_%d.root",nEvents);
+  TString outFile =Form("pythia_%d.root",nEvents);
     
   // Parameter file name
-  TString parFile=Form("elastic_ideal_param_%d.root",nEvents);
+  TString parFile=Form("pythia_param_%d.root",nEvents);
   
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -42,7 +42,6 @@ void run_sim_elastic_ideal(Int_t nEvents = 100, TString mcEngine = "TGeant4")
 
   // FairModule* pipe = new KoaPipe("Pipe");
   // if not geometry file is specified, the default one will be used.
-  //pipe->SetGeometryFileName("pipe_simple.root");
   // run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
@@ -58,9 +57,16 @@ void run_sim_elastic_ideal(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   // -----   Create PrimaryGenerator   --------------------------------------
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
-    KoaPPElasticIdealGenerator* idealGen = new KoaPPElasticIdealGenerator(2.6);
-    idealGen->SetAlphaRange(0,20);
-    primGen->AddGenerator(idealGen);
+    Pythia8Generator *pythiaGen = new Pythia8Generator();
+    pythiaGen->UseRandom3();
+    // pythiaGen->UseRandom1();
+    pythiaGen->SetMom(2.8);
+    // pythiaGen->SetId(-2212);//anti-proton
+    // pythiaGen->SetHNLId(id);
+    pythiaGen->SetParameters("SoftQCD:all = on");
+    // pythiaGen->SetParameters("SigmaTotal:sigmaTot = 106");
+    pythiaGen->SetParameters("PhaseSpace:pTHatMin = 20.");
+    primGen->AddGenerator(pythiaGen);
 
   // Add filter
   KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
