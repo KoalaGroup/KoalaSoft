@@ -1,11 +1,11 @@
-void run_sim_elastic_ideal(Int_t nEvents = 100, TString mcEngine = "TGeant4")
+void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, TString mcEngine = "TGeant4")
 {
     
   // Output file name
-  TString outFile =Form("elastic_ideal_%d.root",nEvents);
+  TString outFile =Form("elastic_ideal_%.1fGeV_%d.root",beamMom, nEvents);
     
   // Parameter file name
-  TString parFile=Form("elastic_ideal_param_%d.root",nEvents);
+  TString parFile=Form("elastic_ideal_param_%.1f_%d.root",beamMom, nEvents);
   
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -58,7 +58,7 @@ void run_sim_elastic_ideal(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   // -----   Create PrimaryGenerator   --------------------------------------
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
-    KoaPPElasticIdealGenerator* idealGen = new KoaPPElasticIdealGenerator(2.6);
+    KoaPPElasticIdealGenerator* idealGen = new KoaPPElasticIdealGenerator(beamMom);
     idealGen->SetAlphaRange(0,20);
     primGen->AddGenerator(idealGen);
 

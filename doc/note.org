@@ -1,4 +1,11 @@
 * Geometry 
+** List of Geometries (with Tagging Name)
+   |--------------+----------+----------+------+--------+-----------------------------------------------------------------------------------------------------------|
+   | Tagging Name | Recoil   | Fwd      | Pipe | Cave   | Description                                                                                               |
+   |--------------+----------+----------+------+--------+-----------------------------------------------------------------------------------------------------------|
+   | Simplified   | rec.root | fwd.root | NULL | Vacuum | The most simplified configuration, only 4 recoil sensors and 2 fwd sensors in place; no pipe, no chambers |
+   |              |          |          |      |        |                                                                                                           |
+
 ** Parameters
 *** Default setup(passive modules)
     Cave: read from cave.geo file, type: box, material: air, size: 200m*200m*200m, related class: KoaCave and KoaGeoCave

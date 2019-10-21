@@ -5,19 +5,19 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void ana_solidAngle(Long_t nEvents, Long_t NrGenerated)
+void ana_solidAngle(const char* dir, Long_t nEvents, Long_t NrGenerated)
 {
   // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
   Int_t iVerbose = 0; // just forget about it, for the moment
 
   // Input file (MC events)
-  TString inFile = Form("solidAngle_%ld.root",nEvents);
+  TString inFile = Form("%s/filtered_solidAngle_%ld.root",dir,nEvents);
 
   // Parameter file
-  TString parFile = Form("solidAngle_param_%ld.root",nEvents);
+  TString parFile = Form("%s/filtered_solidAngle_param_%ld.root",dir,nEvents);
 
   // Output file
-  TString outFile = Form("solidAngle_%ld.root",nEvents);
+  TString outFile = Form("%s/solidAngle_%ld.root",dir, nEvents);
 
 
   // -----   Timer   --------------------------------------------------------
@@ -36,7 +36,7 @@ void ana_solidAngle(Long_t nEvents, Long_t NrGenerated)
 
   KoaAnaSolidAngle* anaTask = new KoaAnaSolidAngle();
   anaTask->SetMCEntryNo(NrGenerated);
-  anaTask->SetOutFileName(Form("SolidAngle_%ld.txt",NrGenerated));
+  anaTask->SetOutFileName(Form("%s/SolidAngle_%ld.txt",dir,NrGenerated));
   fRun->AddTask(anaTask);
 
   fRun->Init();
