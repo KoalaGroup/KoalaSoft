@@ -145,13 +145,20 @@ void checkDigi_rdf(const char* infile, const char* outfile)
   rdf.Foreach(fillhist,{"KoaRecDigi.fDetID","KoaRecDigi.fCharge"});
 
   // write histograms
-  TFile* fout=new TFile(outfile,"recreate");
+  auto fout=TFile::Open(infile,"update");
+  TDirectory* hdir;
+  if(!(hdir=fout->GetDirectory("histograms")))
+    hdir = fout->mkdir("histograms");
 
-  for(auto it=h2map_EnergyVsPosition.cbegin();it!=h2map_EnergyVsPosition.cend();it++){
-    it->second.Write(0,TObject::kOverwrite);
+  for(auto& hist: h2map_EnergyVsPosition){
+    auto sumed = hist.second.Merge();
+    sumed->Print();
+    hdir->WriteTObject(sumed.get(),"","WriteDelete");
   }
-  for(auto it=h1map_Energy.cbegin();it!=h1map_Energy.cend();it++){
-    it->second.Write(0,TObject::kOverwrite);
+  for(auto& hist: h1map_Energy){
+    auto sumed = hist.second.Merge();
+    sumed->Print();
+    hdir->WriteTObject(sumed.get(),"","WriteDelete");
   }
 
   delete fout;
@@ -228,7 +235,7 @@ void checkDigi_rdf_threaded(const char* infile)
   rdf.Foreach(fillhist,{"KoaRecDigi.fDetID","KoaRecDigi.fCharge"});
 
   // write histograms
-  TFile* fout=new TFile(infile,"update");
+  auto fout=TFile::Open(infile,"update");
   TDirectory* hdir;
   if(!(hdir=fout->GetDirectory("histograms")))
     hdir = fout->mkdir("histograms");
@@ -236,12 +243,12 @@ void checkDigi_rdf_threaded(const char* infile)
   for(auto& hist: h2map_EnergyVsPosition){
     auto sumed = hist.second.Merge();
     sumed->Print();
-    sumed->Write("",TObject::kOverwrite);
+    hdir->WriteTObject(sumed.get(),"","WriteDelete");
   }
   for(auto& hist: h1map_Energy){
     auto sumed = hist.second.Merge();
     sumed->Print();
-    sumed->Write("",TObject::kOverwrite);
+    hdir->WriteTObject(sumed.get(),"","WriteDelete");
   }
 
   delete fout;
@@ -318,7 +325,7 @@ void checkDigi_processtree_threaded(const char* infile)
   tp.Process(fillhist);
 
   // write histograms
-  TFile* fout=new TFile(infile,"update");
+  auto fout=TFile::Open(infile,"update");
   TDirectory* hdir;
   if(!(hdir=fout->GetDirectory("histograms")))
     hdir = fout->mkdir("histograms");
@@ -326,12 +333,12 @@ void checkDigi_processtree_threaded(const char* infile)
   for(auto& hist: h2map_EnergyVsPosition){
     auto sumed = hist.second.Merge();
     sumed->Print();
-    sumed->Write("",TObject::kOverwrite);
+    hdir->WriteTObject(sumed.get(),"","WriteDelete");
   }
   for(auto& hist: h1map_Energy){
     auto sumed = hist.second.Merge();
     sumed->Print();
-    sumed->Write("",TObject::kOverwrite);
+    hdir->WriteTObject(sumed.get(),"","WriteDelete");
   }
 
   delete fout;
