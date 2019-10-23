@@ -1,14 +1,14 @@
-void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
+void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TGeant4")
 {
   // Set the random seed
   gRandom->SetSeed(98989);
     
   // Output file name
   // TString outFile ="test_filtered.root";
-  TString outFile =Form("filtered_solidAngle_%d.root",nEvents);
+  TString outFile =Form("filtered_solidAngle_pdg%d_%d.root",pdgid, nEvents);
     
   // Parameter file name
-  TString parFile=Form("filtered_solidAngle_param_%d.root",nEvents);
+  TString parFile=Form("filtered_solidAngle_param_pdg%d_%d.root",pdgid, nEvents);
   
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -57,7 +57,7 @@ void run_sim_filtered(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
     // Add a box generator also to the run
-    FairBoxGenerator* boxGen = new FairBoxGenerator(0, 1); //0 = rootino/geantino, 2212 = proton; 1 = multipl.
+    FairBoxGenerator* boxGen = new FairBoxGenerator(pdgid, 1); //0 = rootino/geantino, 2212 = proton; 1 = multipl.
     boxGen->SetPRange(3.4,3.4); // GeV/c
     boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
     boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]

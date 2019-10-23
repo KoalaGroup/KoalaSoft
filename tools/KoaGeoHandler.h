@@ -53,7 +53,11 @@ class KoaGeoHandler : public TObject
 {
   public:
     KoaGeoHandler(Bool_t IsSim=kFALSE);
-    ~KoaGeoHandler() {};
+    ~KoaGeoHandler() {
+      for(auto& it: fRecDetMatrix){
+        delete it.second;
+      }
+    };
 
     // 
     Int_t GetRecDetId(const char* volName); // used in simulation run
