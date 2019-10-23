@@ -12,11 +12,37 @@
     Pipe: hardcoded in KoaPipe, constructed using TGeo methods directly, type: Polycone(TGeoPcon), material: C+Vacuum,
           Size: length is from [-10m,30m] inner radius is 2.5cm thickness is 0.05cm, related class: KoaPipe
     Magnet: hardcoded in KoaMagnet as KoaPipe (Because Koala do not have magnet, thus this module should not be added in simulaion)
+
 *** Intial edition (from the design schematics)
 **** Recoil detector
 ***** List of ROOT geometry files
       - rec.root : most simplified version, only recoil sensors in vacuum
       - rec_withChamber.root : recoil sensors in vacuum
+    
+***** Geometry design guideline 
+
+****** Topology
+      - TOP/Cave/World (cave_1)
+        - RecArm (RecArm_0)
+          - RecArm_Chamber (RecArm_Chamber_1)
+          - RecArm_Vacuum  (RecArm_Vacuum_1)
+            - RecArm_Detectors (RecArm_Detectors_1)
+              - SensorSi1 (SensorSi1_1)
+              - SensorSi2 (SensorSi2_1)
+              - SensorGe1 (SensorGe1_1)
+              - SensorGe2 (SensorGe2_1)
+              - ColdPlate (ColdPlate_1)
+              
+****** Structure of the components
+       Both /RecArm_Chamber/ and /RecArm_Vacuum/ are polycone shape.
+       The Chamber consists of two section: the main section where the sensors are located 
+       and an adapter section which is connected to the flange of the target chamber in reality. 
+       The adapter section has smaller diameter than the main section.
+       It's simplified and shortened that it does not touch the target chamber is simulation.
+       This is to facilitate the alignment of the whole chamber towards the interaction point in simulation,
+       so that no overlap exist.
+
+       The dimension and position in the ROOT file is:[TODO] <2019-10-23 Mi> drawing from inkscape
 
 **** Forward detector
 ***** List of ROOT geometry files
@@ -26,12 +52,12 @@
       - fwd_withMonitor_withChamber.root : [TODO]<2019-10-18 Fr> two scint detectors + two scint monitors in chamber
       - fwd_withMonitor_withChamber_withExtras.root : [TODO]<2019-10-18 Fr> full set of scints in chamber
 
-*** Raw edition
-**** Recoil detector
-**** Forward detector
-*** Fine edition
-**** Recoil detector
-**** Forward detector
+***** Geometry design guideline 
+
+****** Topology
+
+****** Structure of the components
+
 ** TGeo package in ROOT
 *** MasterToLocal or LocalToMaster
     The correct way to transform from local coordinate to global coordinate, or vice visa:
@@ -58,6 +84,37 @@
     Accessing a specific node is based on the geometry directory tree like '/NameOfTopVolume_ID/NameOfNextVolume_ID/..'.
     Interestingly, the ID suffix of the top volume can be neglected while for other volumes the ID should be included exactly the same.
     This is reasonable, because there is only one top volume (or world volume) in the geometry model.
+
+*** TODO <2019-10-23 Mi> How to get Matrix for coordinates transformation
+    The correct way to get a copy of the rotation matrix for a specific node is:
+    #+BEGIN_SRC C++
+    // cd to the node where the local coordinate system located
+    geoMan->cd("nodename");
+    // get a copy of the TGeoHMatrix of this node
+    rotMatrix = geoMan->GetCurrentMatrix()->MakeClone();
+    // MasterToLocal, or LocalToMaster
+    rotMatrix->MasterToLocal(posGlobal, posLocal);
+    rotMatrix->LocalToMaster(posLocal, posGlobal);
+    #+END_SRC
+    
+**** Matrix in TGeo
+     /TGeoMatrix.h/ defines all the geometry transformation classes in TGeo package.
+     The classes can be devided int three categories:
+     1. TGeoMatrix : the abstract interface class, all other classes inherited from it
+     2. TGeoTranslation, TGeoRotation, TGeoCombiTrans, TGeoScale, TGeoGenTrans, TGeoIdentity: 
+        specific transformation class which only has the specific data members for this specific transformation
+     3. TGeoHMatrix : the class which defines the uniform and generic interface,
+        it is used to represent all kinds of transformations, thus can be used for matrix computation 
+        and point/vector transformation between different coordinate system.
+     
+     *WARNING* All specific transformation matrix should be turned into a TGeoHMatrix for point/vector transformation
+     
+     *COMMENT* Unless explicitly used for positioning nodes (TGeoVolume::AddNode()), all matrixes deletion have to be
+     managed by users. Matrices passed to geometry have to be created by using /new/ operator and their deletion is done
+     by /TGeoManager/.
+
+**** How to apply misalignment matrix
+    Assume 
 
 * Version history
 ** Before 07.05.2019
