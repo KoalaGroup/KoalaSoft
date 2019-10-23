@@ -151,14 +151,12 @@ void checkDigi_rdf(const char* infile, const char* outfile)
     hdir = fout->mkdir("histograms");
 
   for(auto& hist: h2map_EnergyVsPosition){
-    auto sumed = hist.second.Merge();
-    sumed->Print();
-    hdir->WriteTObject(sumed.get(),"","WriteDelete");
+    hist.second.Print();
+    hdir->WriteTObject(&hist.second,"","WriteDelete");
   }
   for(auto& hist: h1map_Energy){
-    auto sumed = hist.second.Merge();
-    sumed->Print();
-    hdir->WriteTObject(sumed.get(),"","WriteDelete");
+    hist.second.Print();
+    hdir->WriteTObject(&hist.second,"","WriteDelete");
   }
 
   delete fout;
