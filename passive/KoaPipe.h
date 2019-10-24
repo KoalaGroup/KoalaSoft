@@ -27,8 +27,8 @@ class KoaPipe : public FairModule {
     virtual FairModule* CloneModule() const;
    
  private:
-    void ConstructDefaultGeometry();
     KoaPipe(const KoaPipe& rhs);
+    KoaPipe& operator=(const KoaPipe& rhs);
 
     ClassDef(KoaPipe,1) //KoaPIPE
 

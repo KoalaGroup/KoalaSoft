@@ -37,7 +37,32 @@
 
 // some global variables
 TGeoManager* gGeoMan = NULL;  // Pointer to TGeoManager instance
-Double_t cave_size[3]={20000,20000,20000};
+const Double_t cave_size[3]={20000,20000,20000};
+
+const Double_t chamber_thickness = 1; // thickness of the chamber wall of Recoil and Pipe-Target [cm], it should be the same as the wall thickness in KoaPipe
+const Double_t pipe_thickness = 0.5; // thickness of the pipe and Fwd chamber
+const Double_t pipe_r = 9.0/2;// radius of beam pipe
+
+const Double_t recoil_chamber_z = 95; // estimated length of the main recoil chamber (vacuum space) [cm]
+const Double_t recoil_chamber_r = 40./2; // radius of the main recoil chamber (vacuum space) [cm]
+const Double_t rec_chamber_center_offset = 10.49; // the center of the recoil chamber is placed with 10.49 cm displacement towards the downstream of the beam line, so that the interaction point is aligned with this displaced center instead of the original axis. Thus, the sensor assembly should also be aligned to this displaced center first, i.e. the interaction point.
+const Double_t rec_adapter_r = 20./2; // radius of the adpater (vacuum space) [cm]
+const Double_t rec_adapter_center_offset = 5.0; // offset of the center of recoil adapter relative to IP
+
+const Double_t target_chamber_x = 30./2; // half-length of the target cross chamber in x direction
+const Double_t target_chamber_y = 150./2; // half-length of the target cross chamber in y direction
+const Double_t target_chamber_z = 40./2; // half-length of the target cross chamber in z direction
+const Double_t target_chamber_rx = rec_adapter_r; // radious of the target cross chamber in x direction
+const Double_t target_chamber_ry = 5./2; // radious of the target cross chamber in y direction
+const Double_t target_chamber_rz = 20./2; // radious of the target cross chamber in z direction
+const Double_t target_adapter_z  = 10.; // length of the adapter connecting target chamber and beam pipe
+
+const Double_t fwd_chamber_r = 20./2; // radious of fwd chamber vacuum [cm]
+const Double_t fwd_chamber_z = 40./2; // half-length of fwd chamber vacuum [cm]
+
+
+const Double_t fwd_distance = 460; // distance between IP and first fwd scint surface [cm]
+const Double_t rec_distance=90.4; //  distance between IP and the rec sensor surface [cm]
 
 // Forward declarations
 void create_materials_from_media_file();
@@ -66,15 +91,15 @@ void create_materials_from_media_file();
 // 8) check overlap
 
 // ** List of parameters that steers the whole alignment [cm] **
-// - wall_thickness: chamber thickness
+// - chamber_thickness: chamber thickness
 // - si1/si2/ge1/ge2_vertical_offset : the vertical alignment of each sensor
 // - si1si2_overlap_offset : small offset added to the nominal value
 // - si2ge1_overlap_offset : small offset added to the nominal value
 // - ge1ge2_overlap_offset : small offset added to the nominal value
 // - ip_offset : the offset of the sensor assembly to align to the interaction point
-// - ip_distance : the distance of the sensor assembly to the interaction point
+// - rec_distance : the distance of the sensor assembly to the interaction point
 // - sensor_distance: the distance between sensor surface and the inner chamber wall
-// - chamber_center_offset : the offset of the chamber center axis to the interaction point
+// - rec_chamber_center_offset : the offset of the chamber center axis to the interaction point
 // - coldpalte_offset: the offset between the edges of si1 and coldplate
 // - coldplate_gap :   the gap between coldplate surface and the sensors surface
 void build_rec(TString FileName="rec.root", Bool_t WithChamber=true, Bool_t WithColdPlate=true) {
@@ -105,17 +130,9 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true, Bool_t With
 
   //// Step 3: the chamber & its associated vacuum volume ////
   // Chamber consists of two cylinder part: the adapter and the main recoil chamber, and a unclosed gap is left bewtween the adapter and the target chamber for alignment convenience
-  // The dimesions are:
-  Double_t wall_thickness = 1; // thickness of the chamber wall [cm], it should be the same as the wall thickness in KoaPipe
-  Double_t recoil_chamber_z = 95; // estimated length of the main recoil chamber (vacuum space) [cm]
-  Double_t recoil_chamber_r = 40./2; // radius of the main recoil chamber (vacuum space) [cm]
-
-  Double_t ip_distance=90.4; //  distance of the sensor place to the interaction point [cm]
-  Double_t adapter_r = 10; // radius of the adpater (vacuum space) [cm]
   Double_t adapter_gap=10; // the gap of unclosed region between the adapter and the target chamber
   Double_t sensor_distance = 31.14; // distance between sensor surface to the inner chamber wall in length-direction [cm]
-  Double_t target_chamber_r = 30./2; // radius of the target chamber cylinder, used to place  [cm]
-  Double_t adapter_z = ip_distance - sensor_distance - target_chamber_r - adapter_gap; // length of the adapter (vacuum space) [cm]
+  Double_t adapter_z = rec_distance - sensor_distance - target_chamber_x - adapter_gap; // length of the adapter (vacuum space) [cm]
   Double_t half_z = (adapter_z+recoil_chamber_z)/2; // half of total length of the chamber
 
 
@@ -124,13 +141,13 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true, Bool_t With
   // For the chamber volume, the dimensions are deduced from the reference dimensions plus the wall thickness
   // The origin is the center of the polycone, the axis of the ploycone is aligned with the z-axis
   // The adapter cylinder is the lower z-axis, and the recoil_chmaber cylinder is the higher z-axis
-  Double_t center_distance = 5.49; // distance between the centers of recoil chamber and adapter
+  Double_t center_distance = rec_chamber_center_offset - rec_adapter_center_offset; // distance between the centers of recoil chamber and adapter
   TGeoTranslation* trans_adapter=new TGeoTranslation(center_distance,0,0);
   trans_adapter->SetName("trans_adapter");
   trans_adapter->RegisterYourself();
 
   // the chamber vaccum shape
-  Double_t r_vchamber[] = {adapter_r,adapter_r,recoil_chamber_r,recoil_chamber_r};    // in cm
+  Double_t r_vchamber[] = {rec_adapter_r,rec_adapter_r,recoil_chamber_r,recoil_chamber_r};    // in cm
   Double_t z_vchamber[] = {-half_z, -half_z+adapter_z+0.1, -half_z+adapter_z, -half_z+adapter_z+recoil_chamber_z}; // 0.1 is added to make sure an overlap in union solid computation
   Int_t nSects = 2;
   TGeoPcon* shape_vchamber_adapter = new TGeoPcon("shape_vchamber_adapter", 0., 360., nSects);
@@ -144,14 +161,14 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true, Bool_t With
   TGeoCompositeShape* cs_vchamber = new TGeoCompositeShape("cs_vchamber","shape_vchamber_adapter:trans_adapter+shape_vchamber_chamber");
 
   // the bulk chamber shape
-  Double_t z_chamber[] = {-half_z+wall_thickness, -half_z+adapter_z-wall_thickness+0.1, -half_z+adapter_z-wall_thickness, -half_z+adapter_z+recoil_chamber_z+wall_thickness};   // 0.1 is added to make sure an overlap in union solid computation [cm]
+  Double_t z_chamber[] = {-half_z+chamber_thickness, -half_z+adapter_z-chamber_thickness+0.1, -half_z+adapter_z-chamber_thickness, -half_z+adapter_z+recoil_chamber_z+chamber_thickness};   // 0.1 is added to make sure an overlap in union solid computation [cm]
   TGeoPcon* shape_chamber_adapter = new TGeoPcon("shape_chamber_adapter", 0., 360., nSects);
   for (Int_t iSect = 0; iSect < nSects; iSect++) {
-    shape_chamber_adapter->DefineSection(iSect, z_chamber[iSect], 0, r_vchamber[iSect]+wall_thickness);
+    shape_chamber_adapter->DefineSection(iSect, z_chamber[iSect], 0, r_vchamber[iSect]+chamber_thickness);
   }
   TGeoPcon* shape_chamber_chamber = new TGeoPcon("shape_chamber_chamber", 0., 360., nSects);
   for (Int_t iSect = 0; iSect < nSects; iSect++) {
-    shape_chamber_chamber->DefineSection(iSect, z_chamber[iSect+2], 0, r_vchamber[iSect+2]+wall_thickness);
+    shape_chamber_chamber->DefineSection(iSect, z_chamber[iSect+2], 0, r_vchamber[iSect+2]+chamber_thickness);
   }
   TGeoCompositeShape* cs_bulkchamber = new TGeoCompositeShape("cs_bulkchamber","shape_chamber_adapter:trans_adapter+shape_chamber_chamber");
 
@@ -208,13 +225,13 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true, Bool_t With
 
   // Cold plate //
   Double_t coldplate_size[3]={1./2, 14.65/2, 29.9/2}; // 299mm x 146.5mm x 10mm
+  Double_t coldplate_offset = 1.66; // estimated gap bewtween coldplate edge and si1 edge, [cm]
+  Double_t coldplate_gap    = 1.5; // estimated gap between the surface of the coldplate and sensors, [cm]
+
   TGeoVolume* ColdPlate = gGeoMan->MakeBox("ColdPlate", CopperVolMed, coldplate_size[0], coldplate_size[1], coldplate_size[2]);
   ColdPlate->SetLineColor(2);
   
-  Double_t coldplate_offset = 1.66; // estimated gap bewtween coldplate edge and si1 edge, [cm]
-  Double_t coldplate_gap    = 1.5; // estimated gap between the surface of the coldplate and sensors, [cm]
   TGeoTranslation *trans_coldpalte = new TGeoTranslation(coldplate_size[0]+coldplate_gap, 0, coldplate_size[2]-coldplate_offset);
-  
   TGeoVolumeAssembly* DetectorAssembly = new TGeoVolumeAssembly("RecArm_Detectors");
   DetectorAssembly->AddNode(Si1, 1, trans_si1);
   DetectorAssembly->AddNode(Si2, 1, trans_si2);
@@ -226,10 +243,9 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true, Bool_t With
 
   /// Step 5:  place the sensor assembly into the chamber vacuum ///
   Double_t ip_offset=2.85;// the interaction point offset with respect to the edge of sensor assembly [cm]
-  Double_t chamber_center_offset = 10.49; // the center of the recoil chamber is placed with 10.49 cm displacement towards the downstream of the beam line, so that the interaction point is aligned with this displaced center instead of the original axis. Thus, the sensor assembly should also be aligned to this displaced center first, i.e. the interaction point.
-  Double_t chamber_offset_x = (adapter_z+recoil_chamber_z)/2 + target_chamber_r + adapter_gap;
-  Double_t chamber_offset_z = chamber_center_offset;
-  Double_t detector_offset_z = ip_distance - chamber_offset_x; // offset of sensor assembly along z-axis (-x in the final position) in the chamber vacuum
+  Double_t chamber_offset_x = (adapter_z+recoil_chamber_z)/2 + target_chamber_x + adapter_gap;
+  Double_t chamber_offset_z = rec_chamber_center_offset;
+  Double_t detector_offset_z = rec_distance - chamber_offset_x; // offset of sensor assembly along z-axis (-x in the final position) in the chamber vacuum
   Double_t detector_offset_x = chamber_offset_z + ip_offset; // offset of sensor assembly along x-axis (z in the final poistion) in the chamber vacuum
   
   // Roatate the sensor assembly against the Y-axis in -90 degree
@@ -328,25 +344,11 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithChamber=true, Bool_t With
   TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed, cave_size[0], cave_size[1], cave_size[2]);
   gGeoMan->SetTopVolume(top);
 
-  //// Step 3: the chamber volume //////
+  //// Step 3: the chamber and vacuum volume //////
   // Fwd-vacuum: unit: cm
-  Double_t chamber_r = 10; // radious of fwd chamber vacuum [cm]
-  Double_t chamber_z = 40./2; // length of fwd chamber [cm]
-  Double_t branch_r = 2; // [TODO] radius of the flange holding scintillator [cm]
+  Double_t branch_r = 2.; // [TODO] radius of the flange holding scintillator [cm]
   Double_t branch_z = 3./2; // [TODO] length of flange holding scintillator [cm]
-  Double_t pipe_thickness = 0.5; // thickness of chamber wall
-
-  // scintillator dimension
-  Double_t fwd_x_low,fwd_x_high, fwd_y,fwd_z;
-  fwd_x_low = 1./2;//  width on the edge
-  fwd_x_high = 2./2;// width on the light guide end
-  fwd_y = 0.6/2; // thickness
-  fwd_z = 9./2; // length
-
-  // alight the surface of first scint to the center of vacuum box
   Double_t sc_gap  = 20; // gap between Sc1 and Sc2, unit: cm
-  Double_t sc_align_z = fwd_y;
-  Double_t sc_align_x = fwd_z + 2.8; // 2.8 is the distance to the beam center, unit: cm
 
   TGeoRotation *rot_branch_plus_x = new TGeoRotation("rot_branch_plus_x",90, 90, 0, 0, 90, 0);
   rot_branch_plus_x->RegisterYourself();
@@ -366,6 +368,52 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithChamber=true, Bool_t With
   TGeoCombiTrans *ct_branch_y2= new TGeoCombiTrans("ct_branch_y2", 0, 0, sc_gap/2, rot_branch_plus_y);
   ct_branch_y2->RegisterYourself();
 
+  //
+  TGeoTube* shape_vchamber_body = new TGeoTube("shape_vchamber_body", 0, fwd_chamber_r, fwd_chamber_z);
+  TGeoTube* shape_vchamber_branch = new TGeoTube("shape_vchamber_branch", 0, branch_r, 2*branch_z+2*fwd_chamber_r);
+  TGeoCompositeShape* cs_vchamber = new TGeoCompositeShape("cs_vchamber","shape_vchamber_body+shape_vchamber_branch:ct_branch_x1+shape_vchamber_branch:ct_branch_x2+shape_vchamber_branch:ct_branch_y1+shape_vchamber_branch:ct_branch_y2");
+
+  TGeoTube* shape_chamber_body = new TGeoTube("shape_chamber_body", 0, fwd_chamber_r+pipe_thickness, fwd_chamber_z);
+  TGeoTube* shape_chamber_branch = new TGeoTube("shape_chamber_branch", 0, branch_r+pipe_thickness, 2*branch_z+2*fwd_chamber_r);
+  TGeoCompositeShape* cs_bulkchamber = new TGeoCompositeShape("cs_bulkchamber","shape_chamber_body+shape_chamber_branch:ct_branch_x1+shape_chamber_branch:ct_branch_x2+shape_chamber_branch:ct_branch_y1+shape_chamber_branch:ct_branch_y2");
+
+  TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber","cs_bulkchamber-cs_vchamber");
+  TGeoVolume* FwdVacuum  = new TGeoVolume("FwdArm_Vacuum", cs_vchamber, VacuumVolMed);
+  TGeoVolume* FwdChamber = new TGeoVolume("FwdArm_Chamber", cs_chamber, ChamberVolMed);
+  FwdChamber->SetLineColor(16);
+  FwdChamber->SetTransparency(60);
+
+  //// Step 4: the sensor volume assembly //////
+  // scintillator dimension
+  Double_t fwd_x_low,fwd_x_high, fwd_y,fwd_z;
+  fwd_x_low = 1./2;//  width on the edge
+  fwd_x_high = 2./2;// width on the light guide end
+  fwd_y = 0.6/2; // thickness
+  fwd_z = 9./2; // length
+
+  Double_t sc_align_z = fwd_y;
+  Double_t sc_align_x = fwd_z + 2.8; // 2.8 is the distance to the beam center, unit: cm
+
+  // Fwd dectectors: Dimensions of the detecors (x_low, x_high, ,y,z), unit: cm
+  TGeoVolume* SensorSc1 = gGeoMan->MakeTrd1("SensorSc1", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
+  SensorSc1->SetLineColor(38);
+  TGeoVolume* SensorSc2 = gGeoMan->MakeTrd1("SensorSc2", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
+  SensorSc2->SetLineColor(38);
+
+  TGeoVolume* SensorSc3 = gGeoMan->MakeTrd1("SensorSc3", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
+  SensorSc3->SetLineColor(38);
+  TGeoVolume* SensorSc4 = gGeoMan->MakeTrd1("SensorSc4", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
+  SensorSc4->SetLineColor(38);
+  TGeoVolume* SensorSc5 = gGeoMan->MakeTrd1("SensorSc5", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
+  SensorSc5->SetLineColor(38);
+  TGeoVolume* SensorSc6 = gGeoMan->MakeTrd1("SensorSc6", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
+  SensorSc6->SetLineColor(38);
+  TGeoVolume* SensorSc7 = gGeoMan->MakeTrd1("SensorSc7", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
+  SensorSc7->SetLineColor(38);
+  TGeoVolume* SensorSc8 = gGeoMan->MakeTrd1("SensorSc8", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
+  SensorSc8->SetLineColor(38);
+
+  // placement //
   // +x direction
   TGeoCombiTrans *ct_sc1=new TGeoCombiTrans("ct_sc1",sc_align_x, 0, sc_align_z, rot_branch_plus_x);
   TGeoCombiTrans *ct_sc2=new TGeoCombiTrans("ct_sc2",sc_align_x, 0, sc_align_z+sc_gap, rot_branch_plus_x);
@@ -390,41 +438,6 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithChamber=true, Bool_t With
   ct_sc7->RegisterYourself();
   ct_sc8->RegisterYourself();
 
-  //
-  TGeoTube* shape_vchamber_body = new TGeoTube("shape_vchamber_body", 0, chamber_r, chamber_z);
-  TGeoTube* shape_vchamber_branch = new TGeoTube("shape_vchamber_branch", 0, branch_r, 2*branch_z+2*chamber_r);
-  TGeoCompositeShape* cs_vchamber = new TGeoCompositeShape("cs_vchamber","shape_vchamber_body+shape_vchamber_branch:ct_branch_x1+shape_vchamber_branch:ct_branch_x2+shape_vchamber_branch:ct_branch_y1+shape_vchamber_branch:ct_branch_y2");
-
-  TGeoTube* shape_chamber_body = new TGeoTube("shape_chamber_body", 0, chamber_r+pipe_thickness, chamber_z);
-  TGeoTube* shape_chamber_branch = new TGeoTube("shape_chamber_branch", 0, branch_r+pipe_thickness, 2*branch_z+2*chamber_r);
-  TGeoCompositeShape* cs_bulkchamber = new TGeoCompositeShape("cs_bulkchamber","shape_chamber_body+shape_chamber_branch:ct_branch_x1+shape_chamber_branch:ct_branch_x2+shape_chamber_branch:ct_branch_y1+shape_chamber_branch:ct_branch_y2");
-
-  TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber","cs_bulkchamber-cs_vchamber");
-  TGeoVolume* FwdVacuum  = new TGeoVolume("FwdArm_Vacuum", cs_vchamber, VacuumVolMed);
-  TGeoVolume* FwdChamber = new TGeoVolume("FwdArm_Chamber", cs_chamber, ChamberVolMed);
-  FwdChamber->SetLineColor(16);
-  FwdChamber->SetTransparency(60);
-
-  //// Step 4: the sensor volume assembly //////
-  // Fwd dectectors: Dimensions of the detecors (x_low, x_high, ,y,z), unit: cm
-  TGeoVolume* SensorSc1 = gGeoMan->MakeTrd1("SensorSc1", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
-  SensorSc1->SetLineColor(38);
-  TGeoVolume* SensorSc2 = gGeoMan->MakeTrd1("SensorSc2", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
-  SensorSc2->SetLineColor(38);
-
-  TGeoVolume* SensorSc3 = gGeoMan->MakeTrd1("SensorSc3", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
-  SensorSc3->SetLineColor(38);
-  TGeoVolume* SensorSc4 = gGeoMan->MakeTrd1("SensorSc4", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
-  SensorSc4->SetLineColor(38);
-  TGeoVolume* SensorSc5 = gGeoMan->MakeTrd1("SensorSc5", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
-  SensorSc5->SetLineColor(38);
-  TGeoVolume* SensorSc6 = gGeoMan->MakeTrd1("SensorSc6", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
-  SensorSc6->SetLineColor(38);
-  TGeoVolume* SensorSc7 = gGeoMan->MakeTrd1("SensorSc7", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
-  SensorSc7->SetLineColor(38);
-  TGeoVolume* SensorSc8 = gGeoMan->MakeTrd1("SensorSc8", ScintillatorVolMed, fwd_x_low, fwd_x_high, fwd_y, fwd_z);
-  SensorSc8->SetLineColor(38);
-
   TGeoVolumeAssembly *Fwd_Detectors = new TGeoVolumeAssembly("FwdArm_Detectors");
   Fwd_Detectors->AddNode(SensorSc1, 1, ct_sc1);
   Fwd_Detectors->AddNode(SensorSc2, 1, ct_sc2);
@@ -440,8 +453,7 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithChamber=true, Bool_t With
   FwdVacuum->AddNode(Fwd_Detectors, 1, trans_detector_assembly);
 
   // Step 5: Add FwdVacuum to the top volume
-  Double_t z_offset= 460; // distance of the surface of the first scint to IP
-  TGeoTranslation *trans_zoffset=new TGeoTranslation(0., 0., sc_gap/2+fwd_y+z_offset);
+  TGeoTranslation *trans_zoffset=new TGeoTranslation(0., 0., sc_gap/2+fwd_y+fwd_distance);
   TGeoVolumeAssembly* FwdArm = new TGeoVolumeAssembly("FwdArm");
   FwdArm->AddNode(FwdVacuum, 1, trans_zoffset);
   if(WithChamber){
@@ -499,6 +511,147 @@ void build_fwd(TString FileName="fwd.root", Bool_t WithChamber=true, Bool_t With
 
   // ------------------------------------------------------------------------
 }
+
+void build_pipe(const char* FileName)
+{
+  TStopwatch timer;
+  timer.Start();
+
+  /////// Step 1: get all the medium material used in RecArm //////
+  // Materials
+  create_materials_from_media_file();
+
+  // Get the GeoManager for later usage
+  gGeoMan = (TGeoManager*) gROOT->FindObject("FAIRGeom");
+  // gGeoMan->SetVisOption(0);
+  gGeoMan->SetVisLevel(7);  
+
+  TGeoMedium* AirVolMed   = gGeoMan->GetMedium("air");
+  TGeoMedium* Vacuum = gGeoMan->GetMedium("vacuum");
+  TGeoMedium* Aluminum = gGeoMan->GetMedium("Aluminum");
+
+  // Geometry
+  //// Step 2: the top volume and pipe assembly //////
+  TGeoVolume* top = gGeoMan->MakeBox("cave", AirVolMed,cave_size[0], cave_size[1], cave_size[2]);
+  gGeoMan->SetTopVolume(top);
+    
+  TGeoVolumeAssembly* PipeAssembly = new TGeoVolumeAssembly("PipeAssembly");
+
+  //// Step 3: the chamber & its associated vacuum volume ////
+  /* Target Chamber */
+  Double_t front_pipe_positioin = 30;
+  Double_t ip_offset = front_pipe_positioin - target_chamber_z;
+  TGeoRotation *rot_x = new TGeoRotation("rot_x",180,180,90,90,90,0);
+  rot_x->RegisterYourself();
+  TGeoRotation *rot_y = new TGeoRotation("rot_y", 90,0,180,180,90,90);
+  rot_y->RegisterYourself();
+  TGeoCombiTrans *ct_x = new TGeoCombiTrans("ct_x", 0, 0, -ip_offset + rec_adapter_center_offset, rot_x);
+  ct_x->RegisterYourself();
+  TGeoCombiTrans *ct_y = new TGeoCombiTrans("ct_y", 0, 0, -ip_offset, rot_y);
+  ct_y->RegisterYourself();
+
+  // chamber Vacuum
+  TGeoTube* shape_vchamber_z = new TGeoTube("shape_vchamber_z", 0, target_chamber_rz, target_chamber_z);
+  TGeoTube* shape_vchamber_x = new TGeoTube("shape_vchamber_x", 0, target_chamber_rx, target_chamber_x);
+  TGeoTube* shape_vchamber_y = new TGeoTube("shape_vchamber_y", 0, target_chamber_ry, target_chamber_y);
+  TGeoCompositeShape* cs_vchamber = new TGeoCompositeShape("cs_vchamber","shape_vchamber_z+shape_vchamber_x:ct_x+shape_vchamber_y:ct_y");
+  
+  // chamber 
+  TGeoTube* shape_chamber_z = new TGeoTube("shape_chamber_z", 0, target_chamber_rz+pipe_thickness, target_chamber_z);
+  TGeoTube* shape_chamber_x = new TGeoTube("shape_chamber_x", 0, target_chamber_rx+chamber_thickness, target_chamber_x);
+  TGeoTube* shape_chamber_y = new TGeoTube("shape_chamber_y", 0, target_chamber_ry+pipe_thickness, target_chamber_y);
+  TGeoCompositeShape* cs_bulkchamber = new TGeoCompositeShape("cs_bulkchamber","shape_chamber_z+shape_chamber_x:ct_x+shape_chamber_y:ct_y");
+  TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber","cs_bulkchamber-cs_vchamber");
+
+  // move chamber to real position so that IP in origin point
+  TGeoVolume* target_chamber = new TGeoVolume("PipeAssembly_Chamber", cs_chamber, Aluminum);
+  target_chamber->SetLineColor(14);
+  TGeoVolume* target_chamber_vacuum = new TGeoVolume("PipeAssembly_Vacuum", cs_vchamber, Vacuum);
+  TGeoTranslation *trans_target_chamber = new TGeoTranslation(0, 0, ip_offset);
+  PipeAssembly->AddNode(target_chamber, 1, trans_target_chamber);
+  PipeAssembly->AddNode(target_chamber_vacuum, 1, trans_target_chamber);
+
+  //// Step 4: pipe from target chamber to fwd chamber ////
+  // pipe vacuum
+  Double_t fwd_chamber_gap = fwd_chamber_z*2; //distance between pipe edge and first fwd scintillator
+  Double_t l_target,l_snake;
+  l_target = 150; // [cm]
+  l_snake  = fwd_distance - fwd_chamber_gap - l_target; //in cm, corresponding to acceptance 0.0214 rad(the acceptance of the first segment of the pipe).
+
+  Int_t nSects=5;
+  Double_t r_vtarget_to_cone[] = { target_chamber_rz, pipe_r, pipe_r, fwd_chamber_r, fwd_chamber_r};    // in cm
+  Double_t z_vtarget_to_cone[] = { front_pipe_positioin, front_pipe_positioin+target_adapter_z, l_target, l_target, l_target+l_snake};    // in cm
+  TGeoPcon* vshape_target_to_cone = new TGeoPcon(0.,360.,nSects);
+  for(Int_t iSect = 0; iSect < nSects; iSect++){
+    vshape_target_to_cone->DefineSection(iSect, z_vtarget_to_cone[iSect], 0., r_vtarget_to_cone[iSect]);
+  }
+  TGeoVolume* vpipe_target_to_cone = new TGeoVolume("KoaVPipe_TarToCone", vshape_target_to_cone, Vacuum);
+
+  // pipe wall
+  nSects=7;
+  Double_t z_target_to_cone[] = { front_pipe_positioin ,front_pipe_positioin+target_adapter_z, l_target-pipe_thickness, l_target-pipe_thickness, l_target, l_target, l_target+l_snake};    // in cm
+  Double_t r_target_to_cone[] = { target_adapter_z, pipe_r, pipe_r, pipe_r, pipe_r, fwd_chamber_r, fwd_chamber_r};
+  Double_t r_target_to_cone_outer[] = { target_adapter_z+pipe_thickness, pipe_r+pipe_thickness, pipe_r+pipe_thickness, fwd_chamber_r+pipe_thickness, fwd_chamber_r+pipe_thickness, fwd_chamber_r+pipe_thickness, fwd_chamber_r+pipe_thickness};
+  TGeoPcon* shape_target_to_cone = new TGeoPcon(0., 360., nSects);
+  for (Int_t iSect = 0; iSect < 7; iSect++) {
+    shape_target_to_cone->DefineSection(iSect, z_target_to_cone[iSect], r_target_to_cone[iSect], r_target_to_cone_outer[iSect]);
+  }
+  TGeoVolume* pipe_target_to_cone = new TGeoVolume("KoaPipe_TarToCone", shape_target_to_cone, Aluminum);
+  pipe_target_to_cone->SetLineColor(14);
+
+  // add to world
+  PipeAssembly->AddNode(pipe_target_to_cone, 1);
+  PipeAssembly->AddNode(vpipe_target_to_cone, 1);
+
+  // add the Pipe Assembly to the top volume
+  top->AddNode(PipeAssembly,1);
+
+  cout<<"Voxelizing."<<endl;
+  top->Voxelize("");
+  gGeoMan->CloseGeometry();
+
+  /// Step 8: check overlap ///
+  gGeoMan->CheckOverlaps(0.001);
+  gGeoMan->PrintOverlaps();
+  gGeoMan->Test();
+
+  /// write to the output file ///
+  TFile* outfile = TFile::Open(FileName,"RECREATE");
+  top->Write();
+  outfile->Close();
+
+  top->Draw("ogl");
+  top->Raytrace();
+
+  // -----   Finish   -------------------------------------------------------
+
+  cout << endl << endl;
+
+  // Extract the maximal used memory an add is as Dart measurement
+  // This line is filtered by CTest and the value send to CDash
+  FairSystemInfo sysInfo;
+  Double_t maxMemory=sysInfo.GetMaxMemory();
+  cout << "<DartMeasurement name=\"MaxMemory\" type=\"numeric/double\">";
+  cout << maxMemory;
+  cout << "</DartMeasurement>" << endl;
+
+  timer.Stop();
+  Double_t rtime = timer.RealTime();
+  Double_t ctime = timer.CpuTime();
+
+  Double_t cpuUsage=ctime/rtime;
+  cout << "<DartMeasurement name=\"CpuLoad\" type=\"numeric/double\">";
+  cout << cpuUsage;
+  cout << "</DartMeasurement>" << endl;
+
+  cout << endl << endl;
+  cout << "Real time " << rtime << " s, CPU time " << ctime
+       << "s" << endl << endl;
+  cout << "Macro finished successfully." << endl;
+
+  // ------------------------------------------------------------------------
+}
+
 void create_materials_from_media_file()
 {
   // Use the FairRoot geometry interface to load the media which are already defined

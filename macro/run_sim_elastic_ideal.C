@@ -40,18 +40,18 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, TString 
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  // FairModule* pipe = new KoaPipe("Pipe");
-  // if not geometry file is specified, the default one will be used.
-  //pipe->SetGeometryFileName("pipe_simple.root");
-  // run->AddModule(pipe);
+  FairModule* pipe = new KoaPipe("Pipe");
+  pipe->SetGeometryFileName("pipe.root");
+  run->AddModule(pipe);
     
   FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
-  rec_det->SetGeometryFileName("rec.root");
-  // rec_det->SetGeometryFileName("rec_withChamber.root");
+  // rec_det->SetGeometryFileName("rec.root");
+  rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
   run->AddModule(rec_det);
 
   FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  fwd_det->SetGeometryFileName("fwd.root");
+  // fwd_det->SetGeometryFileName("fwd.root");
+  fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
   run->AddModule(fwd_det);
 
     
