@@ -1,23 +1,23 @@
 * Geometry 
 ** List of Geometries (with Tagging Name)
-   |--------------+----------+----------+------+--------+-----------------------------------------------------------------------------------------------------------|
-   | Tagging Name | Recoil   | Fwd      | Pipe | Cave   | Description                                                                                               |
-   |--------------+----------+----------+------+--------+-----------------------------------------------------------------------------------------------------------|
-   | Simplified   | rec.root | fwd.root | NULL | Vacuum | The most simplified configuration, only 4 recoil sensors and 2 fwd sensors in place; no pipe, no chambers |
-   |              |          |          |      |        |                                                                                                           |
+   |--------------------------+------------------------------------+--------------------------------+-----------+--------+-----------------------------------------------------------------------------------------------------------|
+   | Tagging Name             | Recoil                             | Fwd                            | Pipe      | Cave   | Description                                                                                               |
+   |--------------------------+------------------------------------+--------------------------------+-----------+--------+-----------------------------------------------------------------------------------------------------------|
+   | Simplified               | rec.root                           | fwd.root                       | NULL      | Vacuum | The most simplified configuration, only 4 recoil sensors and 2 fwd sensors in place; no pipe, no chambers |
+   | Full                     | rec_withChamber_withColdPlate.root | fwd_withChamber_withExtra.root | pipe.root | Vacuum | The full configuration                                                                                    |
+   | Simplified_withColdPlate | rec_withColdPlate.root             | fwd_withExtra.root             | NULL      | Vacuum | Same as Simplified, add the cold plate of recoil detector and the extra scints of fwd detector            |
 
 ** Parameters
 *** Default setup(passive modules)
-    Cave: read from cave.geo file, type: box, material: air, size: 200m*200m*200m, related class: KoaCave and KoaGeoCave
-    Pipe: hardcoded in KoaPipe, constructed using TGeo methods directly, type: Polycone(TGeoPcon), material: C+Vacuum,
-          Size: length is from [-10m,30m] inner radius is 2.5cm thickness is 0.05cm, related class: KoaPipe
-    Magnet: hardcoded in KoaMagnet as KoaPipe (Because Koala do not have magnet, thus this module should not be added in simulaion)
+    Cave: read from cave.geo file, type: box, material: vacuum, size: 200m*200m*200m, related class: KoaCave and KoaGeoCave
 
 *** Intial edition (from the design schematics)
 **** Recoil detector
 ***** List of ROOT geometry files
       - rec.root : most simplified version, only recoil sensors in vacuum
-      - rec_withChamber.root : recoil sensors in vacuum
+      - rec_withChamber.root : recoil sensors inside chamber
+      - rec_withChamber_withColdPlate.root: full version, sensors , coldpalte behind the sensors, and the chamber
+      - rec_withColdPlate.root: sensors and coldpalte in vacuum
     
 ***** Geometry design guideline 
 
@@ -44,19 +44,57 @@
 
        The dimension and position in the ROOT file is:[TODO] <2019-10-23 Mi> drawing from inkscape
 
+       *NOTE* A /10 cm/ unclosed section is left between the recoil chamber and the target chamber.
+       It is used for alignment of the whole recoil chamber without causing overlap.
+
 **** Forward detector
-***** List of ROOT geometry files
+
+***** DONE COMMENT List of ROOT geometry files
+      CLOSED: [2019-10-24 Do 14:35]
       - fwd.root : most simplified version, only two scintillator detectors in vacuum
-      - fwd_withChamber.root : [TODO]<2019-10-18 Fr> two scint detectors + chamber
-      - fwd_withMonitor.root : [TODO]<2019-10-18 Fr> two scint detectors + two scint monitors in vacuum
-      - fwd_withMonitor_withChamber.root : [TODO]<2019-10-18 Fr> two scint detectors + two scint monitors in chamber
-      - fwd_withMonitor_withChamber_withExtras.root : [TODO]<2019-10-18 Fr> full set of scints in chamber
+      - fwd_withExtra.root : all 8 scint detectors in vacuum
+      - fwd_withChamber.root : two scint detectors in chamber
+      - fwd_withChamber_withExtra.root : full version, 8 scints in chamber
 
 ***** Geometry design guideline 
 
 ****** Topology
+       - Top/World/Cave (cave_1)
+         - FwdArm (FwdArm_0)
+           - FwdArm_Chamber (FwdArm_Chamber_1)
+           - FwdArm_Vacuum (FwdArm_Vacuum_1)
+             - FwdArm_Detectors (FwdArm_Detectors_1)
+             - SensorSc1 (SensorSc1_1)
+             - SensorSc2 (SensorSc2_1)
+             - SensorSc3 (SensorSc3_1)
+             - SensorSc4 (SensorSc4_1)
+             - SensorSc5 (SensorSc5_1)
+             - SensorSc6 (SensorSc6_1)
+             - SensorSc7 (SensorSc7_1)
+             - SensorSc8 (SensorSc8_1)
 
 ****** Structure of the components
+
+**** Pipe and target chamber
+
+***** List of ROOT geometry file
+      Both beam pipe and the target chamber are defined in the same root file.
+      - pipe.root : beam pipe and target chamber
+      
+***** Design guidel\
+      
+****** Topology
+       - Top/World/Cave (cave_1)
+         - PipeAssembly (PipeAssembly_0)
+           - PipeAssembly_TargetChamber (PipeAssembly_TargetChamber_1)
+           - PipeAssembly_TargetVacuum (PipeAssembly_TargetVacuum_1)
+           - PipeAssembly_PipeChamber (PipeAssembly_PipeChamber_1)
+           - PipeAssembly_PipeVacuum (PipeAssembly_PipeVacuum_1)
+
+****** Structure of the components
+       
+       *NOTE* An unclosed gap between the beam pipe and the forward chamber.
+       It is aimed for the alignment of the whole forward chamber without causing overlap.
 
 ** TGeo package in ROOT
 *** MasterToLocal or LocalToMaster

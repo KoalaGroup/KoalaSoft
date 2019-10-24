@@ -564,9 +564,9 @@ void build_pipe(const char* FileName)
   TGeoCompositeShape* cs_chamber = new TGeoCompositeShape("cs_chamber","cs_bulkchamber-cs_vchamber");
 
   // move chamber to real position so that IP in origin point
-  TGeoVolume* target_chamber = new TGeoVolume("PipeAssembly_Chamber", cs_chamber, Aluminum);
+  TGeoVolume* target_chamber = new TGeoVolume("PipeAssembly_TargetChamber", cs_chamber, Aluminum);
   target_chamber->SetLineColor(14);
-  TGeoVolume* target_chamber_vacuum = new TGeoVolume("PipeAssembly_Vacuum", cs_vchamber, Vacuum);
+  TGeoVolume* target_chamber_vacuum = new TGeoVolume("PipeAssembly_TargetVacuum", cs_vchamber, Vacuum);
   TGeoTranslation *trans_target_chamber = new TGeoTranslation(0, 0, ip_offset);
   PipeAssembly->AddNode(target_chamber, 1, trans_target_chamber);
   PipeAssembly->AddNode(target_chamber_vacuum, 1, trans_target_chamber);
@@ -585,7 +585,7 @@ void build_pipe(const char* FileName)
   for(Int_t iSect = 0; iSect < nSects; iSect++){
     vshape_target_to_cone->DefineSection(iSect, z_vtarget_to_cone[iSect], 0., r_vtarget_to_cone[iSect]);
   }
-  TGeoVolume* vpipe_target_to_cone = new TGeoVolume("KoaVPipe_TarToCone", vshape_target_to_cone, Vacuum);
+  TGeoVolume* vpipe_target_to_cone = new TGeoVolume("PipeAssembly_PipeChamber", vshape_target_to_cone, Vacuum);
 
   // pipe wall
   nSects=7;
@@ -596,7 +596,7 @@ void build_pipe(const char* FileName)
   for (Int_t iSect = 0; iSect < 7; iSect++) {
     shape_target_to_cone->DefineSection(iSect, z_target_to_cone[iSect], r_target_to_cone[iSect], r_target_to_cone_outer[iSect]);
   }
-  TGeoVolume* pipe_target_to_cone = new TGeoVolume("KoaPipe_TarToCone", shape_target_to_cone, Aluminum);
+  TGeoVolume* pipe_target_to_cone = new TGeoVolume("PipeAssembly_PipeVacuum", shape_target_to_cone, Aluminum);
   pipe_target_to_cone->SetLineColor(14);
 
   // add to world
