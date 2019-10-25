@@ -131,7 +131,7 @@ void build_rec(TString FileName="rec.root", Bool_t WithChamber=true, Bool_t With
   //// Step 3: the chamber & its associated vacuum volume ////
   // Chamber consists of two cylinder part: the adapter and the main recoil chamber, and a unclosed gap is left bewtween the adapter and the target chamber for alignment convenience
   Double_t adapter_gap=10; // the gap of unclosed region between the adapter and the target chamber
-  Double_t sensor_distance = 31.14; // distance between sensor surface to the inner chamber wall in length-direction [cm]
+  Double_t sensor_distance = 31.14 + 15.25; // distance between sensor surface to the flange(20cm radius) connecting to the adapter. 31.14 is the from sensor surface to inner chamber wall in length-direction, 15.25 is the length from inner chamber wall to the flange surface [cm]
   Double_t adapter_z = rec_distance - sensor_distance - target_chamber_x - adapter_gap; // length of the adapter (vacuum space) [cm]
   Double_t half_z = (adapter_z+recoil_chamber_z)/2; // half of total length of the chamber
 
