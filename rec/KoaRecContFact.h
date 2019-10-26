@@ -20,7 +20,7 @@ class KoaRecContFact : public FairContFact
     KoaRecContFact();
     ~KoaRecContFact() {}
     FairParSet* createContainer(FairContainer*);
-    ClassDef( KoaRecContFact,0) // Factory for all KoaRec parameter containers
+    ClassDef( KoaRecContFact,1) // Factory for all KoaRec parameter containers
 };
 
 #endif

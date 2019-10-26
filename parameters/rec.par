@@ -1,0 +1,20 @@
+##############################################################################
+# Class:   KoaRecMisalignPar
+# Context: TestDefaultContext
+##############################################################################
+[KoaRecMisalignPar]
+//----------------------------------------------------------------------------
+NrOfSensors: Int_t 4
+SensorShiftX:      Double_t \
+0 0 0 0
+SensorShiftY:      Double_t \
+0 0 0 0
+SensorShiftZ:      Double_t \
+0 0 0 0
+SensorRotationPhi: Double_t \
+0 0 0 0
+SensorRotationTheta: Double_t \
+0 0 0 0
+SensorRotationPsi: Double_t \
+0 0 0 0
+##############################################################################

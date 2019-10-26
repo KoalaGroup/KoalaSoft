@@ -131,7 +131,7 @@ void KoaAnaSolidAngle::Exec(Option_t* /*option*/)
     global[0]=curPoint->GetX();
     global[1]=curPoint->GetY();
     global[2]=curPoint->GetZ();
-    fGeoHandler->RecGlobalToLocal(global,local,detID);
+    fGeoHandler->GlobalToLocal(global,local,detID);
 
     Int_t chID = fGeoHandler->RecPositionToDetCh(local,detID);
 
@@ -142,10 +142,12 @@ void KoaAnaSolidAngle::Exec(Option_t* /*option*/)
     else{
       mulithit[chID] = 1;
     }
+  }
 
-    auto search = fNrHit.find(chID);
+  for(auto& ch: mulithit){
+    auto search = fNrHit.find(ch.first);
     if(search == fNrHit.end()){
-      fNrHit[chID] = 1;
+      fNrHit[ch.first] = 1;
     }
     else{
       search->second++;

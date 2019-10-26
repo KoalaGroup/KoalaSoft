@@ -8,6 +8,7 @@
 #include "KoaRecContFact.h"
 
 #include "KoaRecGeoPar.h"
+#include "KoaRecMisalignPar.h"
 
 #include "FairRuntimeDb.h"
 
@@ -40,6 +41,14 @@ void KoaRecContFact::setAllContainers()
   p->addContext("TestNonDefaultContext");
 
   containers->Add(p);
+
+  //
+  FairContainer* p1= new FairContainer("KoaRecMisalignPar",
+                                      "KoaRec Geometry Misalignment Matrix Parameters",
+                                      "TestDefaultContext");
+  p1->addContext("TestNonDefaultContext");
+
+  containers->Add(p1);
 }
 
 FairParSet* KoaRecContFact::createContainer(FairContainer* c)
@@ -54,6 +63,10 @@ FairParSet* KoaRecContFact::createContainer(FairContainer* c)
   if (strcmp(name,"KoaRecGeoPar")==0) {
     p=new KoaRecGeoPar(c->getConcatName().Data(),
                             c->GetTitle(),c->getContext());
+  }
+  else if(strcmp(name,"KoaRecMisalignPar")==0){
+    p=new KoaRecMisalignPar(c->getConcatName().Data(),
+                            c->GetTitle(), c->getContext());
   }
   return p;
 }

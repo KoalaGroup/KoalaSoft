@@ -14,6 +14,7 @@
 #pragma link C++ class KoaFwdContFact;
 #pragma link C++ class KoaFwdGeo;
 #pragma link C++ class KoaFwdGeoPar;
+#pragma link C++ class KoaFwdMisalignPar;
 #pragma link C++ class KoaFwd;
 #pragma link C++ class KoaFwdPoint+;
 

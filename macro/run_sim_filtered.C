@@ -1,8 +1,17 @@
 void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TGeant4")
 {
+  FairLogger *logger = FairLogger::GetLogger();
+  //  logger->SetLogFileName("MyLog.log");
+  logger->SetLogToScreen(kTRUE);
+  //  logger->SetLogToFile(kTRUE);
+  //  logger->SetLogVerbosityLevel("HIGH");
+  //  logger->SetLogFileLevel("DEBUG4");
+  logger->SetLogScreenLevel("WARNING");
+
   // Set the random seed
   gRandom->SetSeed(98989);
     
+  TString dir = getenv("VMCWORKDIR");
   // Output file name
   // TString outFile ="test_filtered.root";
   TString outFile =Form("filtered_solidAngle_pdg%d_%d.root",pdgid, nEvents);
@@ -10,6 +19,16 @@ void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TG
   // Parameter file name
   TString parFile=Form("filtered_solidAngle_param_pdg%d_%d.root",pdgid, nEvents);
   
+  TList *parFileList = new TList();
+  TString paramDir = dir + "/parameters/";
+
+  TString paramfile_rec = paramDir + "rec.par";
+  TObjString* paramFile_rec = new TObjString(paramfile_rec);
+  parFileList->Add(paramFile_rec);
+
+  TString paramfile_fwd = paramDir + "fwd.par";
+  TObjString* paramFile_fwd = new TObjString(paramfile_fwd);
+  parFileList->Add(paramFile_fwd);
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
   timer.Start();
@@ -41,15 +60,17 @@ void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TG
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  // FairModule* pipe = new KoaPipe("Pipe");
+  // KoaPipe* pipe = new KoaPipe("Pipe");
   // run->AddModule(pipe);
     
-  FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
+  KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
+  // rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
-  FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
+  KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
   fwd_det->SetGeometryFileName("fwd.root");
+  // fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
  // ------------------------------------------------------------------------
 
@@ -90,29 +111,33 @@ void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TG
   //--- Use it only to display but not for production!
   // run->SetStoreTraj(kTRUE);
 
-    
-    
-  // -----   Initialize simulation run   ------------------------------------
-  run->Init();
-  // ------------------------------------------------------------------------
-
   // -----   Runtime database   ---------------------------------------------
 
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo* parOut = new FairParRootFileIo(kParameterMerged);
   parOut->open(parFile.Data());
   rtdb->setOutput(parOut);
-  rtdb->saveOutput();
-  rtdb->print();
+
+  FairParAsciiFileIo* parIn = new FairParAsciiFileIo();
+  parIn->open(parFileList, "in");
+  rtdb->setFirstInput(parIn);
+  // ------------------------------------------------------------------------
+    
+  // -----   Initialize simulation run   ------------------------------------
+  run->Init();
   // ------------------------------------------------------------------------
    
   // -----   Start run   ----------------------------------------------------
    run->Run(nEvents);
-   // primGen->WriteEvtFilterStatsToRootFile(); // depracted
     
+   rtdb->saveOutput();
+   rtdb->print();
+
   //You can export your ROOT geometry ot a separate file
   run->CreateGeometryFile("geofile_full.root");
   // ------------------------------------------------------------------------
+
+  delete run;
   
   // -----   Finish   -------------------------------------------------------
   timer.Stop();

@@ -11,6 +11,9 @@
 #include "KoaRecPoint.h"
 #include "KoaRecGeo.h"
 #include "KoaRecGeoPar.h"
+#include "KoaRecMisalignPar.h"
+#include "KoaMapEncoder.h"
+#include "KoaGeoHandler.h"
 
 #include "FairVolume.h"
 #include "FairGeoVolume.h"
@@ -47,7 +50,16 @@ KoaRec::KoaRec()
     fLength(-1.),
     fELoss(-1),
     fKoaRecPointCollection(new TClonesArray("KoaRecPoint")),
-    fGeoHandler(new KoaGeoHandler(kTRUE))
+    fGeoHandler(new KoaGeoHandler(kTRUE)),
+    fModifyGeometry(kFALSE),
+    fMisalignPar(nullptr),
+    fNrOfSensors(-1),
+    fSensorShiftX(),
+    fSensorShiftY(),
+    fSensorShiftZ(),
+    fSensorRotPhi(),
+    fSensorRotTheta(),
+    fSensorRotPsi()
 {
   fListOfSensitives.push_back("SensorSi");
   fListOfSensitives.push_back("SensorGe");
@@ -64,7 +76,16 @@ KoaRec::KoaRec(const char* name, Bool_t active)
     fLength(-1.),
     fELoss(-1),
     fKoaRecPointCollection(new TClonesArray("KoaRecPoint")),
-    fGeoHandler(new KoaGeoHandler(kTRUE))
+    fGeoHandler(new KoaGeoHandler(kTRUE)),
+    fModifyGeometry(kFALSE),
+    fMisalignPar(nullptr),
+    fNrOfSensors(-1),
+    fSensorShiftX(),
+    fSensorShiftY(),
+    fSensorShiftZ(),
+    fSensorRotPhi(),
+    fSensorRotTheta(),
+    fSensorRotPsi()
 {
   fListOfSensitives.push_back("SensorSi");
   fListOfSensitives.push_back("SensorGe");
@@ -78,6 +99,34 @@ KoaRec::~KoaRec()
   }
 
   delete fGeoHandler;
+}
+
+void KoaRec::SetParContainers()
+{
+  if(fModifyGeometry){
+    LOG(info)<< "Set Recoil detector  missallign parameters";
+    FairRuntimeDb* rtdb=FairRun::Instance()->GetRuntimeDb();
+    LOG_IF(FATAL, !rtdb) << "No runtime database";
+
+    // read in the misalignment parameters from parameter file
+    fMisalignPar = static_cast<KoaRecMisalignPar*>(rtdb->getContainer("KoaRecMisalignPar"));
+    
+  }
+}
+
+void KoaRec::InitParContainers()
+{
+  if(fModifyGeometry){
+    LOG(info)<< "Initialize Recoil detector missallign parameters";
+    fNrOfSensors = fMisalignPar->GetNrOfSensors();
+    fSensorShiftX = fMisalignPar->GetSensorShiftX();
+    fSensorShiftY = fMisalignPar->GetSensorShiftY();
+    fSensorShiftZ = fMisalignPar->GetSensorShiftZ();
+    fSensorRotPhi = fMisalignPar->GetSensorRotPhi();
+    fSensorRotTheta = fMisalignPar->GetSensorRotTheta();
+    fSensorRotPsi = fMisalignPar->GetSensorRotPsi();
+    LOG(info)<< "Recoil detector misalignment parameters initialized";
+  }
 }
 
 void KoaRec::Initialize()
@@ -112,8 +161,7 @@ Bool_t  KoaRec::ProcessHits(FairVolume* vol)
        gMC->IsTrackDisappeared()   ) {
     fTrackID  = gMC->GetStack()->GetCurrentTrackNumber();
     // fVolumeID = vol->getMCid();
-    fVolumeID = fGeoHandler->GetRecDetId(vol->GetName());
-    Int_t copy=0;
+    fVolumeID = fGeoHandler->GetDetIdByName(vol->GetName());
     // std::cout<<vol->GetName()<<",volumeID="<< vol->getVolumeId()<<",modID="<<\
       vol->getModId()<<",MCid="<<vol->getMCid()<<",CurrentVolID="<<gMC->CurrentVolOffID(0,copy)<<\
       ", volumeName="<< gMC->CurrentVolName()<<", volPath="<< gMC->CurrentVolPath()<< std::endl;
@@ -262,6 +310,77 @@ FairModule* KoaRec::CloneModule() const
   return new KoaRec(*this);
 }
 
+std::map<std::string, TGeoHMatrix> KoaRec::getMisalignmentMatrices()
+{
+  LOG(info) << " Create misalignment matrices for Recoil detector";
+  std::map<std::string, TGeoHMatrix> matrices;
+
+  Int_t low, high;
+  TString volPath;
+  KoaMapEncoder* fMapEncoder = KoaMapEncoder::Instance();
+
+  // misalignment matrix for the sensors individually
+  fMapEncoder->GetRecDetIDRange(low,high);
+  for(int detId=low;detId <= high;detId++){
+    volPath = fGeoHandler->GetDetPathById(detId);
+
+    Double_t dx = fSensorShiftX[detId];
+    Double_t dy = fSensorShiftY[detId];
+    Double_t dz = fSensorShiftZ[detId];
+    Double_t dphi = fSensorRotPhi[detId];
+    Double_t dtheta = fSensorRotTheta[detId];
+    Double_t dpsi = fSensorRotPsi[detId];
+
+    TGeoRotation* rrot = new TGeoRotation("rot",dphi,dtheta,dpsi);
+    TGeoCombiTrans localdelta = *(new TGeoCombiTrans(dx,dy,dz, rrot));
+    TGeoHMatrix ldm = TGeoHMatrix(localdelta);
+
+    std::string thisPath(volPath);
+    matrices[thisPath] = ldm;
+  }
+
+  LOG(info) << " Misalignment matrices for Recoil detector is created";
+  return matrices;
+}
+
+void KoaRec::RegisterAlignmentMatrices()
+{
+  if (fModifyGeometry) {
+    LOG(info) << " Register misalignment matrices for Recoil detector";
+    std::map<std::string, TGeoHMatrix> matrices;
+
+    Int_t low, high;
+    TString volPath;
+    KoaMapEncoder* fMapEncoder = KoaMapEncoder::Instance();
+
+    // misalignment matrix for the sensors individually
+    fMapEncoder->GetRecDetIDRange(low,high);
+    for(int detId=low;detId <= high;detId++){
+      volPath = fGeoHandler->GetDetPathById(detId);
+
+      Double_t dx = fSensorShiftX[detId];
+      Double_t dy = fSensorShiftY[detId];
+      Double_t dz = fSensorShiftZ[detId];
+      Double_t dphi = fSensorRotPhi[detId];
+      Double_t dtheta = fSensorRotTheta[detId];
+      Double_t dpsi = fSensorRotPsi[detId];
+
+      TGeoRotation* rrot = new TGeoRotation("rot",dphi,dtheta,dpsi);
+      TGeoCombiTrans localdelta = *(new TGeoCombiTrans(dx,dy,dz, rrot));
+      TGeoHMatrix ldm = TGeoHMatrix(localdelta);
+
+      std::string thisPath(volPath);
+      matrices[thisPath] = ldm;
+    }
+
+    LOG(info) << " Misalignment matrices for Recoil detector is registered";
+
+    FairRun* run = FairRun::Instance();
+    run->AddAlignmentMatrices(matrices);
+  }
+}
+
+// [TODO] Check MT usage, whether rhs data need to be cloned
 KoaRec::KoaRec(const KoaRec& rhs) :
   FairDetector(rhs),
   fTrackID(-1),
@@ -272,7 +391,16 @@ KoaRec::KoaRec(const KoaRec& rhs) :
   fTime(-1.),
   fLength(-1.),
   fELoss(-1),
-  fKoaRecPointCollection(new TClonesArray("KoaRecPoint"))
+  fKoaRecPointCollection(new TClonesArray("KoaRecPoint")),
+  fModifyGeometry(kFALSE),
+  fMisalignPar(nullptr),
+  fNrOfSensors(-1),
+  fSensorShiftX(),
+  fSensorShiftY(),
+  fSensorShiftZ(),
+  fSensorRotPhi(),
+  fSensorRotTheta(),
+  fSensorRotPsi()
 {
   fListOfSensitives.push_back("SensorSi");
   fListOfSensitives.push_back("SensorGe");

@@ -10,6 +10,9 @@
 #include "KoaFwdPoint.h"
 #include "KoaFwdGeo.h"
 #include "KoaFwdGeoPar.h"
+#include "KoaFwdMisalignPar.h"
+#include "KoaMapEncoder.h"
+#include "KoaGeoHandler.h"
 
 #include "FairVolume.h"
 #include "FairGeoVolume.h"
@@ -44,10 +47,20 @@ KoaFwd::KoaFwd()
     fTime(-1.),
     fLength(-1.),
     fELoss(-1),
-    fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint"))
+    fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint")),
+    fGeoHandler(new KoaGeoHandler(kTRUE)),
+    fModifyGeometry(kFALSE),
+    fMisalignPar(nullptr),
+    fNrOfSensors(-1),
+    fSensorShiftX(),
+    fSensorShiftY(),
+    fSensorShiftZ(),
+    fSensorRotPhi(),
+    fSensorRotTheta(),
+    fSensorRotPsi()
 {
-  fListOfSensitives.push_back("SensorSc");
-  fListOfSensitives.push_back("MonitorSc");
+  fListOfSensitives.push_back("SensorSc1");
+  fListOfSensitives.push_back("SensorSc2");
 }
 
 KoaFwd::KoaFwd(const char* name, Bool_t active)
@@ -59,10 +72,20 @@ KoaFwd::KoaFwd(const char* name, Bool_t active)
     fTime(-1.),
     fLength(-1.),
     fELoss(-1),
-    fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint"))
+    fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint")),
+    fGeoHandler(new KoaGeoHandler(kTRUE)),
+    fModifyGeometry(kFALSE),
+    fMisalignPar(nullptr),
+    fNrOfSensors(-1),
+    fSensorShiftX(),
+    fSensorShiftY(),
+    fSensorShiftZ(),
+    fSensorRotPhi(),
+    fSensorRotTheta(),
+    fSensorRotPsi()
 {
-  fListOfSensitives.push_back("SensorSc");
-  fListOfSensitives.push_back("MonitorSc");
+  fListOfSensitives.push_back("SensorSc1");
+  fListOfSensitives.push_back("SensorSc2");
 }
 
 KoaFwd::~KoaFwd()
@@ -70,6 +93,36 @@ KoaFwd::~KoaFwd()
   if (fKoaFwdPointCollection) {
     fKoaFwdPointCollection->Delete();
     delete fKoaFwdPointCollection;
+  }
+
+  delete fGeoHandler;
+}
+
+void KoaFwd::SetParContainers()
+{
+  if(fModifyGeometry){
+    LOG(info)<< "Set Fwd detector  missallign parameters";
+    FairRuntimeDb* rtdb=FairRun::Instance()->GetRuntimeDb();
+    LOG_IF(FATAL, !rtdb) << "No runtime database";
+
+    // read in the misalignment parameters from parameter file
+    fMisalignPar = static_cast<KoaFwdMisalignPar*>(rtdb->getContainer("KoaFwdMisalignPar"));
+    
+  }
+}
+
+void KoaFwd::InitParContainers()
+{
+  if(fModifyGeometry){
+    LOG(info)<< "Initialize Fwd detector missallign parameters";
+    fNrOfSensors = fMisalignPar->GetNrOfSensors();
+    fSensorShiftX = fMisalignPar->GetSensorShiftX();
+    fSensorShiftY = fMisalignPar->GetSensorShiftY();
+    fSensorShiftZ = fMisalignPar->GetSensorShiftZ();
+    fSensorRotPhi = fMisalignPar->GetSensorRotPhi();
+    fSensorRotTheta = fMisalignPar->GetSensorRotTheta();
+    fSensorRotPsi = fMisalignPar->GetSensorRotPsi();
+    LOG(info)<< "Fwd detector misalignment parameters initialized";
   }
 }
 
@@ -104,10 +157,10 @@ Bool_t  KoaFwd::ProcessHits(FairVolume* vol)
        gMC->IsTrackStop()       ||
        gMC->IsTrackDisappeared()   ) {
     fTrackID  = gMC->GetStack()->GetCurrentTrackNumber();
-    fVolumeID = vol->getMCid();
+    fVolumeID = fGeoHandler->GetDetIdByName(vol->GetName());
     // std::cout<<vol->GetName()<<",volumeID="<< vol->getVolumeId()<<",modID="<<\
       vol->getModId()<<",MCid="<<vol->getMCid()<<std::endl;
-    if (fELoss == 0. ) { return kFALSE; }
+    if (fELoss == 0. && gMC->TrackPid()!=0) { return kFALSE; }
     AddHit(fTrackID, fVolumeID, TVector3(fPos.X(),  fPos.Y(),  fPos.Z()),
            TVector3(fMom.Px(), fMom.Py(), fMom.Pz()), fTime, fLength,
            fELoss);
@@ -242,6 +295,77 @@ FairModule* KoaFwd::CloneModule() const
   return new KoaFwd(*this);
 }
 
+std::map<std::string, TGeoHMatrix> KoaFwd::getMisalignmentMatrices()
+{
+  LOG(info) << " Create misalignment matrices for Fwd detector";
+  std::map<std::string, TGeoHMatrix> matrices;
+
+  Int_t low, high;
+  TString volPath;
+  KoaMapEncoder* fMapEncoder = KoaMapEncoder::Instance();
+
+  // misalignment matrix for the sensors individually
+  fMapEncoder->GetRecDetIDRange(low,high);
+  for(int detId=low;detId <= low+1;detId++){
+    volPath = fGeoHandler->GetDetPathById(detId);
+
+    Double_t dx = fSensorShiftX[detId-low];
+    Double_t dy = fSensorShiftY[detId-low];
+    Double_t dz = fSensorShiftZ[detId-low];
+    Double_t dphi = fSensorRotPhi[detId-low];
+    Double_t dtheta = fSensorRotTheta[detId-low];
+    Double_t dpsi = fSensorRotPsi[detId-low];
+
+    TGeoRotation* rrot = new TGeoRotation("rot",dphi,dtheta,dpsi);
+    TGeoCombiTrans localdelta = *(new TGeoCombiTrans(dx,dy,dz, rrot));
+    TGeoHMatrix ldm = TGeoHMatrix(localdelta);
+
+    std::string thisPath(volPath);
+    matrices[thisPath] = ldm;
+  }
+
+  LOG(info) << " Misalignment matrices for Recoil detector is created";
+  return matrices;
+}
+
+void KoaFwd::RegisterAlignmentMatrices()
+{
+  if (fModifyGeometry) {
+    LOG(info) << " Register misalignment matrices for Recoil detector";
+    std::map<std::string, TGeoHMatrix> matrices;
+
+    Int_t low, high;
+    TString volPath;
+    KoaMapEncoder* fMapEncoder = KoaMapEncoder::Instance();
+
+    // misalignment matrix for the sensors individually
+    fMapEncoder->GetRecDetIDRange(low,high);
+    for(int detId=low;detId <= low+1;detId++){
+      volPath = fGeoHandler->GetDetPathById(detId);
+
+      Double_t dx = fSensorShiftX[detId-low];
+      Double_t dy = fSensorShiftY[detId-low];
+      Double_t dz = fSensorShiftZ[detId-low];
+      Double_t dphi = fSensorRotPhi[detId-low];
+      Double_t dtheta = fSensorRotTheta[detId-low];
+      Double_t dpsi = fSensorRotPsi[detId-low];
+
+      TGeoRotation* rrot = new TGeoRotation("rot",dphi,dtheta,dpsi);
+      TGeoCombiTrans localdelta = *(new TGeoCombiTrans(dx,dy,dz, rrot));
+      TGeoHMatrix ldm = TGeoHMatrix(localdelta);
+
+      std::string thisPath(volPath);
+      matrices[thisPath] = ldm;
+    }
+
+    LOG(info) << " Misalignment matrices for Recoil detector is registered";
+
+    FairRun* run = FairRun::Instance();
+    run->AddAlignmentMatrices(matrices);
+  }
+}
+
+// [TODO] Check MT usage, whether rhs data need to be cloned
 KoaFwd::KoaFwd(const KoaFwd& rhs)
   : FairDetector(rhs),
     fTrackID(-1),
@@ -251,10 +375,20 @@ KoaFwd::KoaFwd(const KoaFwd& rhs)
     fTime(-1.),
     fLength(-1.),
     fELoss(-1),
-    fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint"))
+    fKoaFwdPointCollection(new TClonesArray("KoaFwdPoint")),
+    fGeoHandler(new KoaGeoHandler(kTRUE)),
+    fModifyGeometry(kFALSE),
+    fMisalignPar(nullptr),
+    fNrOfSensors(-1),
+    fSensorShiftX(),
+    fSensorShiftY(),
+    fSensorShiftZ(),
+    fSensorRotPhi(),
+    fSensorRotTheta(),
+    fSensorRotPsi()
 {
-  fListOfSensitives.push_back("SensorSc");
-  fListOfSensitives.push_back("MonitorSc");
+  fListOfSensitives.push_back("SensorSc1");
+  fListOfSensitives.push_back("SensorSc2");
 }
 
 ClassImp(KoaFwd)

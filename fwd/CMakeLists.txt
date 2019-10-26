@@ -14,7 +14,7 @@ ${BASE_INCLUDE_DIRECTORIES}
 #put here all directories where header files are located
 ${CMAKE_SOURCE_DIR}/KoaData
 ${CMAKE_SOURCE_DIR}/fwd
-
+${CMAKE_SOURCE_DIR}/tools
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -33,6 +33,7 @@ KoaFwd.cxx
 KoaFwdContFact.cxx
 KoaFwdGeo.cxx
 KoaFwdGeoPar.cxx
+KoaFwdMisalignPar.cxx
 KoaFwdPoint.cxx
 )
 
@@ -40,6 +41,8 @@ Set(LINKDEF KoaFwdLinkDef.h)
 Set(LIBRARY_NAME KoaFwd)
 Set(DEPENDENCIES
     Base
+    Geom
+    KoaTools
 )
 
 GENERATE_LIBRARY()

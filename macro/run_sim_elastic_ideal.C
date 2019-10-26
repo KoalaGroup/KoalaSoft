@@ -1,14 +1,35 @@
 void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, TString mcEngine = "TGeant4")
 {
+  // ----    Debug option   -------------------------------------------------
+  gDebug = 0;
+
+  FairLogger *logger = FairLogger::GetLogger();
+  //  logger->SetLogFileName("MyLog.log");
+  logger->SetLogToScreen(kTRUE);
+  //  logger->SetLogToFile(kTRUE);
+  //  logger->SetLogVerbosityLevel("HIGH");
+  //  logger->SetLogFileLevel("DEBUG4");
+  logger->SetLogScreenLevel("WARNING");
     
+  TString dir = getenv("VMCWORKDIR");
+
   // Output file name
   TString outFile =Form("elastic_ideal_%.1fGeV_%d.root",beamMom, nEvents);
     
-  // Parameter file name
+  // output Parameter file name
   TString parFile=Form("elastic_ideal_param_%.1f_%d.root",beamMom, nEvents);
   
-  // ----    Debug option   -------------------------------------------------
-  gDebug = 0;
+  // input Parameter file name
+  TList *parFileList = new TList();
+  TString paramDir = dir + "/parameters/";
+
+  TString paramfile_rec = paramDir + "rec.par";
+  TObjString* paramFile_rec = new TObjString(paramfile_rec);
+  parFileList->Add(paramFile_rec);
+
+  TString paramfile_fwd = paramDir + "fwd.par";
+  TObjString* paramFile_fwd = new TObjString(paramfile_fwd);
+  parFileList->Add(paramFile_fwd);
 
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -44,14 +65,16 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, TString 
   pipe->SetGeometryFileName("pipe.root");
   run->AddModule(pipe);
     
-  FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
+  KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
   // rec_det->SetGeometryFileName("rec.root");
   rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
+  // rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
   FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
   // fwd_det->SetGeometryFileName("fwd.root");
   fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
+  // fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
 
     
@@ -76,29 +99,34 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, TString 
   //--- Use it only to display but not for production!
   // run->SetStoreTraj(kTRUE);
 
-    
-    
-  // -----   Initialize simulation run   ------------------------------------
-  run->Init();
-  // ------------------------------------------------------------------------
-
   // -----   Runtime database   ---------------------------------------------
 
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo* parOut = new FairParRootFileIo(kParameterMerged);
   parOut->open(parFile.Data());
   rtdb->setOutput(parOut);
-  rtdb->saveOutput();
-  rtdb->print();
+
+  FairParAsciiFileIo* parIn = new FairParAsciiFileIo();
+  parIn->open(parFileList, "in");
+  rtdb->setFirstInput(parIn);
   // ------------------------------------------------------------------------
-   
+    
+  // -----   Initialize simulation run   ------------------------------------
+  run->Init();
+  // ------------------------------------------------------------------------
+
   // -----   Start run   ----------------------------------------------------
    run->Run(nEvents);
     
+   rtdb->saveOutput();
+   rtdb->print();
+
   //You can export your ROOT geometry ot a separate file
   run->CreateGeometryFile("geofile_full.root");
   // ------------------------------------------------------------------------
   
+  delete run;
+
   // -----   Finish   -------------------------------------------------------
   timer.Stop();
   Double_t rtime = timer.RealTime();
