@@ -22,6 +22,7 @@
 #include "FairRuntimeDb.h"
 #include "KoaDetectorList.h"
 #include "KoaStack.h"
+#include "KoaRecMisalignPar.h"
 
 #include "TClonesArray.h"
 #include "TVirtualMC.h"
@@ -78,6 +79,16 @@ KoaRec::~KoaRec()
   }
 
   delete fGeoHandler;
+}
+
+void KoaRec::SetParContainers()
+{
+  
+}
+
+void KoaRec::InitParContainers()
+{
+  
 }
 
 void KoaRec::Initialize()
@@ -260,6 +271,16 @@ KoaRecPoint* KoaRec::AddHit(Int_t trackID,
 FairModule* KoaRec::CloneModule() const
 {
   return new KoaRec(*this);
+}
+
+std::map<std::string, TGeoHMatrix> KoaRec::getMisalignmentMatrices()
+{
+  
+}
+
+void KoaRec::RegisterAlignmentMatrices()
+{
+  
 }
 
 KoaRec::KoaRec(const KoaRec& rhs) :

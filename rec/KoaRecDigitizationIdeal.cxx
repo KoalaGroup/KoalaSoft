@@ -141,10 +141,10 @@ void KoaRecDigitizationIdeal::FillFiredStrips(KoaRecPoint* McPoint)
   global_out[2]=McPoint->GetZEnd();
 
   Int_t chID_in, chID_out;
-  fGeoHandler->RecGlobalToLocal(global_in, local_in, detID);
+  fGeoHandler->GlobalToLocal(global_in, local_in, detID);
   chID_in = fGeoHandler->RecPositionToDetCh(local_in, detID);
 
-  fGeoHandler->RecGlobalToLocal(global_out, local_out, detID);
+  fGeoHandler->GlobalToLocal(global_out, local_out, detID);
   chID_out = fGeoHandler->RecPositionToDetCh(local_out, detID);
 
 

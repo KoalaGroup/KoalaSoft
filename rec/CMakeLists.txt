@@ -34,6 +34,7 @@ KoaRec.cxx
 KoaRecContFact.cxx
 KoaRecGeo.cxx
 KoaRecGeoPar.cxx
+KoaRecMisalignPar.cxx
 KoaRecPoint.cxx
 KoaRecDigi.cxx
 KoaRecDigitizationIdeal.cxx

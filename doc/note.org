@@ -186,13 +186,67 @@
    Verification of the sensor dimenstion and position:
    [[file:rec_dimension_verification.pdf][Hit distribution in the recoil sensors using isotropically distributed particle source]]
     
-** TODO <2019-10-18 Fr> Pipe
-   - New pipe dimension to host fwd detectors
-   - Pipe segmentation
-   - Pipe diameter of Fwd section: 20 cm
+** DONE <2019-10-18 Fr> Pipe
+   CLOSED: [2019-10-25 Fr 14:21]
+   - Pipe implementation is changed to build_geometry to generate a root file
+   - Segmentation:
+     - Target Chamber : three tubes cross
+     - Beam pipe : 1.5 m small diameter (9 cm) section and a large diameter (20 cm) section
+       - A unclosed gap between beam pipe and the fwd chamber is left on purpose
  
 ** TODO <2019-10-18 Fr> A modifiable geometry model needed for small changes in simulation
 
+*** Misalignment in FairROOT
+
+**** Concepts
+    The misalignment module in FairROOT is developped by LMD group.
+    The class in charge of this task is *FairAlignmentHandler*.
+    *FairAlignmentHandler* changes the geometry that is currently loaded into the *gGeoManager*, 
+    so every following macro that uses the gGeoManager uses this changed geometry.
+
+    The difference between the actual position of a detector component after construction and its design position is called misalignment.
+    It can be represented by *TGeoHMatrix*, and is called /Misalignment Matrix/.
+    This matrix will be multiplied to the position matrix of the detector component, but however, *[ToBeConfirmed] <2019-10-25 Fr> the misaligned geometry will not be written to disk*.
+
+    There are two ways of using it:
+**** The direct invoking of *FairAlignmentHandler*
+     Reference example: LMD implementation in *PandaROOT*.
+
+     Users provide a matrices list of type *std::map<std::string, TGeoHMatrix>*, where the key is the module path name
+     in the geometry model and the value is the /Misalignment Matrix/ of this module to the design position.
+     
+     This matrices list is then registered by invoking *fRun->AddAlignmentMatrices(*matrices)* in the simulation macro.
+
+**** The indirect invoking through *FairModule*, i.e. implementation in sub-detectors
+     Reference example: FairROOT tutorial4
+
+     This method uses the FairROOT infrastructure like parameter containter and *FairModule* interface.
+     The alignment matrix parameters are save in parameter files, which are read into user-defined parameter container during
+     initialization stage. 
+     All operations are implemented in detector *FairModule* class.
+     The matrices are registered in the virtual function *RegisterAlignmentMatrices()* of *FairModule*.
+     It's in this method that *fRun->AddAlignmentMatrices()* is invoked.
+
+**** Shift detector VS Shift data
+     According to the documentation of alignment module, two kinds of methods can be used to get simulation data of misaligned geometry:
+     1) Shift detector ; 2) Shift data
+    
+     Shift detector means that user register the /Misalignment Matrices/ at MC simulation stage, i.e. *FairRunSim*.
+     Usually the global coordinate should be recorded in MC point in this method.
+     The misaligned geometry will also be written out to the parameter file, and later can be read in during digitization and reconstruction.
+
+     Shift data means that user use the perfect geometry for simulation and digitization, the /Misalignment Matrices/ will be registered during
+     reconstruction phase. So that the output hit position is the misaligned position.
+     This method may cause wrong detector acceptance. Usually, it is used for fast-prototyping. 
+
+**** Application in real experiment data
+     For real experiment, the raw data always consists of electronic channel indexed value, which is basically a local position.
+     For the initial stage, always the designed geometry will be used. The /Misalignment Matrices/ of the geometry with respect to design can
+     be deduced in this stage. This is called software alignment.
+     The other source of /Misalignment Matrices/ is from physical survey after installation.
+
+     Anyway, once the /Misalignment Matrices/ is decided, it can be applied to the perfect geometry during reconstruction phase.
+     
 ** <2019-10-18 Fr> For simplified geometry, no chamber involved, the Cave material is changed to vacuum from air
 
 * Anatomy of FairRoot framework

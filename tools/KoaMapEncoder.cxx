@@ -30,11 +30,19 @@ void KoaMapEncoder::Init()
   fDetectorIDToVolName[3]="SensorGe2";
   fRecDetIDRange[0]=0;
   fRecDetIDRange[1]=3;
+  fRecNrOfSensors = fRecDetIDRange[1] - fRecDetIDRange[0] + 1;
 
   fDetectorIDToVolName[4]="SensorSc1";
   fDetectorIDToVolName[5]="SensorSc2";
+  fDetectorIDToVolName[6]="SensorSc3";
+  fDetectorIDToVolName[7]="SensorSc4";
+  fDetectorIDToVolName[8]="SensorSc5";
+  fDetectorIDToVolName[9]="SensorSc6";
+  fDetectorIDToVolName[10]="SensorSc7";
+  fDetectorIDToVolName[11]="SensorSc8";
   fFwdDetIDRange[0]=4;
-  fFwdDetIDRange[1]=5;
+  fFwdDetIDRange[1]=11;
+  fFwdNrOfSensors = fFwdDetIDRange[1] - fFwdDetIDRange[0] + 1;
 
   //-------------------------------------//
   fVolNameToDetectorID["SensorSi1"]=0;
@@ -44,14 +52,27 @@ void KoaMapEncoder::Init()
 
   fVolNameToDetectorID["SensorSc1"]=4;
   fVolNameToDetectorID["SensorSc2"]=5;
+  fVolNameToDetectorID["SensorSc3"]=6;
+  fVolNameToDetectorID["SensorSc4"]=7;
+  fVolNameToDetectorID["SensorSc5"]=8;
+  fVolNameToDetectorID["SensorSc6"]=9;
+  fVolNameToDetectorID["SensorSc7"]=10;
+  fVolNameToDetectorID["SensorSc8"]=11;
 
   //-------------------------------------//
   fDetectorIDToChNr[0]=48;
   fDetectorIDToChNr[1]=64;
   fDetectorIDToChNr[2]=32;
   fDetectorIDToChNr[3]=32;
+
   fDetectorIDToChNr[4]=1;
   fDetectorIDToChNr[5]=1;
+  fDetectorIDToChNr[6]=1;
+  fDetectorIDToChNr[7]=1;
+  fDetectorIDToChNr[8]=1;
+  fDetectorIDToChNr[9]=1;
+  fDetectorIDToChNr[10]=1;
+  fDetectorIDToChNr[11]=1;
 
   //-------------------------------------//
   for(int detID=fRecDetIDRange[0];detID<=fRecDetIDRange[1];detID++){

@@ -131,7 +131,7 @@ void KoaAnaSolidAngle::Exec(Option_t* /*option*/)
     global[0]=curPoint->GetX();
     global[1]=curPoint->GetY();
     global[2]=curPoint->GetZ();
-    fGeoHandler->RecGlobalToLocal(global,local,detID);
+    fGeoHandler->GlobalToLocal(global,local,detID);
 
     Int_t chID = fGeoHandler->RecPositionToDetCh(local,detID);
 

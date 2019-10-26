@@ -36,11 +36,12 @@ KoaGeoHandler::KoaGeoHandler(Bool_t isSimulation)
 {
   fMapEncoder = KoaMapEncoder::Instance();
   fRecPath = "/cave_1/RecArm_0/RecArm_Vacuum_1/RecArm_Detectors_1/";
-  fFwdPath = "TO BE DONE";
+  fFwdPath = "/cave_1/FwdArm_0/FwdArm_Vacuum_1/FwdArm_Detectors_1/";
 
   Init();
 }
 
+// Init fDetMatrix, fRecDetDimension, fRecDetPosition, fRecChIdToStripRange
 Int_t KoaGeoHandler::InitMatrix()
 {
   if(!fIsSimulation){
@@ -52,17 +53,22 @@ Int_t KoaGeoHandler::InitMatrix()
     // for recoil detector
     fMapEncoder->GetRecDetIDRange(low,high);
     for(int detId=low;detId <= high;detId++){
-      volName = fMapEncoder->DetectorIDToVolName(detId);
-      fRecDetPath[detId]= fRecPath + volName +"_1";
-      NavigateTo(fRecDetPath[detId]);
-      fRecDetMatrix[detId] = static_cast<TGeoHMatrix*>(gGeoManager->GetCurrentMatrix()->MakeClone());
+      NavigateTo(fDetPath[detId]);
+      fDetMatrix[detId] = static_cast<TGeoHMatrix*>(gGeoManager->GetCurrentMatrix()->MakeClone());
       TGeoBBox* actBox = static_cast<TGeoBBox*>(gGeoManager->GetCurrentVolume()->GetShape());
       fRecDetDimension[detId] = actBox->GetDZ(); 
 
-      RecLocalToGlobal(centor_local,centor_global,detId);
+      fDetMatrix[detId]->LocalToMaster(centor_local, centor_global);
       fRecDetPosition[detId] = centor_global[2];
     }
     
+    // for fwd detector
+    fMapEncoder->GetFwdDetIDRange(low,high);
+    for(int detId=low;detId <= high;detId++){
+      NavigateTo(fDetPath[detId]);
+      fDetMatrix[detId] = static_cast<TGeoHMatrix*>(gGeoManager->GetCurrentMatrix()->MakeClone());
+    }
+
     //--------------------------------//
     Int_t SumWidth;
     Int_t detId, detChId, detStripId;
@@ -198,11 +204,11 @@ Int_t KoaGeoHandler::InitMatrix()
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
     }
-    // for fwd detector: TODO
   }
   return 1;
 }
 
+// init: fRecStripIdToChId, fDetPath
 Int_t KoaGeoHandler::Init()
 {
   //--------------------------------//
@@ -210,6 +216,9 @@ Int_t KoaGeoHandler::Init()
   Int_t detId, detChId, detStripId;
   StripRange range;
 
+  //--------------------------------//
+  // Init fRecStripIdToChId
+  //--------------------------------//
   // Si1: 2-in-1 for the first 32 channels (16 ch)
   //      1-in-1 for the last 32 channels
   SumWidth = 0;
@@ -342,40 +351,58 @@ Int_t KoaGeoHandler::Init()
   }
 
   //----------------------------------//
+  // Init fDetPath
+  //----------------------------------//
+  TString volName;
+
+  // for recoil detector
+  fMapEncoder->GetRecDetIDRange(low,high);
+  for(int detId=low;detId <= high;detId++){
+    volName = fMapEncoder->DetectorIDToVolName(detId);
+    fDetPath[detId]= fRecPath + volName +"_1";
+  }
+  
+  // for fwd detector
+  fMapEncoder->GetFwdDetIDRange(low,high);
+  for(int detId=low;detId <= high;detId++){
+    volName = fMapEncoder->DetectorIDToVolName(detId);
+    fDetPath[detId]= fFwdPath + volName +"_1";
+  }
+
+  //----------------------------------//
   InitMatrix();
 }
 
-Int_t KoaGeoHandler::GetRecDetId(const char* volName)
+Int_t KoaGeoHandler::GetDetIdByName(const char* volName)
 {
   return fMapEncoder->VolNameToDetectorID(volName);
 }
 
-TString KoaGeoHandler::GetRecDetName(Int_t detId)
+TString KoaGeoHandler::GetDetNameById(Int_t detId)
 {
   return fMapEncoder->DetectorIDToVolName(detId);
 }
 
-TString KoaGeoHandler::GetRecDetPath(Int_t detId)
+TString KoaGeoHandler::GetDetPathById(Int_t detId)
 {
-  TString path;
-  if(!fIsSimulation){
-    path = fRecDetPath[detId];
-  }
-  else{
-    LOG(fatal) << "This method is only available in simulation task. Set fIsSimulation to kFALSE to use this method";
-  }
-  return path;
+  return fDetPath[detId];
 }
 
-void KoaGeoHandler::RecLocalToGlobal(Double_t* local, Double_t* global, Int_t detID)
+TString KoaGeoHandler::GetDetPathByName(const char* volName)
 {
-  TGeoHMatrix* matrix = fRecDetMatrix[detID];
+  Int_t id = GetDetIdByName(volName);
+  return fDetPath[id];
+}
+
+void KoaGeoHandler::LocalToGlobal(Double_t* local, Double_t* global, Int_t detID)
+{
+  TGeoHMatrix* matrix = fDetMatrix[detID];
   matrix->LocalToMaster(local, global);
 }
 
-void KoaGeoHandler::RecGlobalToLocal(Double_t* global, Double_t* local, Int_t detID)
+void KoaGeoHandler::GlobalToLocal(Double_t* global, Double_t* local, Int_t detID)
 {
-  TGeoHMatrix* matrix = fRecDetMatrix[detID];
+  TGeoHMatrix* matrix = fDetMatrix[detID];
   matrix->MasterToLocal(global,local);
 }
 
@@ -400,9 +427,7 @@ Double_t KoaGeoHandler::RecDetChToPosition(Int_t detChId, Double_t& lower, Doubl
 
 void KoaGeoHandler::NavigateTo(TString volName)
 {
-  if (fIsSimulation) {
-    LOG(fatal)<<"This methode is not supported in simulation mode";
-  } else {
+  if (!fIsSimulation) {
     if(!gGeoManager->cd(volName.Data()))
       LOG(fatal)<<"Node do not exists: "<<volName.Data();
   }
@@ -416,8 +441,8 @@ KoaGeoHandler::KoaGeoHandler(const KoaGeoHandler& rhs) :
   fFwdPath = rhs.fFwdPath;
 
   fIsSimulation = rhs.fIsSimulation;
-  fRecDetPath   = rhs.fRecDetPath;
-  fRecDetMatrix = rhs.fRecDetMatrix;
+  fDetPath   = rhs.fDetPath;
+  fDetMatrix = rhs.fDetMatrix;
   fRecDetPosition = rhs.fRecDetPosition;
   fRecDetDimension = rhs.fRecDetDimension;
   fRecStripIdToChId = rhs.fRecStripIdToChId;

@@ -60,13 +60,14 @@ class KoaGeoHandler : public TObject
     };
 
     // 
-    Int_t GetRecDetId(const char* volName); // used in simulation run
-    TString GetRecDetName(Int_t detId);
-    TString GetRecDetPath(Int_t detId);
+    Int_t GetDetIdByName(const char* volName); // used in simulation run
+    TString GetDetNameById(Int_t detId);
+    TString GetDetPathById(Int_t detId);
+    TString GetDetPathByName(const char* volName);
 
     //
-    void RecLocalToGlobal(Double_t* local, Double_t* global, Int_t detID);
-    void RecGlobalToLocal(Double_t* global, Double_t* local, Int_t detID);
+    void LocalToGlobal(Double_t* local, Double_t* global, Int_t detID);
+    void GlobalToLocal(Double_t* global, Double_t* local, Int_t detID);
 
     // hitPos here is the local coordinate in the sensor volume
     // return value is the encoded readout channel
@@ -75,9 +76,6 @@ class KoaGeoHandler : public TObject
     // here detChId is the encoded readout channel id
     Double_t RecDetChToPosition(Int_t detChId, Double_t& lower, Double_t& higher);
 
-    //
-    void NavigateTo(TString volName); // Navigate to a specific volume\
-                                      invoked before coordinate transformation
     typedef struct{
       Double_t center;
       Double_t lower;
@@ -89,20 +87,24 @@ class KoaGeoHandler : public TObject
                         available immediately in simulation
     Int_t Init(); // Init all the other mappings, which are available both in simulation\
                   and analysis
+    void NavigateTo(TString volName); // Navigate to a specific volume\
+                                      invoked before coordinate transformation
 
  private:
     KoaMapEncoder*  fMapEncoder;
+    Bool_t fIsSimulation; //! used in simulation task or analysis task
+
+    // data for both recoil and fwd
     TString         fRecPath; // node path for recoil detector
     TString         fFwdPath;
+    std::map<Int_t, TString>      fDetPath;
+    std::map<Int_t, TGeoHMatrix*> fDetMatrix;
 
-    Bool_t fIsSimulation; //! used in simulation task or analysis task
-    std::map<Int_t, TString>      fRecDetPath;
-    std::map<Int_t, TGeoHMatrix*> fRecDetMatrix;
+    // data only needed for recoil sensors
     std::map<Int_t, Double_t>     fRecDetPosition; // position of sensor centor in global coordinate
     std::map<Int_t, Double_t>     fRecDetDimension; // half length of sensor size along z-axis
     // mapping from encoded readout channel id to local strip range in sensor volume
     std::map<Int_t, StripRange>   fRecChIdToStripRange;
-
     // mapping from encoded strip id to encoded readout channel id
     std::map<Int_t, Int_t>        fRecStripIdToChId;
 

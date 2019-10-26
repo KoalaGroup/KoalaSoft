@@ -18,6 +18,7 @@ class KoaRecPoint;
 class FairVolume;
 class TClonesArray;
 class KoaGeoHandler;
+class KoaRecMisalignPar;
 
 class KoaRec: public FairDetector
 {
@@ -36,8 +37,22 @@ class KoaRec: public FairDetector
     /**       destructor     */
     virtual ~KoaRec();
 
+    /** Switch on/off geometry modification, i.e. whether apply the misalignment matrices **/
+    // Reference Tutorial4
+    void SetModifyGeometry(Bool_t val) { fModifyGeometry=val; }
+    // get the Misalignment Matrices list, mainly used for output and checking
+    std::map<std::string, TGeoHMatrix> getMisalignmentMatrices();
+
     /**      Initialization of the detector is done here    */
     virtual void   Initialize();
+
+    /**Set the parameter containers*/
+    void SetParContainers();
+
+    /** Initialize everything which has to be done before the construction and modification
+     ** of the geometry. Mostly this is needed to read data from the parameter containers.
+     ** Especially for the geometry modification before MC.*/
+    virtual void   InitParContainers();
 
     /**       this method is called for each step during simulation
      *       (see FairMCApplication::Stepping())
@@ -83,6 +98,8 @@ class KoaRec: public FairDetector
 
     virtual FairModule* CloneModule() const;
 
+    virtual void RegisterAlignmentMatrices();
+
   private:
     // Sensitive volume name list, used when importing geometry from ROOT file
     std::vector<std::string> fListOfSensitives;  
@@ -104,6 +121,24 @@ class KoaRec: public FairDetector
     TClonesArray*  fKoaRecPointCollection;  //!
 
     KoaGeoHandler* fGeoHandler; //!
+
+    /** parameters related to geometry misalignment **/
+    Bool_t fModifyGeometry;
+
+    // parameter container
+    KoaRecMisalignPar* fMisalignPar;
+
+    // Detector misalignment as a whole
+    Double_t fDetectorShift[3]; // x,y,z [cm]
+    Double_t fDetectorRotation[3]; // peuler angles: phi, theta, psi [degree]
+    // Individual Sensor's misalignment
+    Int_t fNrOfSensors;
+    TArrayD fSensorShiftX;
+    TArrayD fSensorShiftY;
+    TArrayD fSensorShiftZ;
+    TArrayD fSensorRotPhi;
+    TArrayD fSensorRotTheta;
+    TArrayD fSensorRotPsi;
 
     KoaRec(const KoaRec&);
     KoaRec& operator=(const KoaRec&);
