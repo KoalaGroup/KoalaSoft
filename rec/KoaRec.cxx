@@ -25,6 +25,7 @@
 #include "FairRuntimeDb.h"
 #include "KoaDetectorList.h"
 #include "KoaStack.h"
+#include "KoaRecMisalignPar.h"
 
 #include "TClonesArray.h"
 #include "TVirtualMC.h"
