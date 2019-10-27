@@ -21,7 +21,7 @@ class KoaFwdContFact : public FairContFact
     KoaFwdContFact();
     ~KoaFwdContFact() {}
     FairParSet* createContainer(FairContainer*);
-    ClassDef( KoaFwdContFact,0) // Factory for all KoaRec parameter containers
+    ClassDef( KoaFwdContFact,1) // Factory for all KoaRec parameter containers
 };
 
 #endif

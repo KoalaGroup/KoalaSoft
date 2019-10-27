@@ -17,5 +17,8 @@
 #pragma link C++ class KoaFwdMisalignPar;
 #pragma link C++ class KoaFwd;
 #pragma link C++ class KoaFwdPoint+;
+#pragma link C++ class KoaFwdDigi+;
+#pragma link C++ class KoaFwdDigitization+;
+#pragma link C++ class KoaFwdDigitizationPar;
 
 #endif

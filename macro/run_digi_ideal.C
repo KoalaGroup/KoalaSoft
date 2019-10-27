@@ -25,24 +25,47 @@ void run_digi_ideal(const char* data, const char* para)
   TStopwatch timer;
 
   // -----   Reconstruction run   -------------------------------------------
+  TString dir = getenv("VMCWORKDIR");
+
   FairRunAna *fRun= new FairRunAna();
   FairFileSource *fFileSource = new FairFileSource(inFile);
   fRun->SetSource(fFileSource);
   fRun->SetSink(new FairRootFileSink(outFile));
 
+  // parameter container
   FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
   FairParRootFileIo* parInput1 = new FairParRootFileIo();
-  parInput1->open(parFile.Data());
+  parInput1->open(parFile.Data(), "UPDATE");
   rtdb->setFirstInput(parInput1);
 
-  KoaRecDigitizationIdeal* digiTask = new KoaRecDigitizationIdeal();
-  fRun->AddTask(digiTask);
+  FairParAsciiFileIo* parInput2 = new FairParAsciiFileIo();
+  TList *parFileList = new TList();
+  TString paramDir = dir + "/parameters/";
+  TString paramfile_fwd = paramDir + "fwd.par";
+  TObjString paramFile_fwd = new TObjString(paramfile_fwd);
+  parFileList->Add(paramFile_fwd);
+  TString paramfile_rec = paramDir + "rec.par";
+  TObjString paramFile_rec = new TObjString(paramfile_rec);
+  parFileList->Add(paramFile_rec);
+  parInput2->open(parFileList,"in");
+  rtdb->setSecondInput(parInput2);
+
+  rtdb->setOutput(parInput1);
+  //
+  KoaRecDigitizationIdeal* recDigiTask = new KoaRecDigitizationIdeal();
+  fRun->AddTask(recDigiTask);
+
+  KoaFwdDigitization* fwdDigiTask = new KoaFwdDigitization();
+  fRun->AddTask(fwdDigiTask);
 
   fRun->Init();
+
 
   timer.Start();
   fRun->Run();
 
+  rtdb->saveOutput();
+  rtdb->print();
   // -----   Finish   -------------------------------------------------------
 
   cout << endl << endl;

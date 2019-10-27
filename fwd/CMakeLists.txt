@@ -35,6 +35,9 @@ KoaFwdGeo.cxx
 KoaFwdGeoPar.cxx
 KoaFwdMisalignPar.cxx
 KoaFwdPoint.cxx
+KoaFwdDigi.cxx
+KoaFwdDigitization.cxx
+KoaFwdDigitizationPar.cxx
 )
 
 Set(LINKDEF KoaFwdLinkDef.h)

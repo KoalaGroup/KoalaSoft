@@ -1,10 +1,10 @@
 // --------------------------------------------------------
-// ----			KoaRecDigi header file	---
+// ----			KoaFwdDigi header file	---
 // ----			Created 09.10.19 by Y.Zhou ---
 // ----     Adopted from PndSdsDigi by T.Stockmanns in PandaRoot ---
 // --------------------------------------------------------
 
-/** KoaRecDigi.h
+/** KoaFwdDigi.h
  *@author Y.Zhou <y.zhou@fz-juelich.de>
  **
  ** \brief Base class for Digi information
@@ -12,8 +12,8 @@
  **
  **/
 
-#ifndef KOARECDIGI_H
-#define KOARECDIGI_H
+#ifndef KOAFWDDIGI_H
+#define KOAFWDDIGI_H
 
 #include "FairTimeStamp.h"
 #include "KoaDetectorList.h"
@@ -25,13 +25,13 @@
 #include <vector>
 #include <boost/serialization/void_cast.hpp>
 
-class KoaRecDigi : public FairTimeStamp
+class KoaFwdDigi : public FairTimeStamp
   {
-    friend std::ostream& operator<< (std::ostream& out, KoaRecDigi& digi){
+    friend std::ostream& operator<< (std::ostream& out, KoaFwdDigi& digi){
       KoaMapEncoder *encoder = KoaMapEncoder::Instance();
       Int_t detId;
       encoder->DecodeChannelID(digi.GetDetID(), detId);
-      out << "KoaRecDigi in " << encoder->DetectorIDToVolName(detId) << ": "
+      out << "KoaFwdDigi in " << encoder->DetectorIDToVolName(detId) << ": "
       << " charge: " << digi.GetCharge() 
       << " timestamp: "<<digi.GetTimeStamp()
       << ", from Point(s): ";
@@ -43,15 +43,15 @@ class KoaRecDigi : public FairTimeStamp
     }
     
   public: 
-    KoaRecDigi();
-    KoaRecDigi(std::vector<Int_t> index, Int_t detID, Double_t charge);
-    KoaRecDigi(Int_t index, Int_t detID, Double_t charge);
+    KoaFwdDigi();
+    KoaFwdDigi(std::vector<Int_t> index, Int_t detID, Double_t charge);
+    KoaFwdDigi(Int_t index, Int_t detID, Double_t charge);
 		/**<constructor
      * \param index position of PndSdsMCPoint in TClonesArray
      * \param detID detector ID (from/for CbmPoint/Hit)
      * \param charge deposited charge in electrons
      */
-		virtual ~KoaRecDigi(){};
+		virtual ~KoaFwdDigi(){};
     
 		Double_t GetCharge()	 const { return fCharge; }
 		Int_t GetDetID() const { return fDetID;}
@@ -83,7 +83,7 @@ class KoaRecDigi : public FairTimeStamp
 		template<class Archive>
 		void serialize(Archive & ar, const unsigned int version)
 		{
-			boost::serialization::void_cast_register<KoaRecDigi, FairTimeStamp>();
+			boost::serialization::void_cast_register<KoaFwdDigi, FairTimeStamp>();
 
 			ar & boost::serialization::base_object<FairTimeStamp>(*this);
 			ar & fDetID;
@@ -97,7 +97,7 @@ class KoaRecDigi : public FairTimeStamp
 		Int_t fDetID;                // branch ID of mc point array
 		Double_t fCharge;            // collected charge, could be energy (MeV) in ideal Digitization
     
-    ClassDef(KoaRecDigi,1);
+    ClassDef(KoaFwdDigi,1);
   };
 
 #endif

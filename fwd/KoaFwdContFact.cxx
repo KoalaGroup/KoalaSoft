@@ -9,6 +9,7 @@
 
 #include "KoaFwdGeoPar.h"
 #include "KoaFwdMisalignPar.h"
+#include "KoaFwdDigitizationPar.h"
 
 #include "FairRuntimeDb.h"
 
@@ -49,6 +50,14 @@ void KoaFwdContFact::setAllContainers()
   p1->addContext("TestNonDefaultContext");
 
   containers->Add(p1);
+
+  //
+  FairContainer* p2= new FairContainer("KoaFwdDigitizationPar",
+                                       "KoaFwd Digitization Parameters",
+                                       "TestDefaultContext");
+  p2->addContext("TestNonDefaultContext");
+
+  containers->Add(p2);
 }
 
 FairParSet* KoaFwdContFact::createContainer(FairContainer* c)
@@ -61,12 +70,13 @@ FairParSet* KoaFwdContFact::createContainer(FairContainer* c)
   const char* name=c->GetName();
   FairParSet* p=NULL;
   if (strcmp(name,"KoaFwdGeoPar")==0) {
-    p=new KoaFwdGeoPar(c->getConcatName().Data(),
-                            c->GetTitle(),c->getContext());
+    p=new KoaFwdGeoPar(c->getConcatName().Data(), c->GetTitle(),c->getContext());
   }
   else if(strcmp(name,"KoaFwdMisalignPar")==0){
-    p=new KoaFwdMisalignPar(c->getConcatName().Data(),
-                            c->GetTitle(), c->getContext());
+    p=new KoaFwdMisalignPar(c->getConcatName().Data(), c->GetTitle(), c->getContext());
+  }
+  else if(strcmp(name,"KoaFwdDigitizationPar")==0){
+    p=new KoaFwdDigitizationPar(c->getConcatName().Data(), c->GetTitle(), c->getContext());
   }
   return p;
 }
