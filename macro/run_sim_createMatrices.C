@@ -1,4 +1,11 @@
-void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const char* outdir="./", TString mcEngine = "TGeant4")
+/********************************************************************************
+ *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *                                                                              *
+ *              This software is distributed under the terms of the             * 
+ *              GNU Lesser General Public Licence (LGPL) version 3,             *  
+ *                  copied verbatim in the file "LICENSE"                       *
+ ********************************************************************************/
+void run_sim_createMatrices(Double_t beamMom = 2.6, Int_t nEvents = 100, const char* outdir="./", TString mcEngine = "TGeant4")
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -46,7 +53,6 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
 
   // the output root where simulation result (hits and digits) are saved
   run->SetSink(new FairRootFileSink(outFile));
-  // run->SetOutputFile(outFile);          // Output file
   FairRuntimeDb* rtdb = run->GetRuntimeDb();
   // ------------------------------------------------------------------------
   
@@ -114,31 +120,45 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
     
   // -----   Initialize simulation run   ------------------------------------
   run->Init();
-  // ------------------------------------------------------------------------
-
-  // -----   Start run   ----------------------------------------------------
-   run->Run(nEvents);
-    
-   rtdb->saveOutput();
-   rtdb->print();
-
-  //You can export your ROOT geometry ot a separate file
-  run->CreateGeometryFile("geofile_full.root");
-  // ------------------------------------------------------------------------
   
-  delete run;
 
-  // -----   Finish   -------------------------------------------------------
-  timer.Stop();
-  Double_t rtime = timer.RealTime();
-  Double_t ctime = timer.CpuTime();
-  cout << endl << endl;
-  cout << "Macro finished succesfully." << endl;
-  cout << "Output file is "    << outFile << endl;
-  cout << "Parameter file is " << parFile << endl;
-  cout << "Real time " << rtime << " s, CPU time " << ctime 
-       << "s" << endl << endl;
-  // ------------------------------------------------------------------------
+  //sadly, the align parameters are only available AFTER we called fRun->Init()
+
+  // We fill a std::map<std::string, TGeoHMatrix> map with all misalignment matrices
+  // how you get those in your geometry is up to you
+
+  auto matrices = rec_det->getMisalignmentMatrices();
+
+  ofstream myfile;
+  myfile.open ("misalignmentMatrices.txt");
+
+  double *rot;
+  double *trans;
+
+  // this can probably be done more elegantly
+  for(auto &mat : matrices){
+    myfile << mat.first << "\n";
+    rot = mat.second.GetRotationMatrix();
+    trans = mat.second.GetTranslation();
+    for(int i=0; i<9; i++)  myfile << rot[i] << "\n";
+    for(int i=0; i<3; i++)  myfile << trans[i] << "\n";
+  }
+
+  matrices = fwd_det->getMisalignmentMatrices();
+  for(auto &mat : matrices){
+    myfile << mat.first << "\n";
+    rot = mat.second.GetRotationMatrix();
+    trans = mat.second.GetTranslation();
+    for(int i=0; i<9; i++)  myfile << rot[i] << "\n";
+    for(int i=0; i<3; i++)  myfile << trans[i] << "\n";
+  }
+  myfile.close();
+
+  LOG(info) << "AlignHandler: all matrices added!";
+
+  LOG(info) << "SUCCESS! All matrices created and saved!";
+
+  return;
 }
 
 

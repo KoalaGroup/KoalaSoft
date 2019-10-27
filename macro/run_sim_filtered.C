@@ -1,4 +1,4 @@
-void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TGeant4")
+void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, const char* outdir="./", TString mcEngine = "TGeant4")
 {
   FairLogger *logger = FairLogger::GetLogger();
   //  logger->SetLogFileName("MyLog.log");
@@ -14,10 +14,10 @@ void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TG
   TString dir = getenv("VMCWORKDIR");
   // Output file name
   // TString outFile ="test_filtered.root";
-  TString outFile =Form("filtered_solidAngle_pdg%d_%d.root",pdgid, nEvents);
+  TString outFile =Form("%s/filtered_solidAngle_pdg%d_%d.root", outdir, pdgid, nEvents);
     
   // Parameter file name
-  TString parFile=Form("filtered_solidAngle_param_pdg%d_%d.root",pdgid, nEvents);
+  TString parFile=Form("%s/filtered_solidAngle_param_pdg%d_%d.root",outdir, pdgid, nEvents);
   
   TList *parFileList = new TList();
   TString paramDir = dir + "/parameters/";
@@ -65,12 +65,12 @@ void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TG
     
   KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
-  // rec_det->SetModifyGeometry(kTRUE);
+  rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
   KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
   fwd_det->SetGeometryFileName("fwd.root");
-  // fwd_det->SetModifyGeometry(kTRUE);
+  fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
  // ------------------------------------------------------------------------
 
@@ -98,7 +98,7 @@ void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, TString mcEngine = "TG
 
     // Add filter
     KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
-    evtFilter->SetX(-101);
+    evtFilter->SetX(-90.432);
     evtFilter->SetZRange(-3,30);
     evtFilter->SetYRange(-10,10);
     primGen->AndFilter(evtFilter);
