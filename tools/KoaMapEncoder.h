@@ -57,6 +57,8 @@ class KoaMapEncoder : public TObject
   Int_t GetFwdSensorNr() { return fFwdNrOfSensors; }
 
   std::vector<Int_t> GetChIDs() { return fChIDs; }
+  std::vector<Int_t> GetRecChIDs();
+  std::vector<Int_t> GetFwdChIDs();
   Int_t GetChNr(Int_t detID) { return fDetectorIDToChNr[detID]; }
 
   static KoaMapEncoder* Instance()

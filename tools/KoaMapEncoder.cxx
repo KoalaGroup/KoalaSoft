@@ -81,7 +81,7 @@ void KoaMapEncoder::Init()
     }
   }
 
-  for(int detID=fRecDetIDRange[0];detID<=fFwdDetIDRange[1];detID++){
+  for(int detID=fFwdDetIDRange[0];detID<=fFwdDetIDRange[1];detID++){
     for(int chID=0;chID<fDetectorIDToChNr[detID];chID++){
       fChIDs.emplace_back(EncodeChannelID(detID,chID));
     }
@@ -143,4 +143,34 @@ void KoaMapEncoder::GetFwdDetIDRange(Int_t& low, Int_t& high)
 {
   low = fFwdDetIDRange[0];
   high= fFwdDetIDRange[1];
+}
+
+std::vector<Int_t> KoaMapEncoder::GetRecChIDs()
+{
+  std::vector<Int_t> ids;
+  std::vector<Int_t> allIDs = GetChIDs();
+  Int_t low, high; GetRecDetIDRange(low, high);
+  Int_t detID;
+  for ( auto id : allIDs ) {
+    DecodeChannelID(id, detID);
+    if( (detID >= low) && (detID <= high) ) {
+      ids.emplace_back(id);
+    }
+  }
+  return ids;
+}
+
+std::vector<Int_t> KoaMapEncoder::GetFwdChIDs()
+{
+  std::vector<Int_t> ids;
+  std::vector<Int_t> allIDs = GetChIDs();
+  Int_t low, high; GetFwdDetIDRange(low, high);
+  Int_t detID;
+  for ( auto id : allIDs ) {
+    DecodeChannelID(id, detID);
+    if( (detID >= low) && (detID <= high) ) {
+      ids.emplace_back(id);
+    }
+  }
+  return ids;
 }
