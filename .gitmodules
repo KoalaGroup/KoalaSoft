@@ -1,0 +1,3 @@
+[submodule "macro/bt_analysis"]
+	path = macro/bt_analysis
+	url = git@git.panda.gsi.de:YongZhou/beamtestanalysis.git
