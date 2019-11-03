@@ -1,4 +1,4 @@
-void checkDigi(const char* filename)
+void checkDigi(const char* filename, bool isSimulation,  const char* treename)
 {
   // ROOT::EnableImplicitMT(1);
   TH1::AddDirectory(false);
@@ -10,7 +10,7 @@ void checkDigi(const char* filename)
   Int_t nbin=7000;
   Float_t xlow=0,xhigh=70;
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-  std::vector<Int_t> ChIDs = encoder->GetChIDs();
+  std::vector<Int_t> ChIDs = encoder->GetRecChIDs();
   Int_t RecIdRange[2];
 
   // Int_t FwdIdRange[2];
@@ -18,7 +18,7 @@ void checkDigi(const char* filename)
 
   // input
   TFile* f = new TFile(filename,"update");
-  TTree* tree = (TTree*)f->Get("koalasim");
+  TTree* tree = (TTree*)f->Get(treename);
   TClonesArray* RecDigis = new TClonesArray("KoaRecDigi");
   tree->SetBranchAddress("KoaRecDigi",&RecDigis);
 
@@ -58,7 +58,12 @@ void checkDigi(const char* filename)
     for(int i=0;i<digis;i++){
       KoaRecDigi* digi=(KoaRecDigi*)RecDigis->At(i);
       ch_id = encoder->DecodeChannelID(digi->GetDetID(), det_id);
-      charge = 1000*digi->GetCharge();
+      if (isSimulation) {
+        charge = 1000*digi->GetCharge();
+      }
+      else {
+        charge = digi->GetCharge()/1000.;
+      }
 
       h2map_EnergyVsPosition[det_id]->Fill(ch_id+1, charge);
       h1map_Energy[digi->GetDetID()]->Fill(charge);
@@ -82,92 +87,8 @@ void checkDigi(const char* filename)
   timer.Print();
 }
 
-void checkDigi_rdf(const char* infile, const char* outfile)
-{
-  ROOT::EnableImplicitMT(6);
-  // ROOT::GeImplicitMTPoolSize();
-  TH1::AddDirectory(false);
-
-  // timer start
-  TStopwatch timer;
-  // timer.Start();
-
-  //
-  using integers = ROOT::VecOps::RVec<Int_t>;
-  using doubles  = ROOT::VecOps::RVec<Double_t>;
-  using histo1d = std::map<Int_t, TH1D>;
-  using histo2d = std::map<Int_t, TH2D>;
-
-  // book histograms
-  Int_t nbin=7000;
-  Float_t xlow=0,xhigh=70;
-
-  KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-  std::vector<Int_t> ChIDs = encoder->GetChIDs();
-  Int_t RecIdRange[2]; encoder->GetRecDetIDRange(RecIdRange[0], RecIdRange[1]);
-
-  histo2d h2map_EnergyVsPosition;
-  for(int id=RecIdRange[0];id<=RecIdRange[1];id++){
-    Int_t ChNr = encoder->GetChNr(id);
-    auto tindex = std::make_tuple(id);
-    auto thist  = std::make_tuple(Form("h2_EnergyVsPosition_%s",encoder->DetectorIDToVolName(id)),Form("h2_EnergyVsPosition_%s",encoder->DetectorIDToVolName(id)), ChNr, 0.5, 0.5+ChNr, nbin, xlow,xhigh);
-    h2map_EnergyVsPosition.emplace(std::piecewise_construct, tindex, thist);
-  }
-
-  histo1d h1map_Energy;
-  for(auto id=ChIDs.cbegin();id!=ChIDs.cend();id++){
-    TString volName; Int_t ch_id = encoder->DecodeChannelID(*id, volName);
-
-    auto tindex = std::make_tuple(*id);
-    auto thist  = std::make_tuple(Form("h1_energy_%s_%d",volName.Data(), ch_id+1), Form("h1_energy_%s_%d",volName.Data(), ch_id+1), nbin, xlow, xhigh);
-    h1map_Energy.emplace(std::piecewise_construct, tindex, thist);
-  }
-
-  // define lambda
-  auto fillhist = [&] (integers ids, doubles charges){
-    charges*=1000;
-
-    const auto size = ids.size();
-    // for(const auto& id: ids){
-    for(size_t i=0;i<size;i++){
-      Int_t det_id, ch_id;
-      Double_t charge;
-      Double_t timestamp;
-      
-      ch_id = encoder->DecodeChannelID(ids[i], det_id);
-      h2map_EnergyVsPosition[det_id].Fill(ch_id+1,charges[i]);
-      h1map_Energy[ids[i]].Fill(charges[i]);
-    }
-  };
-
-  // rdf process
-  ROOT::RDataFrame rdf("koalasim",infile);
-  rdf.Foreach(fillhist,{"KoaRecDigi.fDetID","KoaRecDigi.fCharge"});
-
-  // write histograms
-  auto fout=TFile::Open(infile,"update");
-  TDirectory* hdir;
-  if(!(hdir=fout->GetDirectory("histograms")))
-    hdir = fout->mkdir("histograms");
-
-  for(auto& hist: h2map_EnergyVsPosition){
-    hist.second.Print();
-    hdir->WriteTObject(&hist.second,"","WriteDelete");
-  }
-  for(auto& hist: h1map_Energy){
-    hist.second.Print();
-    hdir->WriteTObject(&hist.second,"","WriteDelete");
-  }
-
-  delete fout;
-
-  // timer stop
-  timer.Stop();
-  timer.Print();
-}
-
 // DataFrame + Threaded Histogram + IMT
-void checkDigi_rdf_threaded(const char* infile)
+void checkDigi_rdf_threaded(const char* infile, bool isSimulation, const char* treename)
 {
   // switches
   ROOT::EnableImplicitMT(6);
@@ -189,7 +110,7 @@ void checkDigi_rdf_threaded(const char* infile)
   Float_t xlow=0,xhigh=70;
 
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-  std::vector<Int_t> ChIDs = encoder->GetChIDs();
+  std::vector<Int_t> ChIDs = encoder->GetRecChIDs();
   Int_t RecIdRange[2]; encoder->GetRecDetIDRange(RecIdRange[0], RecIdRange[1]);
 
   histo2d h2map_EnergyVsPosition;
@@ -223,13 +144,20 @@ void checkDigi_rdf_threaded(const char* infile)
       Double_t timestamp;
       
       ch_id = encoder->DecodeChannelID(ids[i], det_id);
-      h2map_EnergyVsPosition[det_id]->Fill(ch_id+1,charges[i]);
-      h1map_Energy[ids[i]]->Fill(charges[i]);
+      if ( isSimulation ) {
+        charge = charges[i]*1000;
+      }
+      else {
+        charge = charges[i]/1000.;
+      }
+
+      h2map_EnergyVsPosition[det_id]->Fill(ch_id+1, charge);
+      h1map_Energy[ids[i]]->Fill(charge);
     }
   };
 
   // rdf process
-  ROOT::RDataFrame rdf("koalasim",infile);
+  ROOT::RDataFrame rdf(treename, infile);
   rdf.Foreach(fillhist,{"KoaRecDigi.fDetID","KoaRecDigi.fCharge"});
 
   // write histograms
@@ -258,7 +186,7 @@ void checkDigi_rdf_threaded(const char* infile)
 }
 
 // TTreeProcessorMT + Threaded Histogram
-void checkDigi_processtree_threaded(const char* infile)
+void checkDigi_processtree_threaded(const char* infile, bool isSimulation, const char* treename)
 {
   // switches
   ROOT::EnableImplicitMT(6);
@@ -280,7 +208,7 @@ void checkDigi_processtree_threaded(const char* infile)
   Float_t xlow=0,xhigh=70;
 
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-  std::vector<Int_t> ChIDs = encoder->GetChIDs();
+  std::vector<Int_t> ChIDs = encoder->GetRecChIDs();
   Int_t RecIdRange[2]; encoder->GetRecDetIDRange(RecIdRange[0], RecIdRange[1]);
 
   histo2d h2map_EnergyVsPosition;
@@ -310,8 +238,14 @@ void checkDigi_processtree_threaded(const char* infile)
     while(myreader.Next()){
       for(auto&& digi: digis){
         id=digi.GetDetID();
-        charge = 1000*digi.GetCharge();
         ch_id = encoder->DecodeChannelID(id, det_id);
+        if ( isSimulation ) {
+          charge = 1000*digi.GetCharge();
+        }
+        else {
+          charge = digi.GetCharge() / 1000.;
+        }
+
         h2map_EnergyVsPosition[det_id]->Fill(ch_id+1, charge);
         h1map_Energy[id]->Fill(charge);
       }
@@ -319,7 +253,7 @@ void checkDigi_processtree_threaded(const char* infile)
   };
 
   // rdf process
-  ROOT::TTreeProcessorMT tp(infile, "koalasim");
+  ROOT::TTreeProcessorMT tp(infile, treename);
   tp.Process(fillhist);
 
   // write histograms

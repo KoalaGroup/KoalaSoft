@@ -174,3 +174,16 @@ std::vector<Int_t> KoaMapEncoder::GetFwdChIDs()
   }
   return ids;
 }
+
+std::vector<Int_t> KoaMapEncoder::GetRecTdcChIDs()
+{
+  std::vector<Int_t> ids;
+  for ( int i = 0; i < 48 ; i++ ) {
+    ids.emplace_back(EncodeChannelID(0, i));
+  }
+  for ( int i = 0; i < 38 ; i++ ) {
+    ids.emplace_back(EncodeChannelID(1, i));
+  }
+
+  return ids;
+}

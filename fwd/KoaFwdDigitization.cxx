@@ -70,7 +70,7 @@ InitStatus KoaFwdDigitization::Init()
   // it in the IO manager
   
   fDigis = new TClonesArray("KoaFwdDigi", 10);
-  ioman->Register("KoaFwdDigi","KoaRec",fDigis,kTRUE);
+  ioman->Register("KoaFwdDigi","KoaFwd",fDigis,kTRUE);
 
   // Do whatever else is needed at the initilization stage
   // Create histograms to be filled
