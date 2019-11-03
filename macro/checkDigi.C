@@ -1,4 +1,5 @@
-void checkDigi(const char* filename, bool isSimulation,  const char* treename)
+void checkDigi(const char* filename, bool isSimulation,  const char* treename,
+               bool useList = true, const char* listName = "fwdhit_elist")
 {
   TH1::AddDirectory(false);
 
@@ -57,19 +58,49 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename)
   tree->SetBranchAddress("KoaFwdDigi",&FwdDigis);
 
 
-  // output entry list 
-  TEntryList *elist = new TEntryList("fwdhit_elist","Events hitting coincidence area");
-  elist->SetTree(tree);
-  elist->SetDirectory(0);
+  // output/input entry list 
+  TDirectory *edir;
+  if(!(edir=f->GetDirectory("elists")))
+    edir = f->mkdir("elists");
+
+  TEntryList *cutlist;
+  TEntryList *elist;
+  if (useList) {
+    edir->GetObject(listName, cutlist);
+    if(!cutlist){
+      std::cout << "Error: no list found in file: " << filename << std::endl;
+      return;
+    }
+
+    tree->SetEntryList(cutlist);
+  }
+  else {
+    elist = new TEntryList("fwdhit_elist","Events hitting coincidence area");
+    elist->SetTree(tree);
+    elist->SetDirectory(edir);
+  }
 
   // event loop
-  Int_t entries = tree->GetEntries();
+  Int_t entries;
+  if(useList){
+    entries = cutlist->GetN();
+  }
+  else{
+    entries = tree->GetEntries();
+  }
+
   Int_t det_id, ch_id, id;
   Double_t charge;
   Double_t timestamp;
   Double_t fwd_time[2], fwd_amp[2];
   for(int entry=0;entry<entries;entry++){
-    tree->GetEntry(entry);
+    if(useList) {
+      Int_t entrynum = tree->GetEntryNumber(entry);
+      tree->GetEntry(entrynum);
+    }
+    else{
+      tree->GetEntry(entry);
+    }
 
     // fwd digis
     for(int index=0;index<2;index++){
@@ -103,7 +134,9 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename)
              && (fwd_time[0]-fwd_time[1]) > -10) {
 
           h1map_Energy_cut[id].Fill(charge);
-          elist->Enter(entry);
+
+          if (!useList)
+            elist->Enter(entry);
         }
       }
     }
@@ -127,11 +160,10 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename)
   }
 
   //
-  if(!(hdir=f->GetDirectory("elists")))
-    hdir = f->mkdir("elists");
-  hdir->cd();
-
-  elist->Write(0, TObject::kOverwrite);
+  if(!useList){
+    edir->cd();
+    elist->Write(0, TObject::kOverwrite);
+  }
 
   //
   delete f;
