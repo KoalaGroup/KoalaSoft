@@ -12,6 +12,7 @@
 #include "KoaRecPoint.h"
 #include "FairRootManager.h"
 #include "FairLogger.h"
+#include "TVirtualMC.h"
 
 // ---- Default constructor -------------------------------------------
 KoaRecDigitizationIdeal::KoaRecDigitizationIdeal()
@@ -67,6 +68,12 @@ InitStatus KoaRecDigitizationIdeal::Init()
   
   fDigis = new TClonesArray("KoaRecDigi", 100);
   ioman->Register("KoaRecDigi","KoaRec",fDigis,kTRUE);
+  // if(!gMC->IsMT()){
+  //   ioman->Register("KoaRecDigi","KoaRec",fDigis,kTRUE);
+  // }
+  // else{
+  //   ioman->RegisterAny("KoaRecDigi",fDigis,kTRUE);
+  // }
 
   // Do whatever else is needed at the initilization stage
   // Create histograms to be filled
@@ -119,7 +126,7 @@ void KoaRecDigitizationIdeal::Reset()
 {
   LOG(debug) << "Reset of KoaRecDigitizationIdeal";
 
-  if ( fDigis ) fDigis->Delete();
+  fDigis->Clear();
   fFiredStrips.clear();
 }
 

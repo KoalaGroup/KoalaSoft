@@ -42,10 +42,10 @@ void run_digi_ideal(const char* data, const char* para)
   TList *parFileList = new TList();
   TString paramDir = dir + "/parameters/";
   TString paramfile_fwd = paramDir + "fwd.par";
-  TObjString paramFile_fwd = new TObjString(paramfile_fwd);
+  TObjString *paramFile_fwd = new TObjString(paramfile_fwd);
   parFileList->Add(paramFile_fwd);
   TString paramfile_rec = paramDir + "rec.par";
-  TObjString paramFile_rec = new TObjString(paramfile_rec);
+  TObjString *paramFile_rec = new TObjString(paramfile_rec);
   parFileList->Add(paramFile_rec);
   parInput2->open(parFileList,"in");
   rtdb->setSecondInput(parInput2);

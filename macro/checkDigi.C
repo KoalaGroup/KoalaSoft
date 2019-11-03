@@ -1,63 +1,91 @@
 void checkDigi(const char* filename, bool isSimulation,  const char* treename)
 {
-  // ROOT::EnableImplicitMT(1);
   TH1::AddDirectory(false);
 
   // timer
   TStopwatch timer;
   
+  //
+  using integers = ROOT::VecOps::RVec<Int_t>;
+  using doubles  = ROOT::VecOps::RVec<Double_t>;
+  using histo1d = std::map<Int_t, TH1D>;
+  using histo2d = std::map<Int_t, TH2D>;
+
   // parameters
-  Int_t nbin=7000;
+  Int_t nbin=14000;
   Float_t xlow=0,xhigh=70;
+
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
   std::vector<Int_t> ChIDs = encoder->GetRecChIDs();
   Int_t RecIdRange[2];
-
-  // Int_t FwdIdRange[2];
   encoder->GetRecDetIDRange(RecIdRange[0], RecIdRange[1]);
+
+  // histograms definition
+  histo2d h2map_EnergyVsPosition;
+  for(auto id: ROOT::TSeqI(RecIdRange[0],RecIdRange[1]+1)){
+    Int_t ChNr = encoder->GetChNr(id);
+    auto tindex = std::make_tuple(id);
+    auto thist  = std::make_tuple(Form("h2_EnergyVsPosition_%s",encoder->DetectorIDToVolName(id)),Form("h2_EnergyVsPosition_%s",encoder->DetectorIDToVolName(id)), ChNr, 0.5, 0.5+ChNr, nbin, xlow,xhigh);
+    h2map_EnergyVsPosition.emplace(std::piecewise_construct, tindex, thist);
+  }
+
+  histo1d h1map_Energy;
+  for(auto& id: ChIDs){
+    TString volName; Int_t ch_id = encoder->DecodeChannelID(id, volName);
+
+    auto tindex = std::make_tuple(id);
+    auto thist  = std::make_tuple(Form("h1_energy_%s_%d",volName.Data(), ch_id+1), Form("h1_energy_%s_%d",volName.Data(), ch_id+1), nbin, xlow, xhigh);
+    auto it = h1map_Energy.emplace(std::piecewise_construct, tindex, thist);
+  }
+
+  histo1d h1map_Energy_cut;
+  std::vector<Int_t> TdcChIds = encoder->GetRecTdcChIDs();
+  for(auto& id: TdcChIds){
+    TString volName; Int_t ch_id = encoder->DecodeChannelID(id, volName);
+
+    auto tindex = std::make_tuple(id);
+    auto thist  = std::make_tuple(Form("h1_energy_cut_%s_%d",volName.Data(), ch_id+1), Form("h1_energy_cut_%s_%d",volName.Data(), ch_id+1), nbin, xlow, xhigh);
+    auto it = h1map_Energy_cut.emplace(std::piecewise_construct, tindex, thist);
+  }
 
   // input
   TFile* f = new TFile(filename,"update");
   TTree* tree = (TTree*)f->Get(treename);
   TClonesArray* RecDigis = new TClonesArray("KoaRecDigi");
   tree->SetBranchAddress("KoaRecDigi",&RecDigis);
+  TClonesArray* FwdDigis = new TClonesArray("KoaFwdDigi");
+  tree->SetBranchAddress("KoaFwdDigi",&FwdDigis);
 
-  TDirectory* hdir;
-  if(!(hdir=f->GetDirectory("histograms")))
-    hdir = f->mkdir("histograms");
 
-  // histograms definition
-  std::map<Int_t, TH2D*> h2map_EnergyVsPosition;
-  TH2D *h2p = nullptr;
-  Int_t ChNr;
-  for(int id=RecIdRange[0];id<=RecIdRange[1];id++){
-    ChNr = encoder->GetChNr(id);
-    h2p = new TH2D(Form("h2_EnergyVsPosition_%s",encoder->DetectorIDToVolName(id)),Form("h2_EnergyVsPosition_%s",encoder->DetectorIDToVolName(id)), ChNr, 0.5, 0.5+ChNr, nbin, xlow,xhigh);
-    h2map_EnergyVsPosition.emplace(id, h2p);
-  }
-
-  std::map<Int_t, TH1D*> h1map_Energy;
-  TH1D* h1p = nullptr;
-  TString volName;
-  Int_t ch_id;
-  for(auto id=ChIDs.cbegin();id!=ChIDs.cend();id++){
-    ch_id = encoder->DecodeChannelID(*id, volName);
-    h1p = new TH1D(Form("h1_energy_%s_%d",volName.Data(), ch_id+1), Form("h1_energy_%s_%d",volName.Data(), ch_id+1), nbin, xlow, xhigh);
-    h1map_Energy.emplace(*id, h1p);
-  }
+  // output entry list 
+  TEntryList *elist = new TEntryList("fwdhit_elist","Events hitting coincidence area");
+  elist->SetTree(tree);
+  elist->SetDirectory(0);
 
   // event loop
   Int_t entries = tree->GetEntries();
-  Int_t det_id;
+  Int_t det_id, ch_id, id;
   Double_t charge;
   Double_t timestamp;
-  for(int id=0;id<entries;id++){
-    tree->GetEntry(id);
+  Double_t fwd_time[2], fwd_amp[2];
+  for(int entry=0;entry<entries;entry++){
+    tree->GetEntry(entry);
+
+    // fwd digis
+    for(int index=0;index<2;index++){
+      KoaFwdDigi* digi = (KoaFwdDigi*)FwdDigis->At(index);
+      fwd_time[index] = digi->GetTimeStamp();
+      fwd_amp[index]  = digi->GetCharge();
+    }
+
     //
     Int_t digis=RecDigis->GetEntriesFast();
     for(int i=0;i<digis;i++){
+      // rec digis
       KoaRecDigi* digi=(KoaRecDigi*)RecDigis->At(i);
-      ch_id = encoder->DecodeChannelID(digi->GetDetID(), det_id);
+      id = digi->GetDetID();
+      ch_id = encoder->DecodeChannelID(id, det_id);
+
       if (isSimulation) {
         charge = 1000*digi->GetCharge();
       }
@@ -65,21 +93,47 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename)
         charge = digi->GetCharge()/1000.;
       }
 
-      h2map_EnergyVsPosition[det_id]->Fill(ch_id+1, charge);
-      h1map_Energy[digi->GetDetID()]->Fill(charge);
+      h2map_EnergyVsPosition[det_id].Fill(ch_id+1, charge);
+      h1map_Energy[id].Fill(charge);
+
+      //
+      if ( digi->GetTimeStamp() > 0 ) {
+        if ( fwd_amp[0] > 1000 && fwd_amp[1] > 1000
+             && (fwd_time[0]-fwd_time[1]) < 10
+             && (fwd_time[0]-fwd_time[1]) > -10) {
+
+          h1map_Energy_cut[id].Fill(charge);
+          elist->Enter(entry);
+        }
+      }
     }
   }
   cout << "EventNr processed : "<< entries << endl;
 
   // output
+  TDirectory* hdir;
+  if(!(hdir=f->GetDirectory("histograms")))
+    hdir = f->mkdir("histograms");
+
   hdir->cd();
-  for(auto it=h2map_EnergyVsPosition.cbegin();it!=h2map_EnergyVsPosition.cend();it++){
-    it->second->Write(0,TObject::kOverwrite);
+  for (auto & hist : h2map_EnergyVsPosition ) {
+    hist.second.Write(0, TObject::kOverwrite);
   }
-  for(auto it=h1map_Energy.cbegin();it!=h1map_Energy.cend();it++){
-    it->second->Write(0,TObject::kOverwrite);
+  for (auto & hist : h1map_Energy ) {
+    hist.second.Write(0, TObject::kOverwrite);
+  }
+  for (auto & hist : h1map_Energy_cut ) {
+    hist.second.Write(0, TObject::kOverwrite);
   }
 
+  //
+  if(!(hdir=f->GetDirectory("elists")))
+    hdir = f->mkdir("elists");
+  hdir->cd();
+
+  elist->Write(0, TObject::kOverwrite);
+
+  //
   delete f;
 
   // timer stat
@@ -106,7 +160,7 @@ void checkDigi_rdf_threaded(const char* infile, bool isSimulation, const char* t
   using histo2d = std::map<Int_t, ROOT::TThreadedObject<TH2D>>;
 
   // book histograms
-  Int_t nbin=7000;
+  Int_t nbin=14000;
   Float_t xlow=0,xhigh=70;
 
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
@@ -204,7 +258,7 @@ void checkDigi_processtree_threaded(const char* infile, bool isSimulation, const
   using histo2d = std::map<Int_t, ROOT::TThreadedObject<TH2D>>;
 
   // book histograms
-  Int_t nbin=7000;
+  Int_t nbin=14000;
   Float_t xlow=0,xhigh=70;
 
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
@@ -229,13 +283,33 @@ void checkDigi_processtree_threaded(const char* infile, bool isSimulation, const
     it.first->second->GetName();//lazy init, make sure histogram is constructed
   }
 
+  histo1d h1map_Energy_cut;
+  std::vector<Int_t> TdcChIds = encoder->GetRecTdcChIDs();
+  for(auto& id: TdcChIds){
+    TString volName; Int_t ch_id = encoder->DecodeChannelID(id, volName);
+
+    auto tindex = std::make_tuple(id);
+    auto thist  = std::make_tuple(Form("h1_energy_cut_%s_%d",volName.Data(), ch_id+1), Form("h1_energy_cut_%s_%d",volName.Data(), ch_id+1), nbin, xlow, xhigh);
+    auto it = h1map_Energy_cut.emplace(std::piecewise_construct, tindex, thist);
+    it.first->second->GetName();//lazy init, make sure histogram is constructed
+  }
+
   // define lambda
   auto fillhist = [&] (TTreeReader &myreader){
     TTreeReaderArray<KoaRecDigi> digis(myreader, "KoaRecDigi");
+    TTreeReaderArray<KoaFwdDigi> fwddigis(myreader, "KoaFwdDigi");
 
     Int_t det_id, ch_id, id;
     Double_t charge;
+    Double_t fwd_time[2], fwd_amp[2];
     while(myreader.Next()){
+      // fwd digis
+      for(int index=0;index<2;index++){
+        fwd_time[index] = fwddigis[index].GetTimeStamp();
+        fwd_amp[index]  = fwddigis[index].GetCharge();
+      }
+
+      // rec digis
       for(auto&& digi: digis){
         id=digi.GetDetID();
         ch_id = encoder->DecodeChannelID(id, det_id);
@@ -248,6 +322,16 @@ void checkDigi_processtree_threaded(const char* infile, bool isSimulation, const
 
         h2map_EnergyVsPosition[det_id]->Fill(ch_id+1, charge);
         h1map_Energy[id]->Fill(charge);
+
+        //
+        if ( digi.GetTimeStamp() > 0 ) {
+          if ( fwd_amp[0] > 1000 && fwd_amp[1] > 1000
+               && (fwd_time[0]-fwd_time[1]) < 10
+               && (fwd_time[0]-fwd_time[1]) > -10) {
+
+            h1map_Energy_cut[id]->Fill(charge);
+          }
+        }
       }
     }
   };
@@ -268,6 +352,11 @@ void checkDigi_processtree_threaded(const char* infile, bool isSimulation, const
     hdir->WriteTObject(sumed.get(),"","WriteDelete");
   }
   for(auto& hist: h1map_Energy){
+    auto sumed = hist.second.Merge();
+    sumed->Print();
+    hdir->WriteTObject(sumed.get(),"","WriteDelete");
+  }
+  for(auto& hist: h1map_Energy_cut){
     auto sumed = hist.second.Merge();
     sumed->Print();
     hdir->WriteTObject(sumed.get(),"","WriteDelete");
