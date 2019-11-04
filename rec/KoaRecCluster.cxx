@@ -8,25 +8,22 @@
 
 KoaRecCluster::KoaRecCluster()
   : fDetId(-1),
-    fIds(),
-    fEnergies(),
-    fTimestamps(),
-    fThreshold(0),
-    fEncoder(KoaMapEncoder::Instance())
+    fNrOfDigis(0),
+    fIds{ -1 },
+    fEnergies{ -1 },
+    fTimestamps{ -1 },
+    fThreshold(0)
 {
   
 }
 
-KoaRecCluster::KoaRecCluster(Int_t detId,
-                             integers ids,
-                             doubles energies,
-                             doubles timestamps)
+KoaRecCluster::KoaRecCluster(Int_t detId)
   : fDetId(detId),
-    fIds(ids),
-    fEnergies(energies),
-    fTimestamps(timestamps),
-    fThreshold(0),
-    fEncoder(KoaMapEncoder::Instance())
+    fNrOfDigis(0),
+    fIds{ -1 },
+    fEnergies{ -1 },
+    fTimestamps{ -1 },
+    fThreshold(0)
 {
   
 }
@@ -38,18 +35,15 @@ KoaRecCluster::~KoaRecCluster()
 
 Double_t KoaRecCluster::MaximaTotal() const
 {
-  auto result = std::max_element(fEnergies.begin(), fEnergies.end());
-  if(result != fEnergies.end()){
-    return *result;
-  }
-  return -1;
+  auto result = std::max_element(fEnergies, fEnergies+fNrOfDigis);
+  return *result;
 }
 
 Double_t KoaRecCluster::EnergyTotal() const
 {
   Double_t sum=0;
-  for ( auto& energy : fEnergies ) {
-    sum += energy;
+  for(int i=0; i<fNrOfDigis; i++) {
+    sum += fEnergies[i];
   }
 
   return sum;
@@ -62,8 +56,7 @@ Double_t KoaRecCluster::PositionTotal() const
 
   Double_t pos_corrected = 0;
   Double_t pos_low, pos_high, pos_center;
-  Int_t nr  = fIds.size();
-  for ( auto index=0; index<nr; index++) {
+  for ( auto index=0; index<fNrOfDigis; index++) {
     pos_center = geoHandler->RecDetChToPosition(fIds[index], pos_low, pos_high);
     pos_corrected += pos_center * fEnergies[index] / sum;
   }
@@ -73,19 +66,31 @@ Double_t KoaRecCluster::PositionTotal() const
 
 Double_t KoaRecCluster::TimeTotal() const
 {
-  auto result = std::min_element(fTimestamps.begin(), fTimestamps.end());
-  if(result != fTimestamps.end()){
-    return *result;
+  Double_t min = -100;
+  Bool_t init_flag = false;
+  for ( auto index=0; index<fNrOfDigis; index++) {
+    if( fTimestamps[index] > 0 ) {
+      if (!init_flag) {
+        min = fTimestamps[index];
+        init_flag = true;
+        continue;
+      }
+
+      if( min > fTimestamps[index] ){
+        min = fTimestamps[index];
+      }
+    }
   }
-  return -1;
+
+  return min;
 }
 
 Double_t KoaRecCluster::Maxima() const
 {
-  Double_t max=0;
-  for ( auto& energy : fEnergies ) {
-    if ( energy > fThreshold && energy>max) {
-      max = energy;
+  Double_t max=-1;
+  for ( auto index=0; index<fNrOfDigis; index++ ) {
+    if ( fEnergies[index] > fThreshold && fEnergies[index]>max ) {
+      max = fEnergies[index];
     }
   }
   return max;
@@ -94,12 +99,11 @@ Double_t KoaRecCluster::Maxima() const
 Double_t KoaRecCluster::Energy() const
 {
   Double_t sum=0;
-  for ( auto& energy : fEnergies ) {
-    if ( energy > fThreshold ) {
-      sum += energy;
+  for ( auto index=0; index<fNrOfDigis; index++ ) {
+    if ( fEnergies[index] > fThreshold ) {
+      sum += fEnergies[index];
     }
   }
-
   return sum;
 }
 
@@ -110,8 +114,7 @@ Double_t KoaRecCluster::Position() const
 
   Double_t pos_corrected = 0;
   Double_t pos_low, pos_high, pos_center;
-  Int_t nr  = fIds.size();
-  for ( auto index=0; index<nr; index++) {
+  for ( auto index=0; index<fNrOfDigis; index++) {
     if ( fEnergies[index] > fThreshold ) {
       pos_center = geoHandler->RecDetChToPosition(fIds[index], pos_low, pos_high);
       pos_corrected += pos_center * fEnergies[index] / sum;
@@ -123,57 +126,55 @@ Double_t KoaRecCluster::Position() const
 
 Double_t KoaRecCluster::Time() const
 {
-  doubles localTimes;
-  Int_t nr = fIds.size();
-  for( auto index=0; index<nr; index++) {
-    if ( fEnergies[index]>fThreshold ) {
-      localTimes.emplace_back( fTimestamps[index] );
+  Double_t min = -100;
+  Bool_t init_flag = false;
+  for ( auto index=0; index<fNrOfDigis; index++) {
+    if( fTimestamps[index] > 0 &&  fEnergies[index]>fThreshold ) {
+      if (!init_flag) {
+        min = fTimestamps[index];
+        init_flag = true;
+        continue;
+      }
+
+      if( min > fTimestamps[index] ){
+        min = fTimestamps[index];
+      }
     }
   }
-  auto result = std::min_element(localTimes.begin(), localTimes.end());
-  if( result != localTimes.end()) {
-    return *result;
-  }
-  return -1;
+
+  return min;
 }
 
 TString KoaRecCluster::GetDetName() const
 {
+  KoaMapEncoder *fEncoder=KoaMapEncoder::Instance();
   return TString(fEncoder->DetectorIDToVolName(fDetId));
-}
-
-Int_t KoaRecCluster::NumberOfDigis() const
-{
-  return fIds.size();
 }
 
 Int_t KoaRecCluster::NumberOfDigisAboveThresh() const
 {
   Double_t sum=0;
-  for ( auto& energy : fEnergies ) {
-    if ( energy > fThreshold ) {
+  for ( auto index=0; index<fNrOfDigis; index++ ) {
+    if ( fEnergies[index] > fThreshold ) {
       sum++;
     }
   }
-
   return sum;
 }
 
-bool KoaRecCluster::isInCluster(KoaRecDigi* theDigi)
+bool KoaRecCluster::isInCluster(KoaRecDigi* theDigi) const
 {
-  auto id = theDigi->GetDetID();
+  Int_t id = theDigi->GetDetID();
   Int_t ch_id, det_id;
+  KoaMapEncoder *fEncoder=KoaMapEncoder::Instance();
   ch_id = fEncoder->DecodeChannelID(id, det_id);
 
-  if ( fDetId == -1 )
-    return true;
-  else if ( fDetId != det_id )
+  if ( fDetId != det_id )
     return false;
-  else {
-    for ( auto& local_id : fIds ) {
-      if( std::abs(id-local_id) == 1){
-        return true;
-      }
+
+  for ( auto index=0; index<fNrOfDigis; index++) {
+    if( std::abs(id-fIds[index]) == 1){
+      return true;
     }
   }
 
@@ -182,16 +183,15 @@ bool KoaRecCluster::isInCluster(KoaRecDigi* theDigi)
 
 void KoaRecCluster::AddDigi(KoaRecDigi* theDigi)
 {
-  auto id = theDigi->GetDetID();
-  Int_t ch_id, det_id;
-  ch_id = fEncoder->DecodeChannelID(id, det_id);
-
-  if ( fDetId == -1 ) {
-    fDetId = det_id;
+  if (fNrOfDigis == 31) {
+    std::cout << "Warning: too much digits in one cluster, ignore this cluster\n";
+    return;
   }
 
-  fIds.emplace_back(id);
-  fEnergies.emplace_back(theDigi->GetCharge());
-  fTimestamps.emplace_back(theDigi->GetTimeStamp());
-  return;
+  fIds[fNrOfDigis] = theDigi->GetDetID();
+  fEnergies[fNrOfDigis] = theDigi->GetCharge();
+  fTimestamps[fNrOfDigis] = theDigi->GetTimeStamp();
+  fNrOfDigis++;
 }
+
+ClassImp(KoaRecCluster)
