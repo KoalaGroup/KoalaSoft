@@ -38,6 +38,7 @@ KoaRecMisalignPar.cxx
 KoaRecPoint.cxx
 KoaRecDigi.cxx
 KoaRecDigitizationIdeal.cxx
+KoaRecCluster.cxx
 )
 
 Set(LINKDEF KoaRecLinkDef.h)

@@ -57,6 +57,11 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename,
   TClonesArray* FwdDigis = new TClonesArray("KoaFwdDigi");
   tree->SetBranchAddress("KoaFwdDigi",&FwdDigis);
 
+  Bool_t isCoin = false;
+  TBranch *br_coin;
+  if (!useList){
+    br_coin = tree->Branch("isCoin", &isCoin, "isCoin/O");
+  }
 
   // output/input entry list 
   TDirectory *edir;
@@ -92,21 +97,36 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename,
   Int_t det_id, ch_id, id;
   Double_t charge;
   Double_t timestamp;
-  Double_t fwd_time[2], fwd_amp[2];
+
+  std::map<Int_t, Double_t> fwd_time;
+  std::map<Int_t, Double_t> fwd_amp;
+  Int_t fwd_low, fwd_high;
+  encoder->GetFwdDetIDRange(fwd_low, fwd_high);
+  Int_t index0 = encoder->EncodeChannelID(fwd_low, 0);
+  Int_t index1 = encoder->EncodeChannelID(fwd_low+1, 0);
   for(int entry=0;entry<entries;entry++){
     if(useList) {
       Int_t entrynum = tree->GetEntryNumber(entry);
       tree->GetEntry(entrynum);
+      // if( !cutlist->Contains(entrynum) ){
+      //   std::cout << "Not contained in entrylist" << std::endl;
+      // }
+      // else{
+      //   std::cout << "Contained" << std::endl;
+      // }
     }
     else{
       tree->GetEntry(entry);
+      isCoin = false;
     }
 
     // fwd digis
-    for(int index=0;index<2;index++){
-      KoaFwdDigi* digi = (KoaFwdDigi*)FwdDigis->At(index);
-      fwd_time[index] = digi->GetTimeStamp();
-      fwd_amp[index]  = digi->GetCharge();
+    Int_t fwddigis = FwdDigis->GetEntriesFast();
+    for (int i=0;i<fwddigis;i++){
+      KoaFwdDigi* digi = (KoaFwdDigi*)FwdDigis->At(i);
+      id = digi->GetDetID();
+      fwd_time[id] = digi->GetTimeStamp();
+      fwd_amp[id]  = digi->GetCharge();
     }
 
     //
@@ -128,25 +148,40 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename,
       h1map_Energy[id].Fill(charge);
 
       //
-      if ( digi->GetTimeStamp() > 0 ) {
-        if ( fwd_amp[0] > 1000 && fwd_amp[1] > 1000
-             && (fwd_time[0]-fwd_time[1]) < 10
-             && (fwd_time[0]-fwd_time[1]) > -10) {
+      if ( digi->GetTimeStamp() > 0) {
+        if ( fwd_amp[index0] > 1000 && fwd_amp[index1] > 1000
+             && (fwd_time[index0]-fwd_time[index1]) < 10
+             && (fwd_time[index0]-fwd_time[index1]) > -10) {
 
           h1map_Energy_cut[id].Fill(charge);
 
-          if (!useList)
+          if (!useList){
             elist->Enter(entry);
+            isCoin = true;
+          }
         }
       }
     }
+
+    if(!useList) {
+      br_coin->Fill();
+    }
+
+    fwd_time.clear();
+    fwd_amp.clear();
   }
   cout << "EventNr processed : "<< entries << endl;
 
   // output
+  // output file
+  TString outfilename(filename);
+  outfilename.ReplaceAll(".root","");
+  outfilename.Append("_result.root");
+  TFile *fout = new TFile(outfilename.Data(),"update");
+
   TDirectory* hdir;
-  if(!(hdir=f->GetDirectory("histograms")))
-    hdir = f->mkdir("histograms");
+  if(!(hdir=fout->GetDirectory("histograms")))
+    hdir = fout->mkdir("histograms");
 
   hdir->cd();
   for (auto & hist : h2map_EnergyVsPosition ) {
@@ -166,7 +201,12 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename,
   }
 
   //
+  if(!useList){
+    f->cd();
+    tree->Write();
+  }
   delete f;
+  delete fout;
 
   // timer stat
   timer.Stop();
