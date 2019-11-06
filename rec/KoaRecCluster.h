@@ -95,9 +95,9 @@ public:
 private:
   Int_t    fDetId; // detId for this cluster
   Int_t    fNrOfDigis;
-  Int_t    fIds[32]; // global ids of the digis
-  Double_t   fEnergies[32]; //
-  Double_t   fTimestamps[32]; //
+  Int_t    fIds[64]; // global ids of the digis
+  Double_t   fEnergies[64]; //
+  Double_t   fTimestamps[64]; //
 
   Double_t fThreshold; //! threshold to count digis contributing to this cluster
   KoaGeoHandler *fGeoHandler; //!
