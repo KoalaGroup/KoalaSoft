@@ -41,21 +41,39 @@ void checkPoints(const char* filename)
     }
   }
 
-  delete f;
-
   gStyle->SetOptStat(111111);
-  TCanvas* cfwd=new TCanvas("cfwd");
-  h2Fwd->Draw("colz");
-  TCanvas* crec = new TCanvas("crec");
-  h2Rec->Draw("colz");
-  TCanvas* cfwde = new TCanvas("cfwde");
-  h1FwdEloss->Draw();
-  TCanvas* crece = new TCanvas("crece");
-  h1RecEloss->Draw();
-  TCanvas* crecevspos=new TCanvas("crecevspos");
-  h2RecEVsPos->Draw("colz");
-  TCanvas* clowEPosDist= new TCanvas("clowEPosDist");
-  h2lowRec->Draw("colz");
+  // TCanvas* cfwd=new TCanvas("cfwd");
+  // h2Fwd->Draw("colz");
+  // TCanvas* crec = new TCanvas("crec");
+  // h2Rec->Draw("colz");
+  // TCanvas* cfwde = new TCanvas("cfwde");
+  // h1FwdEloss->Draw();
+  // TCanvas* crece = new TCanvas("crece");
+  // h1RecEloss->Draw();
+  // TCanvas* crecevspos=new TCanvas("crecevspos");
+  // h2RecEVsPos->Draw("colz");
+  // TCanvas* clowEPosDist= new TCanvas("clowEPosDist");
+  // h2lowRec->Draw("colz");
+  // output file
+  TString outfilename(filename);
+  outfilename.ReplaceAll(".root", "");
+  outfilename.Append("_result.root");
+  TFile *fout = new TFile(outfilename.Data(),"update");
+
+  TDirectory* hdir;
+  TString dirname("histograms");
+  if(!(hdir=fout->GetDirectory(dirname.Data())))
+    hdir = fout->mkdir(dirname.Data());
+  hdir->cd();
+  h2Fwd->Write(0,TObject::kOverwrite);
+  h2Rec->Write(0,TObject::kOverwrite);
+  h1FwdEloss->Write(0,TObject::kOverwrite);
+  h1RecEloss->Write(0,TObject::kOverwrite);
+  h2RecEVsPos->Write(0,TObject::kOverwrite);
+  h2lowRec->Write(0,TObject::kOverwrite);
+  
+  delete f;
+  delete fout;
 }
 
 void checkRecSize(const char* filename)

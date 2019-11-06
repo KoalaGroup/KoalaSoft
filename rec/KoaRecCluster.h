@@ -13,6 +13,7 @@
 
 class KoaRecDigi;
 class KoaMapEncoder;
+class KoaGeoHandler;
 
 /**
  * @brief a cluster (group of neighboring crystals) of hit emc crystals
@@ -33,6 +34,7 @@ public:
 	// Constructors
 	KoaRecCluster();
   KoaRecCluster(Int_t detId);
+  KoaRecCluster(Int_t detId, KoaGeoHandler* geoHandler);
 
 	// Destructor
 	virtual ~KoaRecCluster();
@@ -75,6 +77,7 @@ public:
 
 	void AddDigi(KoaRecDigi* theDigi);
   void SetThreshold(Double_t threshold) { fThreshold = threshold; }
+  void SetGeoHandler(KoaGeoHandler* geoHandler) { fGeoHandler = geoHandler; }
 
  /* protected: */
  /*  template<class Archive> */
@@ -97,6 +100,7 @@ private:
   Double_t   fTimestamps[32]; //
 
   Double_t fThreshold; //! threshold to count digis contributing to this cluster
+  KoaGeoHandler *fGeoHandler; //!
   
 	ClassDef(KoaRecCluster,1)
 };

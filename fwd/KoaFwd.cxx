@@ -331,7 +331,7 @@ std::map<std::string, TGeoHMatrix> KoaFwd::getMisalignmentMatrices()
 void KoaFwd::RegisterAlignmentMatrices()
 {
   if (fModifyGeometry) {
-    LOG(info) << " Register misalignment matrices for Recoil detector";
+    LOG(info) << " Register misalignment matrices for Fwd detector";
     std::map<std::string, TGeoHMatrix> matrices;
 
     Int_t low, high;
@@ -358,7 +358,7 @@ void KoaFwd::RegisterAlignmentMatrices()
       matrices[thisPath] = ldm;
     }
 
-    LOG(info) << " Misalignment matrices for Recoil detector is registered";
+    LOG(info) << " Misalignment matrices for Fwd detector is registered";
 
     FairRun* run = FairRun::Instance();
     run->AddAlignmentMatrices(matrices);

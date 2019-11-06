@@ -12,7 +12,8 @@ KoaRecCluster::KoaRecCluster()
     fIds{ -1 },
     fEnergies{ -1 },
     fTimestamps{ -1 },
-    fThreshold(0)
+    fThreshold(0),
+    fGeoHandler(nullptr)
 {
   
 }
@@ -23,7 +24,20 @@ KoaRecCluster::KoaRecCluster(Int_t detId)
     fIds{ -1 },
     fEnergies{ -1 },
     fTimestamps{ -1 },
-    fThreshold(0)
+    fThreshold(0),
+    fGeoHandler(nullptr)
+{
+  
+}
+
+KoaRecCluster::KoaRecCluster(Int_t detId, KoaGeoHandler* geoHandler)
+  : fDetId(detId),
+    fNrOfDigis(0),
+    fIds{ -1 },
+    fEnergies{ -1 },
+    fTimestamps{ -1 },
+    fThreshold(0),
+    fGeoHandler(geoHandler)
 {
   
 }
@@ -52,13 +66,16 @@ Double_t KoaRecCluster::EnergyTotal() const
 Double_t KoaRecCluster::PositionTotal() const
 {
   auto sum = EnergyTotal();
-  auto geoHandler = new KoaGeoHandler(kFALSE);
 
   Double_t pos_corrected = 0;
   Double_t pos_low, pos_high, pos_center;
+  Double_t global_pos[3] = {0};
+  Double_t local_pos[3] = {0};
   for ( auto index=0; index<fNrOfDigis; index++) {
-    pos_center = geoHandler->RecDetChToPosition(fIds[index], pos_low, pos_high);
-    pos_corrected += pos_center * fEnergies[index] / sum;
+    pos_center = fGeoHandler->RecDetChToPosition(fIds[index], pos_low, pos_high);
+    local_pos[2] = pos_center;
+    fGeoHandler->LocalToGlobal(local_pos, global_pos,fDetId);
+    pos_corrected += global_pos[2] * fEnergies[index] / sum;
   }
 
   return pos_corrected;
@@ -110,14 +127,17 @@ Double_t KoaRecCluster::Energy() const
 Double_t KoaRecCluster::Position() const
 {
   auto sum = Energy();
-  auto geoHandler = new KoaGeoHandler(kFALSE);
 
   Double_t pos_corrected = 0;
   Double_t pos_low, pos_high, pos_center;
+  Double_t global_pos[3] = {0};
+  Double_t local_pos[3] = {0};
   for ( auto index=0; index<fNrOfDigis; index++) {
     if ( fEnergies[index] > fThreshold ) {
-      pos_center = geoHandler->RecDetChToPosition(fIds[index], pos_low, pos_high);
-      pos_corrected += pos_center * fEnergies[index] / sum;
+      pos_center = fGeoHandler->RecDetChToPosition(fIds[index], pos_low, pos_high);
+      local_pos[2] = pos_center;
+      fGeoHandler->LocalToGlobal(local_pos, global_pos,fDetId);
+      pos_corrected += global_pos[2] * fEnergies[index] / sum;
     }
   }
 
