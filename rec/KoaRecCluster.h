@@ -59,6 +59,9 @@ public:
 	// Get Module in which cluster is located
 	Int_t GetDetId() const { return fDetId; }
 	TString GetDetName() const;
+  Int_t* GetIds()  { return fIds; }
+  Double_t* GetTimestamps() { return fTimestamps; }
+  Double_t* GetEnergies()  { return fEnergies; }
 
 	Int_t NumberOfDigis() const { return fNrOfDigis; }
   Int_t NumberOfDigisAboveThresh() const;

@@ -1,8 +1,9 @@
 #include "KoaRecCluster.h"
 #include "KoaRecDigi.h"
-#include <algorithm>
 #include "KoaGeoHandler.h"
 #include "KoaMapEncoder.h"
+#include "FairLogger.h"
+#include <algorithm>
 #include <cstdlib>
 #include <cmath>
 
@@ -203,7 +204,7 @@ bool KoaRecCluster::isInCluster(KoaRecDigi* theDigi) const
 
 void KoaRecCluster::AddDigi(KoaRecDigi* theDigi)
 {
-  if (fNrOfDigis == 16 ) {
+  if (fNrOfDigis == 32 ) {
     LOG(WARNING) << "Too much digits in one cluster, ignore this cluster in later analysis!";
   }
 
