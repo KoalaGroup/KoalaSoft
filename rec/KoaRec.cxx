@@ -372,6 +372,12 @@ void KoaRec::RegisterAlignmentMatrices()
 
       std::string thisPath(volPath);
       matrices[thisPath] = ldm;
+
+      for(int i=0;i<9;i++) {
+        // LOG(info) << "Rotation" << rrot[i];
+      }
+      LOG(info) << "Rec, det"<<detId << ": " << dx << " " << dy << " " <<dz;
+      
     }
 
     LOG(info) << " Misalignment matrices for Recoil detector is registered";

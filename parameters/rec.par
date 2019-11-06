@@ -10,7 +10,7 @@ SensorShiftX:      Double_t \
 SensorShiftY:      Double_t \
 0 0 0 0
 SensorShiftZ:      Double_t \
-3 3 3 3
+0 0 0 0
 SensorRotationPhi: Double_t \
 0 0 0 0
 SensorRotationTheta: Double_t \

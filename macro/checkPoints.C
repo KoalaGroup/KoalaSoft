@@ -1,7 +1,7 @@
 void checkPoints(const char* filename)
 {
   TH2D* h2Fwd=new TH2D("h2Fwd","h2Fwd",200,0,70,200,-5,5);
-  TH2D* h2Rec=new TH2D("h2Rec","h2Rec",400,-10,30,200,-7.5,7.5);
+  TH2D* h2Rec=new TH2D("h2Rec","h2Rec",600,-20,40,350,-17.5,17.5);
   TH2D* h2RecEVsPos = new TH2D("h2RecEVsPos","h2RecEVsPos",400,-10,30,1000,0,70);
   TH1D* h1FwdEloss = new TH1D("h1FwdEloss","h1FwdEloss", 1000,-10,90);
   TH1D* h1RecEloss = new TH1D("h1RecEloss","h1RecEloss", 1000,0,70);

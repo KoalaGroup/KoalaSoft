@@ -8,7 +8,7 @@ NrOfSensors: Int_t 2
 SensorShiftX:      Double_t \
 0 0
 SensorShiftY:      Double_t \
--20 -20
+0 0
 SensorShiftZ:      Double_t \
 0 0
 SensorRotationPhi: Double_t \

@@ -305,7 +305,7 @@ std::map<std::string, TGeoHMatrix> KoaFwd::getMisalignmentMatrices()
   KoaMapEncoder* fMapEncoder = KoaMapEncoder::Instance();
 
   // misalignment matrix for the sensors individually
-  fMapEncoder->GetRecDetIDRange(low,high);
+  fMapEncoder->GetFwdDetIDRange(low,high);
   for(int detId=low;detId <= low+1;detId++){
     volPath = fGeoHandler->GetDetPathById(detId);
 
@@ -324,7 +324,7 @@ std::map<std::string, TGeoHMatrix> KoaFwd::getMisalignmentMatrices()
     matrices[thisPath] = ldm;
   }
 
-  LOG(info) << " Misalignment matrices for Recoil detector is created";
+  LOG(info) << " Misalignment matrices for Fwd detector is created";
   return matrices;
 }
 
@@ -339,7 +339,7 @@ void KoaFwd::RegisterAlignmentMatrices()
     KoaMapEncoder* fMapEncoder = KoaMapEncoder::Instance();
 
     // misalignment matrix for the sensors individually
-    fMapEncoder->GetRecDetIDRange(low,high);
+    fMapEncoder->GetFwdDetIDRange(low,high);
     for(int detId=low;detId <= low+1;detId++){
       volPath = fGeoHandler->GetDetPathById(detId);
 
