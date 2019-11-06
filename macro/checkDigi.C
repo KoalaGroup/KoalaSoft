@@ -13,7 +13,7 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename,
   using histo2d = std::map<Int_t, TH2D>;
 
   // parameters
-  Int_t nbin=14000;
+  Int_t nbin=7000;
   Float_t xlow=0,xhigh=70;
 
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
