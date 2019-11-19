@@ -14,5 +14,6 @@
 #pragma link C++ class KoaMapEncoder+;
 #pragma link C++ class KoaMapHandler+;
 #pragma link C++ class KoaGeoHandler+;
+#pragma link C++ class KoaElasticCalculator+;
 
 #endif

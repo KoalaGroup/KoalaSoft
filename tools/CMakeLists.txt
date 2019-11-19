@@ -30,6 +30,7 @@ set(SRCS
 KoaGeoHandler.cxx
 KoaMapHandler.cxx
 KoaMapEncoder.cxx
+KoaElasticCalculator.cxx
 )
 
 Set(LINKDEF KoaToolsLinkDef.h)
