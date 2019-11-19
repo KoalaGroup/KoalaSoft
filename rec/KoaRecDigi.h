@@ -95,7 +95,7 @@ class KoaRecDigi : public FairTimeStamp
 
 		std::vector<Int_t> fIndex;   // indice of mc points contributing to this digi
 		Int_t fDetID;                // branch ID of mc point array
-		Double_t fCharge;            // collected charge, could be energy (MeV) in ideal Digitization
+		Double_t fCharge;            // collected charge, could be energy (KeV) in ideal Digitization
     
     ClassDef(KoaRecDigi,1);
   };

@@ -99,10 +99,10 @@ private:
   Int_t    fDetId; // detId for this cluster
   Int_t    fNrOfDigis;
   Int_t    fIds[64]; // global ids of the digis
-  Double_t   fEnergies[64]; //
+  Double_t   fEnergies[64]; // in keV
   Double_t   fTimestamps[64]; //
 
-  Double_t fThreshold; //! threshold to count digis contributing to this cluster
+  Double_t fThreshold; //! threshold to count digis contributing to this cluster, in keV
   KoaGeoHandler *fGeoHandler; //!
   
 	ClassDef(KoaRecCluster,1)
