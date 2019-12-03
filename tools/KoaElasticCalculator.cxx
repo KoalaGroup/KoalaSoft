@@ -34,7 +34,7 @@ KoaElasticCalculator::~KoaElasticCalculator()
 Double_t KoaElasticCalculator::GetEnergyByZ(Double_t zposition)
 {
   if( zposition<0 ) {
-    LOG(FATAL) << "z position should be larger than 0";
+    LOG(ERROR) << "z position should be larger than 0";
   }
 
   Double_t alpha = TMath::ATan(zposition/fDistance/10.);
