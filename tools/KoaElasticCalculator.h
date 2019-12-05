@@ -33,7 +33,7 @@ class KoaElasticCalculator : public TObject
      It has nothing to do with the sensor topology.
      mom in GeV, distance in cm
   */
-  KoaElasticCalculator(Double_t mom, Double_t distance);
+  KoaElasticCalculator(Double_t mom, Double_t rec_distance, Double_t fwd_distance);
   ~KoaElasticCalculator();
 
   /* functor interface, which can be used to form TF1 in ROOT.
@@ -47,13 +47,34 @@ class KoaElasticCalculator : public TObject
 
   /* Get deposited energy based on position along beam axis.
      It's valid both in GeoModel and Non-GeoModel modes. zposition in mm, return value in MeV */
-  Double_t GetEnergyByZ(Double_t zposition);
-  /* Get T of recoil proton by alpha. alpha is the angle between recoil proton momentum and axis perpendicular to beam axis. alpha in radian, return value in MeV */
+  Double_t GetEnergyByRecZ(Double_t zposition);
+  /* Get T of recoil proton by alpha. alpha is the angle between recoil proton momentum and axis perpendicular to beam axis. alpha in degree, return value in MeV */
   Double_t GetEnergyByAlpha(Double_t alpha);
+  /* Get T of recoil proton by theta. theta is the angle between scattering proton momentum and beam axis. theta in degree, return value in MeV */
+  Double_t GetEnergyByTheta(Double_t theta);
+  /* Get deposited energy based on position in fwd scintillator surface. xposition in cm, return value in MeV */
+  Double_t GetEnergyByFwdX(Double_t xposition);
+
+  /* Get beam scattering angle. alpha in degree, return value in degree */
+  Double_t GetThetaByAlpha(Double_t alpha);
+  /* Get target recoil angle. theta in degree, return value in degree */
+  Double_t GetAlphaByTheta(Double_t theta);
+  /* Get rec hit position in z-axis based on scattering theta. theta in degree, return value in mm */
+  Double_t GetRecZByTheta(Double_t theta);
+  /* Get rec hit position in z-axis based on position in fwd scintillator surface. xposition in cm, return value in mm */
+  Double_t GetRecZByFwdX(Double_t xposition);
+
+  /* Get recoil angle based on recoil energy. T in MeV, return value in degree */
+  Double_t GetAlphaByEnergy(Double_t T);
+  /* Get rec hit position in z-axis based on recoil energy. T in MeV, return value in mm */
+  Double_t GetRecZByEnergy(Double_t T);
+  /* Get fwd hit position in x-axis based on recoil energy. T in MeV, return value in cm */
+  Double_t GetFwdXByEnergy(Double_t T);
 
  private:
   Double_t fMom; // momentum of incident proton, in GeV
-  Double_t fDistance; // distance of strip center to IP, in cm
+  Double_t fRecDistance; // distance of recoil sensor surface to IP, in cm
+  Double_t fFwdDistance; // distance of fwd sensor surface to IP, in cm
 
   static Double_t fProtonMass;
   Double_t fKappa;
