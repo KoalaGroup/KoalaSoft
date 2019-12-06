@@ -28,6 +28,15 @@ KoaElasticCalculator::KoaElasticCalculator(Double_t mom, Double_t rec_distance, 
   fKappa = (beam.energy()+beam.mass())/(beam.energy()-beam.mass());
 }
 
+KoaElasticCalculator::KoaElasticCalculator(Double_t mom) :
+  fMom(mom),
+  fRecDistance(0),
+  fFwdDistance(0)
+{
+  PxPyPzMVector beam(0,0,fMom,fProtonMass);
+  fKappa = (beam.energy()+beam.mass())/(beam.energy()-beam.mass());
+}
+
 KoaElasticCalculator::~KoaElasticCalculator()
 {
   

@@ -68,8 +68,8 @@ class KoaGeoHandler : public TObject
     //
     Double_t GetDetPositionById(Int_t detId);
     Double_t GetDetPositionByName(const char* volName);
-    void GetDetBoundaryById(Int_t detId, Double_t& lower, Double_t& higher);
-    void GetDetBoundaryByName(const char* volName, Double_t& lower, Double_t& higher);
+    void GetDetBoundaryById(Int_t detId, Double_t& lower, Double_t& higher); // in cm
+    void GetDetBoundaryByName(const char* volName, Double_t& lower, Double_t& higher); // in cm
 
     //
     void LocalToGlobal(Double_t* local, Double_t* global, Int_t detID);

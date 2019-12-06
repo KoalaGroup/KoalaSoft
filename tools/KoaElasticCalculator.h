@@ -34,6 +34,7 @@ class KoaElasticCalculator : public TObject
      mom in GeV, distance in cm
   */
   KoaElasticCalculator(Double_t mom, Double_t rec_distance, Double_t fwd_distance);
+  KoaElasticCalculator(Double_t mom);
   ~KoaElasticCalculator();
 
   /* functor interface, which can be used to form TF1 in ROOT.
@@ -43,8 +44,11 @@ class KoaElasticCalculator : public TObject
    */
   Double_t operator() (Double_t *x, Double_t *p);
 
-  /* Get-ers */
+  /* Set-ers */
+  inline void SetRecDistance(Double_t rec_distance) { fRecDistance = rec_distance; }
+  inline void SetFwdDistance(Double_t fwd_distance) { fFwdDistance = fwd_distance; }
 
+  /* Get-ers */
   /* Get deposited energy based on position along beam axis.
      It's valid both in GeoModel and Non-GeoModel modes. zposition in mm, return value in MeV */
   Double_t GetEnergyByRecZ(Double_t zposition);
