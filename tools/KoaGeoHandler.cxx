@@ -16,6 +16,7 @@
 #include "FairLogger.h"                 // for FairLogger, etc
 
 #include "TGeoBBox.h"                   // for TGeoBBox
+#include "TGeoTrd1.h"
 #include "TGeoManager.h"                // for TGeoManager, gGeoManager
 #include "TGeoNode.h"                   // for TGeoNode
 #include "TGeoVolume.h"                 // for TGeoVolume
@@ -394,6 +395,77 @@ TString KoaGeoHandler::GetDetPathByName(const char* volName)
 {
   Int_t id = GetDetIdByName(volName);
   return fDetPath[id];
+}
+
+Double_t KoaGeoHandler::GetDetPositionById(Int_t detId)
+{
+  Int_t low, high;
+  fMapEncoder->GetRecDetIDRange(low, high);
+
+  NavigateTo(fDetPath[detId]);
+  Double_t local_pos[3] = {0};
+  Double_t global_pos[3] = {0};
+  Double_t position;
+
+  if ( detId > high ) { // for fwd
+    TGeoTrd1* actBox = static_cast<TGeoTrd1*>(gGeoManager->GetCurrentVolume()->GetShape());
+    local_pos[1] = -actBox->GetDy(); 
+    LocalToGlobal(local_pos, global_pos, detId);
+    position = global_pos[2];
+  }
+  else { // for recoil
+    TGeoBBox* actBox = static_cast<TGeoBBox*>(gGeoManager->GetCurrentVolume()->GetShape());
+    local_pos[0] = -actBox->GetDX(); 
+    LocalToGlobal(local_pos, global_pos, detId);
+    position = global_pos[0];
+  }
+
+  return position;
+}
+
+Double_t KoaGeoHandler::GetDetPositionByName(const char* volName)
+{
+  Int_t detId = GetDetIdByName(volName);
+  return GetDetPositionById(detId);
+}
+
+void KoaGeoHandler::GetDetBoundaryById(Int_t detId, Double_t& lower, Double_t& higher)
+{
+  Int_t id_low, id_high;
+  fMapEncoder->GetRecDetIDRange(id_low, id_high);
+
+  NavigateTo(fDetPath[detId]);
+  Double_t local_pos[3] = {0};
+  Double_t global_pos[3] = {0};
+
+  if ( detId > id_high ) { // for fwd
+    TGeoTrd1* actBox = static_cast<TGeoTrd1*>(gGeoManager->GetCurrentVolume()->GetShape());
+
+    local_pos[2] = -actBox->GetDz(); 
+    LocalToGlobal(local_pos, global_pos, detId);
+    lower = global_pos[0];
+
+    local_pos[2] = actBox->GetDz(); 
+    LocalToGlobal(local_pos, global_pos, detId);
+    higher = global_pos[0];
+  }
+  else { // for recoil
+    TGeoBBox* actBox = static_cast<TGeoBBox*>(gGeoManager->GetCurrentVolume()->GetShape());
+
+    local_pos[2] = -actBox->GetDZ(); 
+    LocalToGlobal(local_pos, global_pos, detId);
+    lower = global_pos[2];
+
+    local_pos[2] = actBox->GetDZ(); 
+    LocalToGlobal(local_pos, global_pos, detId);
+    higher = global_pos[2];
+  }
+}
+
+void KoaGeoHandler::GetDetBoundaryByName(const char* volName, Double_t& lower, Double_t& higher)
+{
+  Int_t detId = GetDetIdByName(volName);
+  GetDetBoundaryById(detId, lower, higher);
 }
 
 void KoaGeoHandler::LocalToGlobal(Double_t* local, Double_t* global, Int_t detID)
