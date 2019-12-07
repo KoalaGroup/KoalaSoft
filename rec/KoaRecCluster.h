@@ -45,15 +45,15 @@ public:
 
 	// all digis
   Double_t MaximaTotal() const;
-  Double_t EnergyTotal() const;
-  Double_t PositionTotal() const;
+  Double_t EnergyTotal() const; // in keV
+  Double_t PositionTotal() const; // in cm
   Double_t TimeTotal() const;
 
 	// digis above threshold
   Double_t Maxima() const;
-	Double_t Energy() const;
+	Double_t Energy() const; // in keV
 	// Theta centroid of cluster in index units
-	Double_t Position() const;
+	Double_t Position() const; // in cm
   Double_t Time() const;
 
 	// Get Module in which cluster is located
