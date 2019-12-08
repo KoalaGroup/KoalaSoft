@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cmath>
+#include <iterator>
 
 KoaRecCluster::KoaRecCluster()
   : fDetId(-1),
@@ -101,6 +102,21 @@ Double_t KoaRecCluster::TimeTotal() const
   }
 
   return min;
+}
+
+Int_t KoaRecCluster::ChIdTotal() const
+{
+  Double_t hit_pos = PositionTotal(); // in cm
+  Double_t global_pos[3] = {0, 0, hit_pos};
+  return fGeoHandler->RecGlobalPositionToDetCh(global_pos, fDetId);
+}
+
+Int_t KoaRecCluster::GetMaximaChId() const
+{
+  
+  auto result = std::max_element(fEnergies, fEnergies+fNrOfDigis);
+  Int_t index = std::distance(fEnergies, result);
+  return fIds[index];
 }
 
 Double_t KoaRecCluster::Maxima() const

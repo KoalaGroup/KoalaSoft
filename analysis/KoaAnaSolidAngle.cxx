@@ -133,14 +133,14 @@ void KoaAnaSolidAngle::Exec(Option_t* /*option*/)
     global[2]=curPoint->GetZ();
     fGeoHandler->GlobalToLocal(global,local,detID);
 
-    Int_t chID = fGeoHandler->RecPositionToDetCh(local,detID);
+    Int_t ID = fGeoHandler->RecLocalPositionToDetCh(local,detID);
 
-    auto it = mulithit.find(chID);
+    auto it = mulithit.find(ID);
     if(it != mulithit.end()){
       LOG(warning) << "mulithit  in the same strip exists!";
     }
     else{
-      mulithit[chID] = 1;
+      mulithit[ID] = 1;
     }
   }
 

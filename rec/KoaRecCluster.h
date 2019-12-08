@@ -48,6 +48,8 @@ public:
   Double_t EnergyTotal() const; // in keV
   Double_t PositionTotal() const; // in cm
   Double_t TimeTotal() const;
+  Int_t ChIdTotal() const; 
+  Int_t GetMaximaChId() const;
 
 	// digis above threshold
   Double_t Maxima() const;
@@ -105,7 +107,7 @@ private:
   Double_t fThreshold; //! threshold to count digis contributing to this cluster, in keV
   KoaGeoHandler *fGeoHandler; //!
   
-	ClassDef(KoaRecCluster,1)
+	ClassDef(KoaRecCluster,2)
 };
 
 #endif // EMCCLUSTER_HH

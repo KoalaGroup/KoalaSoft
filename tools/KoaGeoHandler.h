@@ -76,8 +76,11 @@ class KoaGeoHandler : public TObject
     void GlobalToLocal(Double_t* global, Double_t* local, Int_t detID);
 
     // hitPos here is the local coordinate in the sensor volume
-    // return value is the encoded readout channel
-    Int_t RecPositionToDetCh(Double_t* hitPos, Int_t detID);
+    // return value is the encoded ch id
+    Int_t RecLocalPositionToDetCh(Double_t* hitPos, Int_t detID);
+    // hitPos is the global coordinate 
+    // return value is the encoded ch id
+    Int_t RecGlobalPositionToDetCh(Double_t* hitPos, Int_t detID);
     // return value is the center position of this channel along z-axis
     // here detChId is the encoded readout channel id
     Double_t RecDetChToPosition(Int_t detChId, Double_t& lower, Double_t& higher);
