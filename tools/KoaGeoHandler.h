@@ -42,10 +42,12 @@
 
 #include "TObject.h"                    // for TObject
 #include <map>                          // for map
+#include <vector>                          // for map
 #include "TGeoMatrix.h"
 
 #include "Rtypes.h"                     // for Int_t, Double_t, Bool_t, etc
 #include "TString.h"                    // for TString
+#include "TVector3.h"
 
 class KoaMapEncoder;
 
@@ -70,6 +72,8 @@ class KoaGeoHandler : public TObject
     Double_t GetDetPositionByName(const char* volName);
     void GetDetBoundaryById(Int_t detId, Double_t& lower, Double_t& higher); // in cm
     void GetDetBoundaryByName(const char* volName, Double_t& lower, Double_t& higher); // in cm
+    std::vector<TVector3> GetDetBoundaryPointsById(Int_t detId); // in cm
+    std::vector<TVector3> GetDetBoundaryPointsByName(const char* volName); // in cm
 
     //
     void LocalToGlobal(Double_t* local, Double_t* global, Int_t detID);

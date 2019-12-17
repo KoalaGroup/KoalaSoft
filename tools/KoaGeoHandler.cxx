@@ -468,6 +468,96 @@ void KoaGeoHandler::GetDetBoundaryByName(const char* volName, Double_t& lower, D
   GetDetBoundaryById(detId, lower, higher);
 }
 
+std::vector<TVector3> KoaGeoHandler::GetDetBoundaryPointsById(Int_t detId)
+{
+  Int_t id_low, id_high;
+  fMapEncoder->GetRecDetIDRange(id_low, id_high);
+
+  //
+  NavigateTo(fDetPath[detId]);
+  Double_t local_pos[3] = {0};
+  Double_t global_pos[3] = {0};
+
+  std::vector<TVector3> boundaryPoints;
+  if ( detId > id_high ) { // for fwd
+    TGeoTrd1* actBox = static_cast<TGeoTrd1*>(gGeoManager->GetCurrentVolume()->GetShape());
+    Double_t dxlow = actBox->GetDx1();
+    Double_t dxhigh = actBox->GetDx2();
+    Double_t dy = actBox->GetDy();
+    Double_t dz = actBox->GetDz();
+
+    // point 1:
+    local_pos[0] = dxlow;
+    local_pos[1] = -dy;
+    local_pos[2] = -dz; 
+    LocalToGlobal(local_pos, global_pos, detId);
+    boundaryPoints.emplace_back(global_pos);
+
+    // point 2:
+    local_pos[0] = dxhigh;
+    local_pos[1] = -dy;
+    local_pos[2] = dz; 
+    LocalToGlobal(local_pos, global_pos, detId);
+    boundaryPoints.emplace_back(global_pos);
+
+    // point 3:
+    local_pos[0] = -dxhigh;
+    local_pos[1] = -dy;
+    local_pos[2] = dz; 
+    LocalToGlobal(local_pos, global_pos, detId);
+    boundaryPoints.emplace_back(global_pos);
+
+    // point 4:
+    local_pos[0] = -dxlow;
+    local_pos[1] = -dy;
+    local_pos[2] = -dz; 
+    LocalToGlobal(local_pos, global_pos, detId);
+    boundaryPoints.emplace_back(global_pos);
+  }
+  else {
+    TGeoBBox* actBox = static_cast<TGeoBBox*>(gGeoManager->GetCurrentVolume()->GetShape());
+    Double_t dx = actBox->GetDX();
+    Double_t dy = actBox->GetDY();
+    Double_t dz = actBox->GetDZ();
+
+    // point 1:
+    local_pos[0] = -dx;
+    local_pos[1] = -dy;
+    local_pos[2] = -dz; 
+    LocalToGlobal(local_pos, global_pos, detId);
+    boundaryPoints.emplace_back(global_pos);
+
+    // point 2:
+    local_pos[0] = -dx;
+    local_pos[1] = -dy;
+    local_pos[2] = dz; 
+    LocalToGlobal(local_pos, global_pos, detId);
+    boundaryPoints.emplace_back(global_pos);
+
+    // point 3:
+    local_pos[0] = -dx;
+    local_pos[1] = dy;
+    local_pos[2] = dz; 
+    LocalToGlobal(local_pos, global_pos, detId);
+    boundaryPoints.emplace_back(global_pos);
+
+    // point 4:
+    local_pos[0] = -dx;
+    local_pos[1] = dy;
+    local_pos[2] = -dz; 
+    LocalToGlobal(local_pos, global_pos, detId);
+    boundaryPoints.emplace_back(global_pos);
+  }
+
+  return boundaryPoints;
+}
+
+std::vector<TVector3> KoaGeoHandler::GetDetBoundaryPointsByName(const char* volName)
+{
+  Int_t detId = GetDetIdByName(volName);
+  return GetDetBoundaryPointsById(detId);
+}
+
 void KoaGeoHandler::LocalToGlobal(Double_t* local, Double_t* global, Int_t detID)
 {
   TGeoHMatrix* matrix = fDetMatrix[detID];
