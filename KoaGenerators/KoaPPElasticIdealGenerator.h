@@ -38,7 +38,7 @@ class KoaPPElasticIdealGenerator : public FairGenerator
 
 
     /** Constructor with name and title **/
-    KoaPPElasticIdealGenerator(Double_t mom);
+    KoaPPElasticIdealGenerator(Double_t mom, Bool_t isGeantino = kFALSE);
 
 
     /** Destructor. **/
@@ -47,6 +47,8 @@ class KoaPPElasticIdealGenerator : public FairGenerator
     /** Modifiers. **/
     void SetMomentum(Double_t mom) // in GeV
     { fP = mom; }
+    void SetGeantino() // generate geantino instead of proton
+    { fIsGeantino = kTRUE; }
     void SetAlphaRange(Double_t min, Double_t max) // in degree
     { fAlphaMin = min; fAlphaMax = max; }
     void SetPhiRange(Double_t min, Double_t max) // in degree
@@ -78,6 +80,8 @@ class KoaPPElasticIdealGenerator : public FairGenerator
     void Calculate(Double_t alpha, Double_t phi);
 
  private:
+    Bool_t   fIsGeantino; // flag, use proton or geantino
+
     Double_t fMass; // rest mass of proton in GeV, from PDG2018
     Double_t fP; // beam proton momentum
     Double_t fAlphaMin, fAlphaMax; // angle alpha of recoil proton (with respect to x-axis)

@@ -23,17 +23,19 @@ using namespace ROOT::Math;
 KoaPPElasticIdealGenerator::KoaPPElasticIdealGenerator()
   : FairGenerator(), fMass(0.938272081), fP(2.8),
     fAlphaMin(0.), fAlphaMax(90.),
-    fPhiMin(90.), fPhiMax(270)
+    fPhiMin(90.), fPhiMax(270),
+    fIsGeantino(kFALSE)
 { Init(); }
 // -------------------------------------------------------------------------
 
 
 
 // -----   Constructor with name and title   -------------------------------
-KoaPPElasticIdealGenerator::KoaPPElasticIdealGenerator(Double_t mom)
+KoaPPElasticIdealGenerator::KoaPPElasticIdealGenerator(Double_t mom, Bool_t isGeantino)
   : FairGenerator(), fMass(0.938272081), fP(mom),
     fAlphaMin(0.), fAlphaMax(90.),
-    fPhiMin(90.), fPhiMax(270)
+    fPhiMin(90.), fPhiMax(270),
+    fIsGeantino(isGeantino)
 { Init(); }
 // -------------------------------------------------------------------------
 
@@ -48,6 +50,7 @@ KoaPPElasticIdealGenerator::KoaPPElasticIdealGenerator(const KoaPPElasticIdealGe
   fPhiMin   = rhs.fPhiMin;
   fPhiMax   = rhs.fPhiMax;
   fKappa    = rhs.fKappa;
+  fIsGeantino = rhs.fIsGeantino;
 }
 // -------------------------------------------------------------------------
 
@@ -73,6 +76,7 @@ KoaPPElasticIdealGenerator& KoaPPElasticIdealGenerator::operator= (const KoaPPEl
   fPhiMin   = rhs.fPhiMin;
   fPhiMax   = rhs.fPhiMax;
   fKappa    = rhs.fKappa;
+  fIsGeantino = rhs.fIsGeantino;
 
   return *this;
 }
@@ -105,8 +109,13 @@ Bool_t KoaPPElasticIdealGenerator::ReadEvent(FairPrimaryGenerator* primGen)
   Calculate(alpha, phi);
 
   //
-  primGen->AddTrack(2212, fRecoilPx, fRecoilPy, fRecoilPz, 0, 0, 0); // recoil proton
-  primGen->AddTrack(2212, fScatPx, fScatPy, fScatPz, 0, 0, 0); // scattered proton
+  Int_t pdgid = 2212;
+  if ( fIsGeantino ) {
+    pdgid = 0;
+  }
+
+  primGen->AddTrack(pdgid, fRecoilPx, fRecoilPy, fRecoilPz, 0, 0, 0); // recoil proton
+  primGen->AddTrack(pdgid, fScatPx, fScatPy, fScatPz, 0, 0, 0); // scattered proton
 
   return true;
 }

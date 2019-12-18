@@ -1,0 +1,6 @@
+* Generator
+** Elastic scattering events
+*** KoaPPElasticIdealGenerator
+**** It generates a uniformly distributed, proton-proton elastic scattering events.
+**** The alpha and theta range can be specified    
+**** The particles generated can be specified as Geantino instead of proton, which keeps the kinematic features of p-p elastic scattering

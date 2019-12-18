@@ -238,7 +238,7 @@ Bool_t FairFilteredPrimaryGenerator::GenerateEvent(FairGenericStack* pStack)
 		}
 	}
 
-	if (0 < fVerbose) cout << fEventNrFiltered << " of " << fEvtFilterStat.fGeneratedEvents << " generated events accepted.\n";
+	// if (0 < fVerbose) cout << fEventNrFiltered << " of " << fEvtFilterStat.fGeneratedEvents << " generated events accepted.\n";
 
 	return kTRUE;
 }
