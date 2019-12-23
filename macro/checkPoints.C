@@ -1,6 +1,7 @@
 void checkPoints(const char* filename)
 {
-  TH2D* h2Fwd=new TH2D("h2Fwd","h2Fwd",200,0,70,200,-5,5);
+  TH2D* h2Fwd=new TH2D("h2Fwd","h2Fwd",200,0,70,200,-1.5,1.5);
+  TH2D* h2Fwd=new TH2D("h2Fwd","h2Fwd",200,0,70,200,-1.5,1.5);
   TH2D* h2Rec=new TH2D("h2Rec","h2Rec",600,-20,40,350,-17.5,17.5);
   TH2D* h2RecEVsPos = new TH2D("h2RecEVsPos","h2RecEVsPos",400,-10,30,1000,0,70);
   TH1D* h1FwdEloss = new TH1D("h1FwdEloss","h1FwdEloss", 1000,-10,90);
@@ -50,8 +51,8 @@ void checkPoints(const char* filename)
   // h1FwdEloss->Draw();
   // TCanvas* crece = new TCanvas("crece");
   // h1RecEloss->Draw();
-  // TCanvas* crecevspos=new TCanvas("crecevspos");
-  // h2RecEVsPos->Draw("colz");
+  TCanvas* crecevspos=new TCanvas("crecevspos");
+  h2RecEVsPos->Draw("colz");
   // TCanvas* clowEPosDist= new TCanvas("clowEPosDist");
   // h2lowRec->Draw("colz");
   // output file

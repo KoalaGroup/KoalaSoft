@@ -68,8 +68,8 @@ class KoaGeoHandler : public TObject
     TString GetDetPathByName(const char* volName);
 
     //
-    Double_t GetDetPositionById(Int_t detId);
-    Double_t GetDetPositionByName(const char* volName);
+    Double_t GetDetPositionById(Int_t detId); // in cm
+    Double_t GetDetPositionByName(const char* volName); // in cm
     void GetDetBoundaryById(Int_t detId, Double_t& lower, Double_t& higher); // in cm
     void GetDetBoundaryByName(const char* volName, Double_t& lower, Double_t& higher); // in cm
     std::vector<TVector3> GetDetBoundaryPointsById(Int_t detId); // in cm
