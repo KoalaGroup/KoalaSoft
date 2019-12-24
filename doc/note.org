@@ -154,6 +154,26 @@
 **** How to apply misalignment matrix
     Assume 
 
+*** gGeoManager
+    By design, TGeoManager is a singleton. Thus, each process or ROOT session can only have one /gGeoManager/.
+    The geometry used in the process or ROOT session is the same one referenced by /gGeoManager/.
+
+    /gGeoManager/ can also be written to ROOT file for persistence or later use. 
+    It contains the current the geometry and the same geometry can be reused by reading back this TGeoManager.
+    Different geometries can be written into the same file with different names.
+   
+    In this way, the same geometry can be reused in all stages of analysis.
+
+** Geometry file in *FairRunAna*
+
+   The geometry manager, i.e. the geometry, used in *FairRunAna* based analysis comes from 3 sources.
+   The priority from high to low, they are:
+   - User provided geometry file which contains at least one object of *TGeoManager*. The geometry file can 
+     be specified before 'Init()' by invoking 'SetGeomFile'.
+   - The default source is the parameter container named 'FairGeoParSet', from the parameter ROOT file generated
+     by simulation. The RuntimeDB will also save a copy at each FairRun.
+   - Any other input ROOT file which contains *TGeoManager* object.
+
 * Version history
 ** Before 07.05.2019
 *** Recoil Detector
@@ -343,8 +363,13 @@
        
      - SetCuts.C (SetCuts())
 
-     Functions
+**** Root file structure configuration
+     The folder and tree name in ROOT file is configured in file: /config/rootmanager.dat/
+     1. treename = *TREENAME*
+     2. foldername = *foldername*
+
 *** Recontruction & Analysis & Other Tasks
+
 ** Stack
 *** Class Hierarchy
     KoaStack --> FairGenericStack --> TVirtualMCStack
