@@ -187,3 +187,5 @@ std::vector<Int_t> KoaMapEncoder::GetRecTdcChIDs()
 
   return ids;
 }
+
+ClassImp(KoaMapEncoder)

@@ -236,6 +236,7 @@ add_subdirectory (passive)
 add_subdirectory (field)  
 add_subdirectory (tools)  
 add_subdirectory (analysis)  
+add_subdirectory (unpack)  
 
 #######################################################
 WRITE_CONFIG_FILE(config.sh)

@@ -83,6 +83,8 @@ class KoaMapEncoder : public TObject
   std::map<Int_t, Int_t>   fDetectorIDToChNr;
 
   static KoaMapEncoder *fpInstance;
+
+  ClassDef(KoaMapEncoder,1)
 };
 
 #endif
