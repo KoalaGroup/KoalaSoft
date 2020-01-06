@@ -1,7 +1,8 @@
 #ifndef KOA_EMS_INTERFACE_H
 #define KOA_EMS_INTERFACE_H
 
-typedef unsigned int ems_u32;
+#include <stdint.h>>
+typedef uint32_t ems_u32;
 typedef char ems_byte;
 
 // Macro for swap the byte order

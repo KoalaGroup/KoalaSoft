@@ -44,6 +44,9 @@ void KoaMapEncoder::Init()
   fFwdDetIDRange[1]=11;
   fFwdNrOfSensors = fFwdDetIDRange[1] - fFwdDetIDRange[0] + 1;
 
+  fDetectorIDToVolName[12]="RecoilRear";
+  fRecRearID = 12;
+
   //-------------------------------------//
   fVolNameToDetectorID["SensorSi1"]=0;
   fVolNameToDetectorID["SensorSi2"]=1;
@@ -58,6 +61,8 @@ void KoaMapEncoder::Init()
   fVolNameToDetectorID["SensorSc6"]=9;
   fVolNameToDetectorID["SensorSc7"]=10;
   fVolNameToDetectorID["SensorSc8"]=11;
+
+  fVolNameToDetectorID["RecoilRear"]=12;
 
   //-------------------------------------//
   fDetectorIDToChNr[0]=48;
@@ -74,6 +79,8 @@ void KoaMapEncoder::Init()
   fDetectorIDToChNr[10]=1;
   fDetectorIDToChNr[11]=1;
 
+  fDetectorIDToChNr[12]=4;
+
   //-------------------------------------//
   for(int detID=fRecDetIDRange[0];detID<=fRecDetIDRange[1];detID++){
     for(int chID=0;chID<fDetectorIDToChNr[detID];chID++){
@@ -87,6 +94,9 @@ void KoaMapEncoder::Init()
     }
   }
 
+  for(int chID=0;chID<fDetectorIDToChNr[fRecRearID];chID++){
+    fChIDs.emplace_back(EncodeChannelID(fRecRearID,chID));
+  }
 }
 
 
@@ -185,6 +195,15 @@ std::vector<Int_t> KoaMapEncoder::GetRecTdcChIDs()
     ids.emplace_back(EncodeChannelID(1, i));
   }
 
+  return ids;
+}
+
+std::vector<Int_t> KoaMapEncoder::GetRecRearChIDs()
+{
+  std::vector<Int_t> ids;
+  for ( int i = 0; i < fDetectorIDToChNr[fRecRearID] ; i++ ) {
+    ids.emplace_back(EncodeChannelID(fRecRearID, i));
+  }
   return ids;
 }
 

@@ -350,14 +350,28 @@ public:
     return fInstance;
   }
 
+  BufferType* GetBuffer(std::string name) {
+    BufferType* buffer;
+    auto search = fBufferList.find(name);
+    if (search != fBufferList.end()) {
+      buffer = search->second;
+    }
+    else {
+      buffer = new BufferType();
+      fBufferList.emplace(name, buffer);
+    }
+    return buffer;
+  }
+
 private:
   friend class CleanerType;
 
   KoaBufferManager() {}
   ~KoaBufferManager() {
     for( auto buffer : fBufferList ) {
-      delete buffer;
+      delete buffer->second;
     }
+    fBufferList.clear();
   }
 
   static KoaBufferManager* fInstance;

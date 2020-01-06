@@ -52,6 +52,7 @@ class KoaMapEncoder : public TObject
 
   void  GetRecDetIDRange(Int_t& low, Int_t& high);
   void  GetFwdDetIDRange(Int_t& low, Int_t& high);
+  Int_t GetRecRearID() { return fRecRearID; }
 
   Int_t GetRecSensorNr() { return fRecNrOfSensors; }
   Int_t GetFwdSensorNr() { return fFwdNrOfSensors; }
@@ -60,6 +61,8 @@ class KoaMapEncoder : public TObject
   std::vector<Int_t> GetRecChIDs();
   std::vector<Int_t> GetFwdChIDs();
   std::vector<Int_t> GetRecTdcChIDs();
+  std::vector<Int_t> GerRecRearChIDs();
+
   Int_t GetChNr(Int_t detID) { return fDetectorIDToChNr[detID]; }
 
   static KoaMapEncoder* Instance()
@@ -77,6 +80,7 @@ class KoaMapEncoder : public TObject
   std::map<TString, Int_t> fVolNameToDetectorID;
   Int_t fRecNrOfSensors;
   Int_t fRecDetIDRange[2];
+  Int_t fRecRearID;
   Int_t fFwdNrOfSensors;
   Int_t fFwdDetIDRange[2];
   std::vector<Int_t>       fChIDs;
