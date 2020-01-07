@@ -18,7 +18,7 @@ KoaMapEncoder::KoaMapEncoder()
 
 KoaMapEncoder::~KoaMapEncoder()
 {
-  
+  fpInstance = nullptr;
 }
 
 void KoaMapEncoder::Init()

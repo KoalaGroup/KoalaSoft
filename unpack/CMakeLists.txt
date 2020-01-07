@@ -28,6 +28,7 @@ link_directories( ${LINK_DIRECTORIES})
 set(SRCS
 #Put here your sourcefiles
 KoaRunOnline.cxx
+KoaEmsConfig.cxx
 )
 
 Set(LINKDEF KoaUnpackLinkDef.h)

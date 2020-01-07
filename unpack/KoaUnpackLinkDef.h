@@ -12,5 +12,7 @@
 #pragma link off all functions;
 
 #pragma link C++ class KoaRunOnline+;
+#pragma link C++ class KoaEmsConfig+;
+#pragma link C++ class KoaRawEvent+;
 
 #endif

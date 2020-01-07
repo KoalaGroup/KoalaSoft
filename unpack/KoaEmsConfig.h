@@ -1,6 +1,37 @@
 #ifndef KOA_EMS_CONFIG_H
 #define KOA_EMS_CONFIG_H
 
+#include "TObject.h"
+#include <cstdint>
+#include <ifstream>
+#include <string>
+#include <sstream>
+#include <map>
+
+/* Module type enumeration. The value comes from KoalaEms definition, which is not important in KoalaSoft. */
+enum class MesytecType : std::uint64_t
+{
+  MTDC32 = 0x23f10032UL,
+  MADC32 = 0x21f10032UL,
+  MQDC32 = 0x22f10032UL
+};
+
+/* Module configuration table. Module id as key, Module info as value */
+struct ModuleInfo
+{
+  MesytecType type;
+  std::string name;
+};
+
+using ModuleId = std::uint32_t;
+using ModuleTable = std::map<ModuleId, ModuleInfo>;
+
+/* Types used in Module Channel mapping */
+using ChannelInfo = std::pair<Int_t, Int_t>; // for DAQ, it's <ModuleId, ModuleCh>; for detector, it's <DetectorId, DetectorCh>
+using ChannelMap = std::map<Int_t, ChannelInfo>; // from encoded detector channel id to DAQ channel info
+using ChannelMapReverse = std::map<ChannelInfo, Int_t>; // from DAQ channel info to encoded detector channel id
+using ChannelInfoMap = std::map<ChannelInfo, ChannelInfo>; // from channel info pair to channel info map
+
 /* This class stores the EMS DAQ configuration information and the mapping table from
    DAQ channel to Detector channel.
 
@@ -27,15 +58,55 @@ public:
     return fgInstance;
   }
 
-  void SetConfigFile();
-  std::map<Int_t, Int_t> GetChannelMap();
-  
-private:
-  std::map<Int_t, Int_t> fChannelMap; // mapping from DAQ channel to Detector Channel
-  std::vector<ems_u32>   fModuleId;
-  std::vector<std::string> fModuleName;
-  std::vector<Int_t>     fModuleType;
+  // Module configuration table
 
+  bool SetEmsConfigFile(const char* filename);
+  bool SetAmplitudeChannelMap(const char* filename);
+  bool SetTimeChannelMap(const char* filename);
+
+  //
+  void PrintModuleTable(const char* filename = nullptr);
+  void PrintAmplitudeChannelMap(const char* filename = nullptr);
+  void PrintTimeChannelMap(const char* filename = nullptr);
+
+  //
+  ModuleTable GetModuleTable() { return fModuleTable; }
+
+  ChannelInfoMap GetAmplitudeChMapInfo() { return fChInfoMap_Amplitude; }
+  ChannelInfoMap GetTimeChMapInfo() { return fChInfoMap_Time; }
+
+  ChannelInfoMap GetAmplitudeChMapInfoReverse() { return fChInfoMapReverse_Amplitude; }
+  ChannelInfoMap GetTimeChMapInfoReverse() { return fChInfoMapReverse_Time; }
+
+  ChannelMap GetAmplitudeChMap() { return fChMap_Amplitude; }
+  ChannelMap GetTimeChMap() { return fChMap_Time; }
+
+  ChannelMapReverse GetAmplitudeChMapReverse() { return fChMapReverse_Amplitude; }
+  ChannelMapReverse GetTimeChMapReverse() { return fChMapReverse_Time; }
+
+private:
+  bool ReadEmsConfig(std::ifstream& infile);
+  bool ReadAmplitudeChannelMapConfig(std::ifstream& infile);
+  bool ReadTimeChannelMapConfig(std::ifstream& infile);
+
+private:
+  std::string fFileEmsConfig;
+  std::string fFileAmplitudeMapConfig;
+  std::string fFileTimeMapConfig;
+
+  ModuleTable fModuleTable; // EMS configuration
+
+  ChannelInfoMap fChInfoMap_Amplitude; // from detector channel info pair to DAQ channel info pair
+  ChannelInfoMap fChInfoMap_Time;
+  ChannelInfoMap fChInfoMapReverse_Amplitude; // from DAQ channel info pair to detector channel info pair
+  ChannelInfoMap fChInfoMapReverse_Time;
+
+  ChannelMap     fChMap_Amplitude; // from encoded detector channel id to DAQ channel info pair
+  ChannelMap     fChMap_Time;
+  ChannelMapReverse fChMapReverse_Amplitude; // from DAQ channel info pair to encoded channel id
+  ChannelMapReverse fChMapReverse_Time;
+
+  // static instance
   static KoaEmsConfig* fgInstance;
 
   ClassDef(KoaEmsConfig, 1)
