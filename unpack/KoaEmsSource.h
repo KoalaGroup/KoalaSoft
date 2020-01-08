@@ -1,7 +1,8 @@
 #include "FairSource.h"
 #include "FairLogger.h"
-#include "KoaBufferTemplate.h"
 #include "ems_interface.h"
+#include "KoaEventData.h"
+#include "KaoEmsEventData.h"
 
 class KoaEmsSource : public FairSource
 {
@@ -47,9 +48,9 @@ class KoaEmsSource : public FairSource
     if (fAssembler) delete fAssembler;
     fAssembler = assembler;
   }
-  void SetAnalyzer(KoaEmsAnalyzer* analyzer) {
-    if (fAnalyzer) delete fAnalyzer;
-    fAnalyzer = analyzer;
+  void SetDecoder(KoaEmsAnalyzer* decoder) {
+    if (fDecoder) delete fAnalyzer;
+    fAnalyzer = decoder;
   }
 
  private:
@@ -57,6 +58,7 @@ class KoaEmsSource : public FairSource
 
   virtual Int_t NextCluster();
   virtual Int_t DecodeCluster();
+  virtual void  SaveEmsEvent();
 
   Int_t ParseOptions(const ems_u32 *buf, Int_t size);
   Int_t ParseEvents(const ems_u32 *buf, Int_t size);
@@ -65,15 +67,15 @@ class KoaEmsSource : public FairSource
 
 private:
   ems_cluster fCluster; // buffer containing one raw binary EMS cluster
-  KoaBuffer<KoaDetectorData> fKoalaBuffer; // buffer for assembled detector data
-  KoaBuffer<KoaEmsEventData> fEmsEventBuffer; // buffer for ems event data
+  /* KoaEmsEventBuffer* fEmsEventBuffer; // buffer for ems event data */
+  /* KoaEventBuffer* fKoalaEventBuffer; // buffer for koala event data */
 
   std::map<ems_u32, KoaEmsUnpacker*> fUnpackers; // unpackers for each subevent in EMS
-  KoaEmsAssembler *fAssembler; // assembler for assemblying modules into koala full event
-  KoaEmsAnalyzer  *fAnalyzer; // analyzer for generating some histograms or ch id transforamtion
+  KoaEmsAssembler *fAssembler; // in charge of assemblying modules based on same timestamp
+  KoaEmsAnalyzer  *fDecoder; // decoding the module data into detector channel data
 
-  TClonesArray *fRecDigis; // output of recoil digits
-  TClonesArray *fFwdDigis; // output of fwd digits
+  // TClonesArray *fRecDigis; // output of recoil digits, TODO moved to fDecoder
+  // TClonesArray *fFwdDigis; // output of fwd digits, TODO moved to fDecoder
 
   FILE* fInput; // posix file descriptor for input stream, disk file or network streaming
 

@@ -194,20 +194,19 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
   int nr_sev, idx=0;
   int res;
 
-  // TODO EmsEventData init
-  ems_event* event_data=fEmsPrivate->prepare_event();
-  event_data->evnr_valid=false;
-  event_data->tv_valid=false;
-  event_data->scaler_valid=false;
-  event_data->bct_valid=false;
+  // EmsEventData initialize
+  KoaEmsEventBufferManager* event_manager = KoaEmsEventBufferManager::Instance();
+  // 'EMS' is the key label of the ems event buffer
+  auto event_buffer = event_manager->GetBuffer("EMS");
+  auto event_data = event_buffer->PrepareNewItem();
 
   // we need event_number, trigger id and number of subevents
   if (check_size("event", idx, size, 3)<0)
     return -1;
 
   // store event_number
-  event_data->event_nr=buf[idx++];
-  event_data->evnr_valid=true;
+  event_data->event_nr = buf[idx++];
+  event_data->evnr_valid = true;
 
   // skip trigger id
   idx++;
@@ -245,17 +244,26 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
   // TODO statistics
   fStatistics.subevents+=nr_sev;
 
-  // TODO EmsEventData storage
-  fEmsPrivate->store_event();
+  // EmsEventData storage
+  event_buffer->StoreNewItem();
 
   return 0;
 }
 
 // return:
 // 
-Int_t KoaEmsSource::ParseSubevent(const ems_u32 *buf, Int_t size, ems_u32 sev_id)
+Int_t KoaEmsSource::ParseSubevent(const ems_u32 *buf, Int_t size, ems_u32 is_id)
 {
-  
+  auto search = fUnpackers.find(is_id);
+  if ( search == fUnpackers.end() ) {
+    LOG(error) << "KoaEmsSource::ParseSubevent : No Unpacker for IS id " << is_id;
+    return -1;
+  }
+
+  if ( it->second->DoUnpack(buf, size) < 0 )
+    return -1;
+
+  return 0;
 }
 
 Bool_t KoaEmsSource::Close()
