@@ -126,6 +126,8 @@ bool KoaEmsConfig::ReadAmplitudeChannelMapConfig(std::ifstream& ftxt)
   std::string type;
   MesytecType module_type;
 
+  auto encoder = KoaMapEncoder::Instance();
+  auto detector_encoded_ids = encoder->GetChIDs();
   while (!ftxt.eof()) {
     std::getline(ftxt, line);
     std::stringstream ss(line);
@@ -158,9 +160,21 @@ bool KoaEmsConfig::ReadAmplitudeChannelMapConfig(std::ifstream& ftxt)
       return false;
     }
 
-    // insert into mapping table
+    if ( module_ch < 0 || module_ch > 31) {
+      LOG(error) << "KoaEmsConfig::ReadAmplitudeChannelMapConfig : outside of module channel range";
+      return false;
+    }
+
+    // checking detector id
     auto encoded_id = encoder->EncodeChannelID(detector_id, detector_ch);
 
+    auto it = detector_encoded_ids.find(encoded_id);
+    if ( it == detector_encoded_ids.end() ) {
+      LOG(error) << "KoaEmsConfig::ReadAmplitudeChannelMapConfig : no detector channel found, with detector_id=" << detector_id << ", ch_id=" << detector_ch;
+      return false;
+    }
+
+    // insert into mapping table
     fChInfoMap_Amplitude.emplace(std::piecewise_construct,
                                  std::forward_as_tuple(detector_id, detector_ch),
                                  std::forward_as_tuple(module_id, module_ch));
@@ -194,6 +208,8 @@ bool KoaEmsConfig::ReadTimeChannelMapConfig(std::ifstream& ftxt)
   std::string type;
   MesytecType module_type;
 
+  auto encoder = KoaMapEncoder::Instance();
+  auto detector_encoded_ids = encoder->GetChIDs();
   while (!ftxt.eof()) {
     std::getline(ftxt, line);
     std::stringstream ss(line);
@@ -226,9 +242,21 @@ bool KoaEmsConfig::ReadTimeChannelMapConfig(std::ifstream& ftxt)
       return false;
     }
 
-    // insert into mapping table
+    if ( module_ch < 0 || module_ch > 31) {
+      LOG(error) << "KoaEmsConfig::ReadTimeChannelMapConfig : outside of module channel range";
+      return false;
+    }
+
+    // checking detector id
     auto encoded_id = encoder->EncodeChannelID(detector_id, detector_ch);
 
+    auto it = detector_encoded_ids.find(encoded_id);
+    if ( it == detector_encoded_ids.end() ) {
+      LOG(error) << "KoaEmsConfig::ReadTimeChannelMapConfig : no detector channel found, with detector_id=" << detector_id << ", ch_id=" << detector_ch;
+      return false;
+    }
+
+    // insert into mapping table
     fChInfoMap_Time.emplace(std::piecewise_construct,
                             std::forward_as_tuple(detector_id, detector_ch),
                             std::forward_as_tuple(module_id, module_ch));

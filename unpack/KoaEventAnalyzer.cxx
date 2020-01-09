@@ -2,6 +2,10 @@
 #include "KoaEmsConfig.h"
 #include "KoaEventData.h"
 
+constexpr Int_t UNDER_THRESHOLD = -5;
+constexpr Int_t ADC_OVERFLOW = 0x2000;
+constexpr Int_t QDC_OVERFLOW = 0x1000;
+
 KoaEventAnalyzer::~KoaEventAnalyzer()
 {
   if(fModuleId)   delete [] fModuleId;
@@ -27,7 +31,7 @@ void KoaEventAnalyzer::Init()
   // the default buffer name for koala event is 'KOALA'
   fBuffer = bufferManager->GetBuffer("KOALA");
 
-  // 2. book the memory for decoded data, and the object for output
+  // 2. book the memory for decoded data
   // 2.1 get the ems configuration first
   auto emsConfig = KoaEmsConfig::Instance();
   if (!emsConfig) {
@@ -36,8 +40,8 @@ void KoaEventAnalyzer::Init()
   }
 
   fModuleTable = emsConfig->GetModuleTable();
-  fAmplitudeChannelMap = emsConfig->GetAmplitudeChMapInfo();
-  fTimeChannelMap = emsConfig->GetTimeChMapInfo();
+  fAmplitudeChannelMap = emsConfig->GetAmplitudeChMap();
+  fTimeChannelMap = emsConfig->GetTimeChMap();
 
   // 2.2 init the storage space
   Int_t nr_mesymodules = fModuleTable.size();
@@ -53,12 +57,52 @@ void KoaEventAnalyzer::Init()
   fTimestamp = new Long64_t[nr_mesymodules];
   fData      = new Int_t[nr_mesymodules][34];
 
+  // 2.3 get the value map
+  for( auto channel : fAmplitudeChannelMap ) {
+    auto detector_encoded_id = channel.first;
+    auto module_id = channel.second.first;
+    auto module_ch = channel.second.second;
+    auto index = fIndexMap[module_id];
+
+    fAmplitudeValueMapInput.emplace(detector_encoded_id, *(fData+index)+module_ch);
+  }
+  for( auto channel : fTimeChannelMap ) {
+    auto detector_encoded_id = channel.first;
+    auto module_id = channel.second.first;
+    auto module_ch = channel.second.second;
+    auto index = fIndexMap[module_id];
+
+    fTimeValueMapInput.emplace(detector_encoded_id, *(fData+index)+module_ch);
+  }
+
   // 3. register fRawEvent to RootManager in memory
+  // 3.1 register output object
   FairRootManager* ioMan = FairRootManager::Instance();
   fRawEvent = new KoaRawEvent();
   ioMan->RegisterAny("KoaRawEvent", fRawEvent, kFALSE);
 
-  // 3. check persistency flag, init TTree accordingly
+  // 3.2 get the value map and check whether data available
+  fAmplitudeValueMapOutput = fRawEvent->GetAmplitudeValueMap();
+  for( auto value_map : fAmplitudeValueMapOutput ) {
+    auto encoded_id = value_map.first;
+    auto search = fAmplitudeValueMapInput.find(encoded_id);
+    if (search == fAmplitudeValueMapInput.end() ) {
+      LOG(fatal) << "KoaEventAnalyzer::Init : no corresponding module data found with current amplitude mapping config";
+      return;
+    }
+  }
+
+  fTimeValueMapOutput = fRawEvent->GetTimeValueMap();
+  for( auto value_map : fTimeValueMapOutput ) {
+    auto encoded_id = value_map.first;
+    auto search = fTimeValueMapInput.find(encoded_id);
+    if (search == fTimeValueMapInput.end() ) {
+      LOG(fatal) << "KoaEventAnalyzer::Init : no corresponding module data found with current time mapping config";
+      return;
+    }
+  }
+
+  // 4. check persistency flag, init TTree accordingly
   if ( fPersistence ) {
     fRootFile->cd();
 
@@ -78,6 +122,9 @@ void KoaEventAnalyzer::Init()
       }
     }
   }
+
+  // 4. init histograms
+  InitHist();
 }
 
 bool KoaEventAnalyzer::Analyze()
@@ -105,79 +152,110 @@ void KoaEventAnalyzer::Decode()
   KoaMxdc32DataItem *event;
 
   for( auto module : fModuleTable ){
-    j
-    event = koala->modules[mod];
+    // get next module data
+    auto id = module.first;
+    auto mod = fIndexMap[id];
+    event = fCurrentEvent->moudles[id];
+
     //
     fTimestamp[mod] = event->timestamp;
-    fModuleId[mod]= (event->header>>16)&0xff;
+    fModuleId[mod] = (event->header>>16)&0xff;
     fNrWords[mod] = event->header&0xfff;
-    switch(mesymodules[mod].mesytype)
+
+    switch(module.second.type) {
+    case MesytecType::MADC32 :
       {
-      case mesytec_madc32:
-        {
-          fResolution[mod] = (event->header>>12)&0x7;
-          for(int ch=0;ch<32;ch++){
-            if(event->data[ch]){
-              if((event->data[ch]>>14)&0x1){
-                fData[mod][ch] = ADC_OVERFLOW;
-              }
-              else{
-                switch(fResolution[mod])
-                  {
-                  case 0:
-                    fData[mod][ch] = (event->data[ch])&0x7ff;
-                    break;
-                  case 1:
-                  case 2:
-                    fData[mod][ch] = (event->data[ch])&0xfff;
-                    break;
-                  case 3:
-                  case 4:
-                    fData[mod][ch] = (event->data[ch])&0x1fff;
-                    break;
-                  default:
-                    printf("Unknown resolution (KoaRawSimple::Decode)\n");
-                  }
-              }
+        fResolution[mod] = (event->header>>12)&0x7;
+        for(int ch=0;ch<32;ch++){
+          if(event->data[ch]){
+            if((event->data[ch]>>14)&0x1){
+              fData[mod][ch] = ADC_OVERFLOW;
             }
             else{
-              fData[mod][ch] = UNDER_THRESHOLD;
+              switch(fResolution[mod])
+                {
+                case 0:
+                  fData[mod][ch] = (event->data[ch])&0x7ff;
+                  break;
+                case 1:
+                case 2:
+                  fData[mod][ch] = (event->data[ch])&0xfff;
+                  break;
+                case 3:
+                case 4:
+                  fData[mod][ch] = (event->data[ch])&0x1fff;
+                  break;
+                default:
+                  LOG(WARN) << "KoaEventAnalyzer::Decode : unknown Madc32 resolution";
+                }
             }
           }
-          break;
-        }
-      case mesytec_mqdc32:
-        {
-          for(int ch=0;ch<32;ch++){
-            if(event->data[ch]){
-              if((event->data[ch]>>15)&0x1){
-                fData[mod][ch] = QDC_OVERFLOW;
-              }
-              else{
-                fData[mod][ch] = (event->data[ch])&0xfff;
-              }
-            }
-            else{
-              fData[mod][ch] = UNDER_THRESHOLD;
-            }
+          else{
+            fData[mod][ch] = UNDER_THRESHOLD;
           }
-          break;
         }
-      case mesytec_mtdc32:
-        {
-          fResolution[mod] = (event->header>>12)&0xf;
-          for(int ch=0;ch<34;ch++){
-            if(event->data[ch]){
-              fData[mod][ch] = (event->data[ch])&0xffff;
-            }
-            else{
-              fData[mod][ch] = UNDER_THRESHOLD;
-            }
-          }
-          break;
-        }
-      default:
         break;
       }
+    case MesytecType::MQDC32 :
+      {
+        for(int ch=0;ch<32;ch++){
+          if(event->data[ch]){
+            if((event->data[ch]>>15)&0x1){
+              fData[mod][ch] = QDC_OVERFLOW;
+            }
+            else{
+              fData[mod][ch] = (event->data[ch])&0xfff;
+            }
+          }
+          else{
+            fData[mod][ch] = UNDER_THRESHOLD;
+          }
+        }
+        break;
+      }
+    case MesytecType::MTDC32 :
+      {
+        fResolution[mod] = (event->header>>12)&0xf;
+        for(int ch=0;ch<34;ch++){
+          if(event->data[ch]){
+            fData[mod][ch] = (event->data[ch])&0xffff;
+          }
+          else{
+            fData[mod][ch] = UNDER_THRESHOLD;
+          }
+        }
+        break;
+      }
+    default:
+      break;
+    }
   }
+}
+
+void KoaEventAnalyzer::Fill()
+{
+  // 1. fill the raw event object
+  for( auto value_map : fAmplitudeValueMapOutput ) {
+    auto output = value_map.second;
+    auto input = fAmplitudeValueMapInput[value_map.first];
+
+    (*output) = (*input);
+  }
+
+  for( auto value_map : fTimeValueMapOutput ) {
+    auto output = value_map.second;
+    auto input = fTimeValueMapInput[value_map.first];
+
+    (*output) = (*input);
+  }
+
+  // 2. fill the output tree if persistence is set
+  if (fPersistence) {
+    for( auto module : fModuleTable ) {
+      fTreeMap[module.first]->Fill();
+    }
+  }
+
+  // 3. fill histograms if any
+  FillHist();
 }

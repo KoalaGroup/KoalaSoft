@@ -22,6 +22,10 @@ public:
 private:
   void Decode();
 
+  virtual void InitHist() {}
+  virtual void FillHist() {}
+  virtual void DeleteHist() {}
+
 private:
   // koala event buffer
   KoaEventBuffer* fBuffer;
@@ -29,8 +33,8 @@ private:
 
   // ems configuration and channel mapping
   ModuleTable fModuleTable;
-  ChannelInfoMap fAmplitudeChannelMap;
-  ChannelInfoMap fTimeChannelMap;
+  ChannelMap fAmplitudeChannelMap;
+  ChannelMap fTimeChannelMap;
 
   // output trees, each module has it's own tree
   std::map<ems_u32, TTree*> fTreeMap;
@@ -42,9 +46,13 @@ private:
   Short_t   *fNrWords;
   Long64_t *fTimestamp;
   Int_t (*fData)[34];
+  std::map<Int_t, Int_t*> fAmplitudeValueMapInput;
+  std::map<Int_t, Float_t*> fTimeValueMapInput;
 
   // Output class data, where the channel mapping is resolved
   KoaRawEvent* fRawEvent;
+  std::map<Int_t, Int_t*> fAmplitudeValueMapOutput;
+  std::map<Int_t, Float_t*> fTimeValueMapOutput;
 
   ClassDef(KoaEventAnalyzer, 1)
 };
