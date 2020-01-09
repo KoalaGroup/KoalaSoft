@@ -1,10 +1,6 @@
+#include "FairRootManager.h"
 #include "KoaEventAnalyzer.h"
-#include "KoaEmsConfig.h"
-#include "KoaEventData.h"
-
-constexpr Int_t UNDER_THRESHOLD = -5;
-constexpr Int_t ADC_OVERFLOW = 0x2000;
-constexpr Int_t QDC_OVERFLOW = 0x1000;
+#include "KoaMxdc32Data.h"
 
 KoaEventAnalyzer::~KoaEventAnalyzer()
 {
@@ -83,24 +79,7 @@ void KoaEventAnalyzer::Init()
 
   // 3.2 get the value map and check whether data available
   fAmplitudeValueMapOutput = fRawEvent->GetAmplitudeValueMap();
-  for( auto value_map : fAmplitudeValueMapOutput ) {
-    auto encoded_id = value_map.first;
-    auto search = fAmplitudeValueMapInput.find(encoded_id);
-    if (search == fAmplitudeValueMapInput.end() ) {
-      LOG(fatal) << "KoaEventAnalyzer::Init : no corresponding module data found with current amplitude mapping config";
-      return;
-    }
-  }
-
   fTimeValueMapOutput = fRawEvent->GetTimeValueMap();
-  for( auto value_map : fTimeValueMapOutput ) {
-    auto encoded_id = value_map.first;
-    auto search = fTimeValueMapInput.find(encoded_id);
-    if (search == fTimeValueMapInput.end() ) {
-      LOG(fatal) << "KoaEventAnalyzer::Init : no corresponding module data found with current time mapping config";
-      return;
-    }
-  }
 
   // 4. check persistency flag, init TTree accordingly
   if ( fPersistence ) {
@@ -236,17 +215,31 @@ void KoaEventAnalyzer::Fill()
 {
   // 1. fill the raw event object
   for( auto value_map : fAmplitudeValueMapOutput ) {
+    auto encoded_id = value_map.first;
     auto output = value_map.second;
-    auto input = fAmplitudeValueMapInput[value_map.first];
 
-    (*output) = (*input);
+    auto search = fAmplitudeValueMapInput.find(encoded_id);
+    if (search == fAmplitudeValueMapInput.end() ) {
+      (*output) = UNDER_THRESHOLD;
+    }
+    else{
+      auto input = fAmplitudeValueMapInput[encoded_id];
+      (*output) = (*input);
+    }
   }
 
   for( auto value_map : fTimeValueMapOutput ) {
+    auto encoded_id = value_map.first;
     auto output = value_map.second;
-    auto input = fTimeValueMapInput[value_map.first];
 
-    (*output) = (*input);
+    auto search = fTimeValueMapInput.find(encoded_id);
+    if (search == fTimeValueMapInput.end() ) {
+      (*output) = UNDER_THRESHOLD;
+    }
+    else{
+      auto input = fTimeValueMapInput[encoded_id];
+      (*output) = (*input);
+    }
   }
 
   // 2. fill the output tree if persistence is set

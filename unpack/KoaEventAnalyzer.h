@@ -4,12 +4,13 @@
 #include "KoaRawEventAnalyzer.h"
 #include "KoaEventData.h"
 #include "KoaRawEvent.h"
+#include "KoaEmsConfig.h"
 #include <map>
 
 class KoaEventAnalyzer : public KoaRawEventAnalyzer
 {
 public:
-  KoaEventAnalyzer();
+  KoaEventAnalyzer() {}
   ~KoaEventAnalyzer();
 
   virtual void Init();

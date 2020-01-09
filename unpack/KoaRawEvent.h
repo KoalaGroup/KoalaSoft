@@ -1,11 +1,14 @@
 #ifndef KOA_RAW_EVENT_H
 #define KOA_RAW_EVENT_H
 
+constexpr Int_t UNDER_THRESHOLD = -5;
+constexpr Int_t ADC_OVERFLOW = 0x2000;
+constexpr Int_t QDC_OVERFLOW = 0x1000;
+
 /* Raw Event format after decoding.
  * Since it's an unamed class, it can only be registered as a tree branch through:
  * FairRootManager->RegisterAny() but not FairRootManager->Register()
  */
-
 class KoaRawEvent
 {
 public:
