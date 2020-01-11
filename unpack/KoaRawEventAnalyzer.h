@@ -32,13 +32,20 @@ public:
 
     if (fPersistence) {
       FairRootManager* ioMan = FairRootManager::Instance();
-      TString fileName = ioMan->GetSink()->GetFileName();
+      auto sink = ioMan->GetSink();
+      if(!sink) {
+        LOG(fatal) << "KoaRawEventAnalyzer::SetPersistence : no sink available, setup sink first";
+      }
+
+      TString fileName = sink->GetFileName();
       fileName.ReplaceAll(".root","_RawModuleBased.root");
       fRootFile = new TFile(fileName, "recreate");
     }
   }
 
 private:
+  virtual void Decode() = 0;
+
   virtual void InitHist() = 0;
   virtual void FillHist() = 0;
   virtual void DeleteHist() = 0;

@@ -32,6 +32,8 @@ using ChannelMap = std::map<Int_t, ChannelInfo>; // from encoded detector channe
 using ChannelMapReverse = std::map<ChannelInfo, Int_t>; // from DAQ channel info to encoded detector channel id
 using ChannelInfoMap = std::map<ChannelInfo, ChannelInfo>; // from channel info pair to channel info map
 
+using ScalorMap = std::map<std::string, int>;
+
 /* This class stores the EMS DAQ configuration information and the mapping table from
    DAQ channel to Detector channel.
 
@@ -63,11 +65,13 @@ public:
   bool SetEmsConfigFile(const char* filename);
   bool SetAmplitudeChannelMap(const char* filename);
   bool SetTimeChannelMap(const char* filename);
+  bool SetScalorChannelMap(const char* filename);
 
   //
   void PrintModuleTable(const char* filename = nullptr);
   void PrintAmplitudeChannelMap(const char* filename = nullptr);
   void PrintTimeChannelMap(const char* filename = nullptr);
+  void PrintScalorChannelMap(const char* filename = nullptr);
 
   //
   ModuleTable GetModuleTable() { return fModuleTable; }
@@ -84,15 +88,19 @@ public:
   ChannelMapReverse GetAmplitudeChMapReverse() { return fChMapReverse_Amplitude; }
   ChannelMapReverse GetTimeChMapReverse() { return fChMapReverse_Time; }
 
+  ScalorMap GetScalorChMap() { return fScalorChMap; }
+
 private:
   bool ReadEmsConfig(std::ifstream& infile);
   bool ReadAmplitudeChannelMapConfig(std::ifstream& infile);
   bool ReadTimeChannelMapConfig(std::ifstream& infile);
+  bool ReadScalorChannelMapConfig(std::ifstream& infile);
 
 private:
   std::string fFileEmsConfig;
   std::string fFileAmplitudeMapConfig;
   std::string fFileTimeMapConfig;
+  std::string fFileScalorMapConfig;
 
   ModuleTable fModuleTable; // EMS configuration
 
@@ -105,6 +113,8 @@ private:
   ChannelMap     fChMap_Time;
   ChannelMapReverse fChMapReverse_Amplitude; // from DAQ channel info pair to encoded channel id
   ChannelMapReverse fChMapReverse_Time;
+
+  ScalorMap fScalorChMap;
 
   // static instance
   static KoaEmsConfig* fgInstance;

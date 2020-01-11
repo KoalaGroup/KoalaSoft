@@ -61,6 +61,19 @@ bool KoaEmsConfig::SetTimeChannelMap(const char* filename)
   return ReadTimeChannelMapConfig(ftxt);
 }
 
+bool KoaEmsConfig::SetScalorChannelMap(const char* filename)
+{
+  std::ifstream ftxt;
+  fFileScalorMapConfig = gSystem->ExpandPathName(filename);
+  ftxt.open(fFileScalorMapConfig);
+  if (!ftxt.is_open()) {
+    LOG(error) << "KoaEmsConfig::SetScalorChannelMap : can't open file " << filename;
+    return false;
+  }
+
+  return ReadScalorChannelMapConfig(ftxt);
+}
+
 bool KoaEmsConfig::ReadEmsConfig(std::ifstream& ftxt)
 {
   std::string line;
@@ -276,6 +289,37 @@ bool KoaEmsConfig::ReadTimeChannelMapConfig(std::ifstream& ftxt)
   return true;
 }
 
+bool KoaEmsConfig::ReadScalorChannelMapConfig(std::ifstream& ftxt)
+{
+  std::string line;
+
+  // get comment line
+  std::getline(ftxt, line);
+
+  // read body txt
+  std::string scalor_name;
+  int scalor_index;
+
+  while (!ftxt.eof()) {
+    std::getline(ftxt, line);
+    std::stringstream ss(line);
+
+    ss >> scalor_name >> scalor_index;
+
+    if ( scalor_index < 0 || scalor_index > 31 ) {
+      LOG(error) << "KoaEmsConfig::ReadScalorChannelMapConfig : outside of scalor channel range";
+      return false;
+    }
+
+    // insert into mapping table
+    fScalorChMap.emplace(scalor_name, scalor_index);
+  }
+
+  ftxt.close();
+
+  return true;
+}
+
 void KoaEmsConfig::PrintModuleTable(const char* filename)
 {
   std::ostringstream output;
@@ -413,6 +457,29 @@ void KoaEmsConfig::PrintTimeChannelMap(const char* filename)
 
     output << module_id << "\t" << type << "\t" << module_channel
            << "\t" << detector_id << "\t" << detector_channel << std::endl;
+  }
+
+  // write to file or screen
+  if ( !filename ) {
+    std::cout << output;
+  }
+  else {
+    std::ofstream ftxt(gSystem->ExpandPathName(filename));
+    ftxt << output;
+    ftxt.close();
+  }
+}
+
+void KoaEmsConfig::PrintScalorChannelMap(const char* filename)
+{
+  std::ostringstream output;
+
+  // output comment line
+  output << "# scalor_name scalor_channel";
+
+  // output table
+  for( auto& mapping : fScalorChMap ) {
+    output << mapping.first << "\t" << mapping.second << std::endl;
   }
 
   // write to file or screen

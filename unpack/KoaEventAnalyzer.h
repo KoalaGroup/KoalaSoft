@@ -15,13 +15,11 @@ public:
 
   virtual void Init();
   virtual bool Analyze();
-  virtual void Finish();
-
   virtual void Recycle() { fCurrentEvent->Recycle(); }
   virtual void Fill();
 
 private:
-  void Decode();
+  virtual void Decode();
 
   virtual void InitHist() {}
   virtual void FillHist() {}
