@@ -29,6 +29,8 @@ set(SRCS
 #Put here your sourcefiles
 KoaRunOnline.cxx
 KoaEmsConfig.cxx
+KoaRawEvent.cxx
+KoaEmsRawEvent.cxx
 )
 
 Set(LINKDEF KoaUnpackLinkDef.h)
