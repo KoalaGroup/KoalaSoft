@@ -7,7 +7,7 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   //  logger->SetLogFileName("MyLog.log");
   logger->SetLogToScreen(kTRUE);
   //  logger->SetLogToFile(kTRUE);
-  //  logger->SetLogVerbosityLevel("HIGH");
+   // logger->SetLogVerbosityLevel("HIGH");
   //  logger->SetLogFileLevel("DEBUG4");
   logger->SetLogScreenLevel("WARNING");
     
@@ -67,14 +67,14 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   run->AddModule(pipe);
     
   KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
-  // rec_det->SetGeometryFileName("rec.root");
-  rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
+  rec_det->SetGeometryFileName("rec.root");
+  // rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
   rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
   KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  // fwd_det->SetGeometryFileName("fwd.root");
-  fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
+  fwd_det->SetGeometryFileName("fwd.root");
+  // fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
   fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
 
@@ -83,6 +83,7 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
     KoaPPElasticIdealGenerator* idealGen = new KoaPPElasticIdealGenerator(beamMom);
+    // idealGen->SetGeantino();
     idealGen->SetAlphaRange(0,20);
     primGen->AddGenerator(idealGen);
 
@@ -92,6 +93,12 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   evtFilter->SetZRange(-3,30);
   evtFilter->SetYRange(-10,10);
   primGen->AndFilter(evtFilter);
+
+  // Smear Interaction Point
+  primGen->SmearVertexZ(kTRUE);
+  primGen->SetTarget(0, 0.2); // target thickness: 2 mm
+  primGen->SmearVertexXY(kTRUE);
+  primGen->SetBeam(0, 0, 1., 1.); // beam width: 10 mm
 
   run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
@@ -123,7 +130,7 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
    rtdb->print();
 
   //You can export your ROOT geometry ot a separate file
-  run->CreateGeometryFile("geofile_full.root");
+  // run->CreateGeometryFile("geofile_full.root");
   // ------------------------------------------------------------------------
   
   delete run;

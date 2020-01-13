@@ -61,7 +61,7 @@ class KoaMapEncoder : public TObject
   std::vector<Int_t> GetRecChIDs();
   std::vector<Int_t> GetFwdChIDs();
   std::vector<Int_t> GetRecTdcChIDs();
-  std::vector<Int_t> GerRecRearChIDs();
+  std::vector<Int_t> GetRecRearChIDs();
 
   Int_t GetChNr(Int_t detID) { return fDetectorIDToChNr[detID]; }
 
