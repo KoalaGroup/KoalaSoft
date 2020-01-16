@@ -2,6 +2,23 @@
 #define KOA_BUFFER_TEMPLATE
 
 #include "FairLogger.h"
+#include <cstdint>
+#include <iostream>
+
+/************** KoaBufferStatistic Begin ********************/
+struct KoaBufferStatistic
+{
+  KoaBufferStatistic() : events(0), words(0) {}
+  void Reset() {
+    events = 0;
+    words  = 0
+  }
+
+  std::uint64_t events;
+  std::uint64_t words;
+};
+
+/************** KoaBufferStatist End ********************/
 
 /************** KoaBufferItem Begin ********************/
 template<typename> class KoaBufferDepot; // forward-declaration
@@ -363,22 +380,40 @@ public:
     return buffer;
   }
 
+  KoaBufferStatistic* GetStatistic(std::string name) {
+    KoaBufferStatistic* buffer;
+    auto search = fStatistList.find(name);
+    if (search != fStatistList.end()) {
+      buffer = search->second;
+    }
+    else {
+      buffer = new KoaBufferStatistic();
+      fStatistList.emplace(name, buffer);
+    }
+    return buffer;
+  }
+
 private:
   friend class CleanerType;
 
   KoaBufferManager() {}
   ~KoaBufferManager() {
     for( auto buffer : fBufferList ) {
-      delete buffer->second;
+      delete buffer.second;
     }
     fBufferList.clear();
+
+    for ( auto statist : fStatistList ) {
+      delete statist.second;
+    }
+    fStatistList.clear();
   }
 
   static KoaBufferManager* fInstance;
   static CleanerType fManagerCleaner;
 
   std::map<std::string, BufferType*> fBufferList;
-
+  std::map<std::string, KoaBufferStatistic*> fStatistList;
 };
 
 template<typename DataType>

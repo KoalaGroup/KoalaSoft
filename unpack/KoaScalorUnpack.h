@@ -12,15 +12,11 @@ class KoaScalorUnpack : public KoaUnpack
   ~KoaScalorUnpack() {}
 
   Bool_t Init();
-  Bool_t ReInit();
-  Bool_t DoUnpack(ems_u32* buf, Int_t size);
-  void   Reset();
-  void   SetParContainers();
-
- protected:
-  void Register();
+  Int_t  DoUnpack(ems_u32* buf, Int_t size);
+  void   Reset() {}
 
  private:
+  KoaEmsEventBuffer *fEmsBuffer;
   
   ClassDef(KoaScalorUnpack, 1)
 };

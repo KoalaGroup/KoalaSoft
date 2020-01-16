@@ -22,7 +22,6 @@ KoaEmsSource::~KoaEmsSource()
   if (fEmsEvtAnalyzer) delete fEmsEvtAnalyzer;
 }
 
-// TODO
 Bool_t KoaEmsSource::Init()
 {
   // 1. assembler
@@ -118,7 +117,7 @@ Int_t KoaEmsSource::DecodeCluster()
   // 1) size and endiantest are already known, skip them
   idx+=2;
   if (check_size("cluster", idx, size, 1)<0)
-    return -1; //TODO, invalid cluster, which value to return
+    return -1; // invalid cluster, which value to return
 
   // 2) parse the cluster based on the type
   clustertype=static_cast<clustertypes>(buf[idx++]);
@@ -131,7 +130,7 @@ Int_t KoaEmsSource::DecodeCluster()
       LOG_S(INFO)<<"cluster: events No."<< fStatistics.evclusters;
 
       if (ParseEvents(buf+idx, size-idx) < 0)
-        return -1; //TODO, invalid cluster, which value to return
+        return -1; // invalid cluster, which value to return
       break;
     }
   case clusterty_ved_info:
@@ -163,11 +162,11 @@ Int_t KoaEmsSource::DecodeCluster()
   default:
     {
       LOG_S(ERROR)<<"unknown or unhandled clustertype"<<clustertype<<endl;
-      return -1; //TODO, invalid cluster, which value to return
+      return -1; // invalid cluster, which value to return
     }
   }
 
-  return clustertype == clusterty_no_more_data ? 0 : 1; //TODO, whether there is more cluster to come, which value to return
+  return clustertype == clusterty_no_more_data ? 0 : 1; // whether there is more cluster to come, which value to return
 }
 
 // return:
@@ -216,7 +215,7 @@ Int_t KoaEmsSource::ParseEvents(const ems_u32 *buf, Int_t size)
   // TODO statistics
   fStatistics.events+=nr_events;
 
-  return 0; // TODO
+  return 0; //
 }
 
 // return:
