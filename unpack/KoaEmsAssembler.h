@@ -9,6 +9,15 @@
 
 class KoaEmsAssembler : public TObject
 {
+public:
+  KoaEmsAssembler();
+  ~KoaEmsAssembler();
+
+  void Init() = 0;
+  
+
+private:
+
   ClassDef(KoaEmsAssembler, 1)
 };
 #endif

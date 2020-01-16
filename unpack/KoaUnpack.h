@@ -12,7 +12,7 @@ class KoaUnpack : public TNamed
 
   virtual Bool_t Init() = 0;
   virtual Bool_t ReInit() { return kTRUE; }
-  virtual Bool_t DoUnpack(ems_u32* buf, Int_t size) = 0;
+  virtual Int_t DoUnpack(ems_u32* buf, Int_t size) = 0;
   virtual void   Reset() = 0;
   virtual void   SetParContainers() {};
 
@@ -20,9 +20,6 @@ class KoaUnpack : public TNamed
 
  private:
   ems_u32 fISId; // Instrument ID in EMS configuration file
-
- protected:
-  virtual void Register() = 0; //TODO, the function of this method?
 
   ClasDef(KoaUnpack, 1)
 };

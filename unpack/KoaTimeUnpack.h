@@ -2,7 +2,7 @@
 #define KOA_TIME_UNPACK_H
 
 #include "KoaUnpack.h"
-#include "KoaBufferTemplate.h"
+#include "KoaEmsEventData.h"
 
 class KoaTimeUnpack : public KoaUnpack
 {
@@ -12,16 +12,12 @@ class KoaTimeUnpack : public KoaUnpack
   ~KoaTimeUnpack() {}
 
   Bool_t Init();
-  Bool_t ReInit();
-  Bool_t DoUnpack(ems_u32* buf, Int_t size);
-  void   Reset();
-  void   SetParContainers();
-
- protected:
-  void Register();
+  Int_t  DoUnpack(ems_u32* buf, Int_t size);
+  void   Reset() {}
 
  private:
-  
+  KoaEmsEventBuffer *fEmsBuffer;
+
   ClassDef(KoaTimeUnpack, 1)
 };
 #endif

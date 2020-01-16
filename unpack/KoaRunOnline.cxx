@@ -286,7 +286,7 @@ void KoaRunOnline::Run(Int_t Ev_start, Int_t Ev_end)
       if(1 == status) { // source is not readable anymore or interrupted by user while in main event loop
         break;
       }
-      else if(2 == status) { // the current event-reading from source failed, skip to next event
+      else if(2 == status) { // the current event-reading from source failed, skip to next event/cluster
         continue;
       }
 

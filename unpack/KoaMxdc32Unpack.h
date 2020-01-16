@@ -3,6 +3,7 @@
 
 #include "KoaUnpack.h"
 #include "KoaMxdc32Data.h"
+#include "KoaEmsConfig.h"
 #include <map>
 
 class KoaMxdc32Unpack : public KoaUnpack
@@ -13,16 +14,12 @@ class KoaMxdc32Unpack : public KoaUnpack
   ~KoaMxdc32Unpack() {}
 
   Bool_t Init();
-  Bool_t ReInit();
-  Bool_t DoUnpack(ems_u32* buf, Int_t size);
+  Int_t  DoUnpack(ems_u32* buf, Int_t size);
   void   Reset();
-  void   SetParContainers();
-
-protected:
-  void Register();
 
 private:
-  std::map<ems_u32, KoaMxdc32Buffer*> fModuleBuffers;
+  std::map<ModuleId, KoaMxdc32Buffer*> fModuleBuffer;
+  ModuleTable fModuleTable;
 
   ClassDef(KoaMxdc32Unpack, 1)
 };

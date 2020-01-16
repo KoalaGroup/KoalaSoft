@@ -6,7 +6,8 @@ void run_sim_filtered(Int_t nEvents = 100, Int_t pdgid=0, const char* outdir="./
   //  logger->SetLogToFile(kTRUE);
   //  logger->SetLogVerbosityLevel("HIGH");
   //  logger->SetLogFileLevel("DEBUG4");
-  logger->SetLogScreenLevel("WARNING");
+  // logger->SetLogScreenLevel("WARNING");
+  logger->SetLogScreenLevel("INFO");
 
   // Set the random seed
   gRandom->SetSeed(98989);

@@ -1,8 +1,15 @@
+#ifndef KOA_EMS_SOURCE_H
+#define KOA_EMS_SOURCE_H
+
 #include "FairSource.h"
 #include "FairLogger.h"
 #include "ems_interface.h"
-#include "KoaEventData.h"
-#include "KaoEmsEventData.h"
+#include <map>
+#include "stdio.h"
+
+class KoaUnpack;
+class KoaRawEventAnalyzer;
+class KoaEmsAssembler;
 
 class KoaEmsSource : public FairSource
 {
@@ -13,9 +20,9 @@ class KoaEmsSource : public FairSource
 
   virtual Source_Type GetSourceType() { return kONLINE; }
 
-  virtual Bool_t Init() = 0;
-  virtual Int_t ReadEvent(UInt_t=0) = 0;// return value: 0: success, 1: end of file, 2: current event not useful skip to next event
-  virtual void Close() = 0;
+  virtual Bool_t Init();
+  virtual Int_t ReadEvent(UInt_t=0);// return value: 0: success, 1: end of file, 2: current event not useful skip to next event
+  virtual void Close();
 
   virtual void Reset();
 
@@ -48,34 +55,36 @@ class KoaEmsSource : public FairSource
     if (fAssembler) delete fAssembler;
     fAssembler = assembler;
   }
-  void SetDecoder(KoaEmsAnalyzer* decoder) {
-    if (fDecoder) delete fAnalyzer;
-    fAnalyzer = decoder;
+  void SetKoaEventAnalyzer(KoaRawEventAnalyzer* analyzer) {
+    if (fKoaEvtAnalyzer) delete fKoaEvtAnalyzer;
+    fKoaEvtAnalyzer = analyzer;
+  }
+  void SetEmsEventAnalyzer(KoaRawEventAnalyzer* analyzer) {
+    if (fEmsEvtAnalyzer) delete fEmsEvtAnalyzer;
+    fEmsEvtAnalyzer = analyzer;
   }
 
  private:
   KoaEmsSource& operator=(const KoaEmsSource&);
 
+  // read in next cluster and saved in fCluster from input stream
   virtual Int_t NextCluster();
+  // decode the cluster data saved in fCluster
   virtual Int_t DecodeCluster();
-  virtual void  SaveEmsEvent();
 
+  // parser function for each segment in the cluster, invoked step by step sequentially by DecodeCluster
   Int_t ParseOptions(const ems_u32 *buf, Int_t size);
   Int_t ParseEvents(const ems_u32 *buf, Int_t size);
   Int_t ParseEvent(const ems_u32 *buf, Int_t size);
   Int_t ParseSubevent(const ems_u32 *buf, Int_t size, ems_u32 sev_id);
 
 private:
-  ems_cluster fCluster; // buffer containing one raw binary EMS cluster
-  /* KoaEmsEventBuffer* fEmsEventBuffer; // buffer for ems event data */
-  /* KoaEventBuffer* fKoalaEventBuffer; // buffer for koala event data */
-
+  ems_cluster fCluster; // buffer containing one raw binary EMS cluster, also in charge of cluster read
   std::map<ems_u32, KoaEmsUnpacker*> fUnpackers; // unpackers for each subevent in EMS
-  KoaEmsAssembler *fAssembler; // in charge of assemblying modules based on same timestamp
-  KoaEmsAnalyzer  *fDecoder; // decoding the module data into detector channel data
 
-  // TClonesArray *fRecDigis; // output of recoil digits, TODO moved to fDecoder
-  // TClonesArray *fFwdDigis; // output of fwd digits, TODO moved to fDecoder
+  KoaEmsAssembler *fAssembler; // in charge of assemblying modules based on same timestamp
+  KoaRawEventAnalyzer  *fKoaEvtAnalyzer; // decoding the module data into detector channel data
+  KoaRawEventAnalyzer  *fEmsEvtAnalyzer; // decoding ems data
 
   FILE* fInput; // posix file descriptor for input stream, disk file or network streaming
 

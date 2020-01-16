@@ -26,7 +26,7 @@ struct KoaMxdc32Data
   }
   void Recycle() {}
 
-  ems_u32 channel[34];// channel data words including trigger channel, the index is ch_id, 33,34 is trigger input
+  ems_u32 data[34];// channel data words including trigger channel, the index is ch_id, 33,34 is trigger input
   ems_u32 header; // header word
   ems_u32 footer; // end of event word
 

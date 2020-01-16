@@ -64,6 +64,8 @@ bool KoaEmsEventAnalyzer::Analyze()
 
   // 5. Recycle
   Recycle();
+
+  return true;
 }
 
 void KoaEmsEventAnalyzer::Decode()

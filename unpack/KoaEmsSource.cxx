@@ -9,48 +9,99 @@ KoaEmsSource::~KoaEmsSource()
 {
   // delete unpackers
   for (auto unpacker : fUnpackers) {
-    if( unpacker->second )
-      delete unpacker->second;
+    if( unpacker.second )
+      delete unpacker.second;
   }
   fUnpackers.clear();
+
+  // delete assembler
+  if (fAssembler) delete fAssembler;
+
+  // delete raw event analyzers
+  if (fKoaEvtAnalyzer) delete fKoaEvtAnalyzer;
+  if (fEmsEvtAnalyzer) delete fEmsEvtAnalyzer;
 }
 
+// TODO
 Bool_t KoaEmsSource::Init()
 {
-  
+  // 1. assembler
+  if ( !fAssembler ) {
+    LOG(fatal) << "KoaEmsSource::Init : no assembler assgined!";
+    return false;
+  }
+  fAssembler->Init();
+
+  // 2. event analyzers
+  if ( !fEmsEvtAnalyzer ) {
+    LOG(fatal) << "KoaEmsSource::Init : no analyzer for ems event assgined!";
+    return false;
+  }
+  fEmsEvtAnalyzer->Init();
+
+  if ( !fKoaEvtAnalyzer ) {
+    LOG(fatal) << "KoaEmsSource::Init : no analyzer for koala event assgined!";
+    return false;
+  }
+  fKoaEvtAnalyzer->Init();
+
+  // 3. TODO other init jobs
+
+  return true;
 }
 
 Bool_t KoaEmsSource::SetParUnpackers()
 {
-  
+  for (auto unpacker : fUnpackers) {
+    unpacker.second->SetParContainers();
+  }
+
+  return true;
 }
 
-Bool_t KoaEmsSource::InitParContainers()
+Bool_t KoaEmsSource::InitUnpackers()
 {
-  
+  for (auto unpacker : fUnpackers) {
+    unpacker.second->Init();
+  }
+
+  return true;
 }
 
 Int_t KoaEmsSource::ReadEvent()
 {
-  // 1) Get the next assembled koala event
-  Int_t status = GetNextEvent();
+  // 1) Get the next assembled koala event, if not read new cluster
+  if ( fKoaEvtAnalyzer->Analyze() ) {
+    return 0;
+  }
 
   // 2) If no more assembled event, get the next cluster
+  if ( !NextCluster() ) {
+    // error occured or interrupted by user during cluster reading
+    return 1;
+  }
 
   // 3) parsing the new cluster
   status = DecodeCluster();
+  if ( status < 0 ) {
+    // cluster structure not correct, skip this cluster
+    return 2;
+  }
 
   // 4) process the ems event
+  fEmsEvtAnalyzer->Analyze();
 
   // 5) assemble the new module events and fill in the koala event buffer
+  fAssembler->Assemble();
 
   // 6) go back to ReadEvent again
   ReadEvent();
 }
 
+// TODO read in next cluster and saved in fCluster from input stream
 Bool_t KoaEmsSource::NextCluster()
 {
-  
+  // reading process deployed to fCluster by passing file descriptor to ems_cluster
 }
 
 // return value:
@@ -266,17 +317,24 @@ Int_t KoaEmsSource::ParseSubevent(const ems_u32 *buf, Int_t size, ems_u32 is_id)
   return 0;
 }
 
+//
 Bool_t KoaEmsSource::Close()
 {
-  
+  // 1. event analyzers
+  fEmsEvtAnalyzer->Finish();
+  fKoaEvtAnalyzer->Finish();
 }
 
 Bool_t KoaEmsSource::ReInitUnpackers()
 {
-  
+  for (auto unpacker : fUnpackers) {
+    unpacker.second->Reinit();
+  }
 }
 
 Bool_t KoaEmsSource::Reset()
 {
-  
+  for (auto unpacker : fUnpackers) {
+    unpacker.second->Reset();
+  }
 }
