@@ -14,12 +14,15 @@ class KoaEmsAssembler;
 class KoaEmsSource : public FairSource
 {
  public:
-  KoaEmsSource();
+  KoaEmsSource() : fInput(-1) {}
   KoaEmsSource(const KoaEmsSource& source);
   virtual ~KoaEmsSource();
 
   virtual Source_Type GetSourceType() { return kONLINE; }
 
+  // setup input file descriptor: ordaniry file or network socket
+  virtual Bool_t SetupInput(const char* filename) = 0;
+  
   virtual Bool_t Init();
   virtual Int_t ReadEvent(UInt_t=0);// return value: 0: success, 1: end of file, 2: current event not useful skip to next event
   virtual void Close();
@@ -67,12 +70,32 @@ class KoaEmsSource : public FairSource
  private:
   KoaEmsSource& operator=(const KoaEmsSource&);
 
+  enum class clustertypes {
+    clusterty_events=0,
+    clusterty_ved_info=1,
+    clusterty_text=2,
+    clusterty_wendy_setup=3,
+    clusterty_file=4,
+    clusterty_async_data=5,
+    clusterty_async_data2=6, /* includes mqtt */
+    clusterty_no_more_data=0x10000000,
+  };
+
   // read in next cluster and saved in fCluster from input stream
   virtual Int_t NextCluster();
   // decode the cluster data saved in fCluster
   virtual Int_t DecodeCluster();
 
   // parser function for each segment in the cluster, invoked step by step sequentially by DecodeCluster
+  Int_t CheckSize(const char* txt, Int_t idx, Int_t size, Int_t needed)
+  {
+    if ( size >= idx+needed )
+      return 0;
+
+    LOG(ERROR) << txt <<" at idx "<< idx <<" too short: "
+               << needed <<" words needed, " << size-idx <<" available";
+    return -1;
+  }
   Int_t ParseOptions(const ems_u32 *buf, Int_t size);
   Int_t ParseEvents(const ems_u32 *buf, Int_t size);
   Int_t ParseEvent(const ems_u32 *buf, Int_t size);
@@ -86,7 +109,7 @@ private:
   KoaRawEventAnalyzer  *fKoaEvtAnalyzer; // decoding the module data into detector channel data
   KoaRawEventAnalyzer  *fEmsEvtAnalyzer; // decoding ems data
 
-  FILE* fInput; // posix file descriptor for input stream, disk file or network streaming
+  int fInput; // posix file descriptor for input stream, disk file or network streaming
 
   ClassDef(KoaEmsSource, 1)
 };

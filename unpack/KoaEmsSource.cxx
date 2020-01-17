@@ -44,7 +44,14 @@ Bool_t KoaEmsSource::Init()
   }
   fKoaEvtAnalyzer->Init();
 
-  // 3. TODO other init jobs
+  // 4. set up input file descriptor
+  if ( fInput < 0 ) {
+    LOG(fatal) << "KoaEmsSource::Init : no valid input stream available, invoking SetupInput first!";
+    return false;
+  }
+  fCluster.set_input(fInput);
+
+  // 5. TODO other init jobs
 
   return true;
 }
@@ -86,6 +93,10 @@ Int_t KoaEmsSource::ReadEvent()
     // cluster structure not correct, skip this cluster
     return 2;
   }
+  else if ( status == 0 ) {
+    // the last cluster encountered
+    return 3;
+  }
 
   // 4) process the ems event
   fEmsEvtAnalyzer->Analyze();
@@ -101,6 +112,21 @@ Int_t KoaEmsSource::ReadEvent()
 Bool_t KoaEmsSource::NextCluster()
 {
   // reading process deployed to fCluster by passing file descriptor to ems_cluster
+
+  // 1. clear buffer
+  fCluster.clear_buffer();
+
+  // 2. read header
+  if ( fCluster.read_header() ) {
+    return false;
+  }
+
+  // 3. read body
+  if ( fCluster.read_body() ) {
+    return false;
+  }
+
+  return true;
 }
 
 // return value:
@@ -112,11 +138,11 @@ Int_t KoaEmsSource::DecodeCluster()
   Int_t idx=0;
   clustertypes clustertype;
   ems_u32* buf = static_cast<ems_u32*>fCluster.buffer.data;
-  Int_t size = fCluster.buffer.size;
+  Int_t size = static_cast<int>(fCluster.size/sizeof(ems_u32));
 
   // 1) size and endiantest are already known, skip them
   idx+=2;
-  if (check_size("cluster", idx, size, 1)<0)
+  if (CheckSize("KoaEmsSource::DecodeCluster :", idx, size, 1)<0)
     return -1; // invalid cluster, which value to return
 
   // 2) parse the cluster based on the type
@@ -127,7 +153,7 @@ Int_t KoaEmsSource::DecodeCluster()
     {
       // TODO statistics
       fStatistics.evclusters++;
-      LOG_S(INFO)<<"cluster: events No."<< fStatistics.evclusters;
+      LOG(INFO) << "cluster: events No."<< fStatistics.evclusters;
 
       if (ParseEvents(buf+idx, size-idx) < 0)
         return -1; // invalid cluster, which value to return
@@ -136,24 +162,24 @@ Int_t KoaEmsSource::DecodeCluster()
   case clusterty_ved_info:
     {
       // currently ignored
-      LOG_S(INFO)<<"cluster: ved_info";
+      LOG(INFO)<<"cluster: ved_info";
       break;
     }
   case clusterty_text:
     {
       // currently ignored
-      LOG_S(INFO)<<"cluster: text";
+      LOG(INFO)<<"cluster: text";
       break;
     }
   case clusterty_file:
     {
       // currently ignored
-      LOG_S(INFO)<<"cluster: file";
+      LOG(INFO)<<"cluster: file";
       break;
     }
   case clusterty_no_more_data: // the last cluster in a file
     {
-      LOG_S(INFO)<<"cluster: no more data";
+      LOG(INFO)<<"cluster: no more data";
       break;
     }
   case clusterty_wendy_setup:  // unknown types
@@ -161,7 +187,7 @@ Int_t KoaEmsSource::DecodeCluster()
   case clusterty_async_data2:  // unknown types
   default:
     {
-      LOG_S(ERROR)<<"unknown or unhandled clustertype"<<clustertype<<endl;
+      LOG(ERROR) << "unknown or unhandled clustertype " << clustertype;
       return -1; // invalid cluster, which value to return
     }
   }
@@ -182,7 +208,7 @@ Int_t KoaEmsSource::ParseEvents(const ems_u32 *buf, Int_t size)
   idx += num;
 
   // we need flags, VED_ID, fragment_id and number_of_events
-  if (check_size("events", idx, size, 4)<0)
+  if (CheckSize("KoaEmsSource::ParseEvents :", idx, size, 4)<0)
     return -1;
 
   // skip flags, VED_ID, fragment_id
@@ -192,12 +218,12 @@ Int_t KoaEmsSource::ParseEvents(const ems_u32 *buf, Int_t size)
   nr_events=buf[idx++];
   for (Int_t i=0; i<nr_events; i++) {
     // we need the event size
-    if (check_size("events", idx, size, 1)<0)
+    if (CheckSize("KoaEmsSource::ParseEvents :", idx, size, 1)<0)
       return -1;
     Int_t ev_size=buf[idx++];
 
     // and we need ev_size words
-    if (check_size("events", idx, size, ev_size)<0)
+    if (CheckSize("KoaEmsSource::ParseEvents :", idx, size, ev_size)<0)
       return -1;
 
     // parse event
@@ -208,7 +234,7 @@ Int_t KoaEmsSource::ParseEvents(const ems_u32 *buf, Int_t size)
   }
 
   if (idx != size) {
-    LOG_S(ERROR)<<"parse_events: size="<<size<<", used words="<<idx;
+    LOG(ERROR) << "parse_events: size=" << size << ", used words=" << idx;
     return -1;
   }
 
@@ -226,11 +252,11 @@ Int_t KoaEmsSource::ParseOptions(const ems_u32 *buf, Int_t size)
   Int_t idx=0;
   Int_t optsize;
 
-  if (check_size("options", idx, size, 1)<0)
+  if (CheckSize("KoaEmsSource::ParseOptions :", idx, size, 1)<0)
     return -1;
 
   optsize=buf[idx++];
-  if (check_size("options", idx, size, optsize)<0)
+  if (CheckSize("KoaEmsSource::ParseOptions :", idx, size, optsize)<0)
     return -1;
 
   return optsize+1;
@@ -251,7 +277,7 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
   auto event_data = event_buffer->PrepareNewItem();
 
   // we need event_number, trigger id and number of subevents
-  if (check_size("event", idx, size, 3)<0)
+  if (CheckSize("KoaEmsSource::ParseEvent :", idx, size, 3)<0)
     return -1;
 
   // store event_number
@@ -269,14 +295,14 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
     ems_u32 sev_id;
 
     // we need instrumentation systen ID (==subevent ID) and the size
-    if (check_size("event", idx, size, 2)<0)
+    if (CheckSize("KoaEmsSource::ParseEvent :", idx, size, 2)<0)
       return -1;
 
     sev_id=buf[idx++]; // IS id
     sev_size=buf[idx++]; // size of subevent
 
     // and we need sev_size words
-    if (check_size("event", idx, size, sev_size)<0)
+    if (CheckSize("KoaEmsSource::ParseEvent :", idx, size, sev_size)<0)
       return -1;
 
     // parse subevent
@@ -287,7 +313,7 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
   }
 
   if (idx!=size) {
-    LOG_S(ERROR)<<"parse_events: size="<<size<<", used words="<<idx;
+    LOG(ERROR) << "parse_events: size=" << size << ", used words=" << idx;
     return -1;
   }
 
@@ -322,6 +348,8 @@ Bool_t KoaEmsSource::Close()
   // 1. event analyzers
   fEmsEvtAnalyzer->Finish();
   fKoaEvtAnalyzer->Finish();
+
+  // 2. TODO other
 }
 
 Bool_t KoaEmsSource::ReInitUnpackers()
