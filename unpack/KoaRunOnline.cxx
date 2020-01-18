@@ -290,7 +290,7 @@ void KoaRunOnline::Run(Int_t Ev_start, Int_t Ev_end)
         continue;
       }
       else if ( 3 == status ) { // the last cluster encountered
-        
+        break;
       }
 
       if(gKOAIsInterrupted) // interrupted by the user at this loop
@@ -315,6 +315,9 @@ void KoaRunOnline::Run(Int_t Ev_start, Int_t Ev_end)
       else if (2 == status) { // the current event-reading from source failed, skip to next event
         entry -= 1; // this event does not count
         continue;
+      }
+      else if ( 3 == status ) { // the last cluster encountered
+        break;
       }
 
       if(gKOAIsInterrupted) // interrupted by the user at this loop

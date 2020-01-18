@@ -9,7 +9,7 @@
 
 class KoaUnpack;
 class KoaRawEventAnalyzer;
-class KoaEmsAssembler;
+class KoaEventAssembler;
 
 class KoaEmsSource : public FairSource
 {
@@ -25,9 +25,9 @@ class KoaEmsSource : public FairSource
   
   virtual Bool_t Init();
   virtual Int_t ReadEvent(UInt_t=0);// return value: 0: success, 1: end of file, 2: current event not useful skip to next event
-  virtual void Close();
+  virtual void Close(); // finish jobs at the end of run
 
-  virtual void Reset();
+  virtual void Reset(); // invoked at the beginning of each readevent
 
   virtual void SetParUnpackers();
   virtual Bool_t InitUnpackers();
@@ -54,7 +54,7 @@ class KoaEmsSource : public FairSource
     }
   }
 
-  void SetAssembler(KoaEmsAssembler* assembler) {
+  void SetAssembler(KoaEventAssembler* assembler) {
     if (fAssembler) delete fAssembler;
     fAssembler = assembler;
   }
@@ -105,7 +105,7 @@ private:
   ems_cluster fCluster; // buffer containing one raw binary EMS cluster, also in charge of cluster read
   std::map<ems_u32, KoaEmsUnpacker*> fUnpackers; // unpackers for each subevent in EMS
 
-  KoaEmsAssembler *fAssembler; // in charge of assemblying modules based on same timestamp
+  KoaEventAssembler *fAssembler; // in charge of assemblying modules based on same timestamp
   KoaRawEventAnalyzer  *fKoaEvtAnalyzer; // decoding the module data into detector channel data
   KoaRawEventAnalyzer  *fEmsEvtAnalyzer; // decoding ems data
 

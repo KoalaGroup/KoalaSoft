@@ -349,7 +349,14 @@ Bool_t KoaEmsSource::Close()
   fEmsEvtAnalyzer->Finish();
   fKoaEvtAnalyzer->Finish();
 
-  // 2. TODO other
+  // 2. close input stream
+  if ( fInput >= 0 ) {
+    LOG(info) << "KoaEmsSource::Close : close input stream";
+    close(fInput);
+  }
+
+  // 3. TODO other
+  fAssembler->Finish();
 }
 
 Bool_t KoaEmsSource::ReInitUnpackers()

@@ -21,6 +21,7 @@ void run_unpack(const char* data)
   TString dir = getenv("VMCWORKDIR");
 
   KoaRunOnline *fRun = new KoaRunOnline();
+  // fRun->SetAutoFinish(kFALSE); // auto finish or not,  default is TRUE
 
   // Setup ems configuration
   KoaEmsConfig* emsConfig = new KoaEmsConfig();
@@ -37,7 +38,9 @@ void run_unpack(const char* data)
     fFileSource->AddUnpacker(100, timeUnpack);
 
     // Config assembler
-    KoaEmsAssembler *assembler = new KoaEmsAssembler();
+    KoaEventAssembler *assembler = new KoaEventAssembler();
+    // assembler->SetQdcTimeDiff(3);
+    // assembler->SetMaxTimeDiff(4);
     fFileSource->SetAssembler(assembler);
   
     // Config analyzer
@@ -89,6 +92,8 @@ void run_unpack(const char* data)
   rtdb->print();
 
   // -----   Finish   --------------------------------------------------------
+  // fRun->Finish(); // in case automatic finish is not set
+
   delete emsConfig;
 
   cout << endl << endl;

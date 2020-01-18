@@ -13,7 +13,6 @@ struct KoaEventData
   ~KoaEventData() {}
 
   void Initialize() {
-    mask = 0;
     modules.clear();
   }
   void Recycle() {
@@ -22,7 +21,6 @@ struct KoaEventData
     }
   }
 
-  ems_u32 mask; // whether corresponding module has data in this event
   std::map<ems_u32, Mxdc32Data*> modules;
 };
 
