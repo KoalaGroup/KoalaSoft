@@ -10,7 +10,7 @@ public:
   KoaEmsFileSource() {}
   KoaEmsFileSource(const char* filename)
   {
-    SetInput(filename);
+    SetupInput(filename);
   }
   ~KoaEmsFileSource() {}
 
