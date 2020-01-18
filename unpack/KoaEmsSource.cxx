@@ -1,10 +1,5 @@
 #include "KoaEmsSource.h"
 
-KoaEmsSource::KoaEmsSource()
-{
-  
-}
-
 KoaEmsSource::~KoaEmsSource()
 {
   // delete unpackers

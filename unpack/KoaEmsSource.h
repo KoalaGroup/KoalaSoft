@@ -14,7 +14,8 @@ class KoaEventAssembler;
 class KoaEmsSource : public FairSource
 {
  public:
-  KoaEmsSource() : fInput(-1) {}
+  KoaEmsSource() : fInput(-1), fAssembler(nullptr), fKoaEvtAnalyzer(nullptr), fEmsEvtAnalyzer(nullptr)
+  {}
   KoaEmsSource(const KoaEmsSource& source);
   virtual ~KoaEmsSource();
 
