@@ -7,12 +7,12 @@
 class KoaUnpack : public TNamed
 {
  public:
-  KoaUnpack(ems_u32 is_id, const char* name, const char* title) : TNamed(name, title), fISId(is_id){}
+  KoaUnpack(ems_u32 is_id, const char* name, const char* title) : TNamed(name, title), fISId(is_id) {}
   virtual ~KoaUnpack() {}
 
   virtual Bool_t Init() = 0;
   virtual Bool_t ReInit() { return kTRUE; }
-  virtual Int_t DoUnpack(ems_u32* buf, Int_t size) = 0;
+  virtual Int_t DoUnpack(const ems_u32* buf, Int_t size) = 0;
   virtual void   Reset() = 0;
   virtual void   SetParContainers() {};
 
@@ -21,6 +21,6 @@ class KoaUnpack : public TNamed
  private:
   ems_u32 fISId; // Instrument ID in EMS configuration file
 
-  ClasDef(KoaUnpack, 1)
+  ClassDef(KoaUnpack, 1)
 };
 #endif

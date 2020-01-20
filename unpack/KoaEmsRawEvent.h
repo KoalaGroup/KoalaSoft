@@ -22,7 +22,7 @@ struct KoaEmsRawEvent
     }
 
     Second = rhs.Second;
-    USecond = rhs.Usecond;
+    Usecond = rhs.Usecond;
     EventNr = rhs.EventNr;
 
     return *this;

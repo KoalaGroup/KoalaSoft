@@ -2,7 +2,7 @@
 #define KOA_SCALOR_UNPACK_H
 
 #include "KoaUnpack.h"
-#include "KoaBufferTemplate.h"
+#include "KoaEmsEventData.h"
 
 class KoaScalorUnpack : public KoaUnpack
 {
@@ -12,7 +12,7 @@ class KoaScalorUnpack : public KoaUnpack
   ~KoaScalorUnpack() {}
 
   Bool_t Init();
-  Int_t  DoUnpack(ems_u32* buf, Int_t size);
+  Int_t  DoUnpack(const ems_u32* buf, Int_t size);
   void   Reset() {}
 
  private:

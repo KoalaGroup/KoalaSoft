@@ -46,12 +46,15 @@ private:
   Long64_t *fTimestamp;
   Int_t (*fData)[34];
   std::map<Int_t, Int_t*> fAmplitudeValueMapInput;
-  std::map<Int_t, Float_t*> fTimeValueMapInput;
+  std::map<Int_t, Int_t*> fTimeValueMapInput;
+  std::map<Int_t, Char_t*> fTimeResolutionMap;
 
   // Output class data, where the channel mapping is resolved
   KoaRawEvent* fRawEvent;
   std::map<Int_t, Int_t*> fAmplitudeValueMapOutput;
   std::map<Int_t, Float_t*> fTimeValueMapOutput;
+
+  constexpr static Float_t fTimeUnit[] = {-1,1./256,2./256,4./256,8./256,16./256,32./256,64./256,128./256}; // unit: ns
 
   ClassDef(KoaEventAnalyzer, 1)
 };

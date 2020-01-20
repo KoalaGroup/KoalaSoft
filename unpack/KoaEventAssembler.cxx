@@ -7,7 +7,7 @@ void KoaEventAssembler::Init()
   if (!emsConfig) {
     LOG(fatal) << "KoaEventAssembler::Init : no valid EMS configuration information exists,"
                << "instantiate an instance of KoaEmsConfig first!";
-    return false;
+    return;
   }
   fModuleTable = emsConfig->GetModuleTable();
 
@@ -32,10 +32,10 @@ void KoaEventAssembler::Assemble()
   while ( IsFull() ) {
     auto koala_cur = fKoalaBuffer->PrepareNewItem();
     for ( auto module : fModuleBuffer ) {
-      koala_cur->modules.empalce(module.first, module.second->PopTopItem());
+      koala_cur->fData.modules.emplace(module.first, module.second->PopTopItem());
     }
     fKoalaBuffer->StoreNewItem();
   }
 }
 
-ClassImp(KoaEventAnalyzer)
+ClassImp(KoaEventAssembler)

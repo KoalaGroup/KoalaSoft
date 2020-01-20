@@ -18,11 +18,4 @@ Bool_t KoaEmsFileSource::SetupInput(const char* filename)
   return true;
 }
 
-void KoaEmsStreamSource::Close()
-{
-  shutdown(fInput, SHUT_RDWR);
-
-  KoaEmsSource::Close();
-}
-
-ClassImp(KoaEmsFileSource, 1)
+ClassImp(KoaEmsFileSource)

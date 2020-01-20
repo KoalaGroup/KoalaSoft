@@ -1,5 +1,7 @@
 #include "KoaEmsEventAnalyzer.h"
 #include "KoaEmsConfig.h"
+#include "KoaEmsRawEvent.h"
+#include "TTree.h"
 
 KoaEmsEventAnalyzer::~KoaEmsEventAnalyzer()
 {
@@ -38,7 +40,7 @@ void KoaEmsEventAnalyzer::Init()
     fTree->Branch("KoaEmsRawEvent", &fCurrentRawEvent);
 
     // write the scalor mapping
-    fRootFile->WriteObjectAny(fScalorChMap, "std::map<std::string,int>", "ScalorChMap");
+    fRootFile->WriteObjectAny(&fScalorChMap, "std::map<std::string,int>", "ScalorChMap");
   }
 
   // 5. init histograms if any
@@ -71,11 +73,11 @@ bool KoaEmsEventAnalyzer::Analyze()
 void KoaEmsEventAnalyzer::Decode()
 {
   for ( int i=0; i<32; i++ ) {
-    fCurrentRawEvent->Scalor[i] = fCurrentEvent->scalor[i];
+    fCurrentRawEvent->Scalor[i] = fCurrentEvent->fData.scalor[i];
   }
-  fCurrentRawEvent->Second = fCurrentEvent->time.tv_sec;
-  fCurrentRawEvent->Usecond = fCurrentEvent->time.tv_usec;
-  fCurrentRawEvent->EventNr = fCurrentEvent->EventNr;
+  fCurrentRawEvent->Second = fCurrentEvent->fData.time.tv_sec;
+  fCurrentRawEvent->Usecond = fCurrentEvent->fData.time.tv_usec;
+  fCurrentRawEvent->EventNr = fCurrentEvent->fData.event_nr;
 }
 
 void KoaEmsEventAnalyzer::UpdateRate()

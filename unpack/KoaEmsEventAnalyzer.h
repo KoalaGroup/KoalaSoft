@@ -5,6 +5,9 @@
 #include "KoaEmsEventData.h"
 #include <map>
 
+class KoaEmsRawEvent;
+class TTree;
+
 class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
 {
  public:
@@ -17,7 +20,7 @@ class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
   virtual void Fill();
 
  private:
-  virutal void Decode();
+  virtual void Decode();
 
   virtual void InitHist() {}
   virtual void FillHist();

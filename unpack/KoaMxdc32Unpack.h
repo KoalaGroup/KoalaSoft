@@ -14,7 +14,7 @@ class KoaMxdc32Unpack : public KoaUnpack
   ~KoaMxdc32Unpack() {}
 
   Bool_t Init();
-  Int_t  DoUnpack(ems_u32* buf, Int_t size);
+  Int_t  DoUnpack(const ems_u32* buf, Int_t size);
   void   Reset();
 
 private:

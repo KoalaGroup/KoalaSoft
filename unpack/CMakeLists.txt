@@ -13,6 +13,9 @@ set(INCLUDE_DIRECTORIES
 ${BASE_INCLUDE_DIRECTORIES}
 #put here all directories where header files are located
 ${CMAKE_SOURCE_DIR}/unpack
+${CMAKE_SOURCE_DIR}/rec
+${CMAKE_SOURCE_DIR}/fwd
+${CMAKE_SOURCE_DIR}/tools
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -29,8 +32,16 @@ set(SRCS
 #Put here your sourcefiles
 KoaRunOnline.cxx
 KoaEmsConfig.cxx
-KoaRawEvent.cxx
-KoaEmsRawEvent.cxx
+KoaEmsSource.cxx
+KoaEmsFileSource.cxx
+KoaEmsStreamSource.cxx
+KoaScalorUnpack.cxx
+KoaTimeUnpack.cxx
+KoaMxdc32Unpack.cxx
+KoaEventAnalyzer.cxx
+KoaEmsEventAnalyzer.cxx
+KoaEventAssembler.cxx
+KoaRawEventTransform.cxx
 )
 
 Set(LINKDEF KoaUnpackLinkDef.h)
@@ -41,6 +52,9 @@ Set(DEPENDENCIES
     Geom
     Core
     RHTTP
+    KoaTools
+    KoaRec
+    KoaFwd
 )
 
 GENERATE_LIBRARY()

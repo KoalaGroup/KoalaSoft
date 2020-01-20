@@ -32,7 +32,7 @@ InitStatus KoaRawEventTransform::Init()
 
   // Create other new output branches
   if ( fPersistence ) {
-    ioMan->RegisterAny("KoaRawEvent", fRawEvent, KTRUE);
+    ioman->RegisterAny("KoaRawEvent", fRawEvent, kTRUE);
   }
 
   fRecDigis = new TClonesArray("KoaRecDigi", 300);
@@ -61,7 +61,7 @@ void KoaRawEventTransform::SetParContainers()
   LOG(debug) << "KoaRawEventTransform::SetParContainers";
 }
 
-void KoaRawEventTransform::Exec()
+void KoaRawEventTransform::Exec(Option_t* opt)
 {
   Int_t index = 0;
   // recoil front side

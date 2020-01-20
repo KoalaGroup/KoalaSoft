@@ -17,7 +17,7 @@ struct KoaEventData
   }
   void Recycle() {
     for( auto module : modules ) {
-      module->second->Recycle();
+      module.second->Recycle();
     }
   }
 

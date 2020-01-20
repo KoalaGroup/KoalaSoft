@@ -12,7 +12,7 @@ class KoaTimeUnpack : public KoaUnpack
   ~KoaTimeUnpack() {}
 
   Bool_t Init();
-  Int_t  DoUnpack(ems_u32* buf, Int_t size);
+  Int_t  DoUnpack(const ems_u32* buf, Int_t size);
   void   Reset() {}
 
  private:

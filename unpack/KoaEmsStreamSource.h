@@ -14,7 +14,7 @@ public:
   ~KoaEmsStreamSource() {}
 
   virtual Bool_t SetupInput(const char* server);
-  virtual Bool_t SetupInput(std::string char* ip, std::string port);
+  virtual Bool_t SetupInput(std::string ip, std::string port);
   virtual void Close();
 
   ClassDef(KoaEmsStreamSource, 1)

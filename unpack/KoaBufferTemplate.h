@@ -11,7 +11,7 @@ struct KoaBufferStatistic
   KoaBufferStatistic() : events(0), words(0) {}
   void Reset() {
     events = 0;
-    words  = 0
+    words  = 0;
   }
 
   std::uint64_t events;
@@ -69,7 +69,7 @@ void KoaBufferItem<DataType>::Recycle()
 
   // Recycle itself
   auto Depot = KoaBufferDepot<DataType>::Instance();
-  Depot->put(this);
+  Depot->Put(this);
 }
 
 /************** KoaBufferItem End ********************/
@@ -150,7 +150,8 @@ public:
   }
 
 protected:
-  friend class CleanerType;
+  /* friend class CleanerType; */
+  friend class KoaBufferDepotCleaner<DataType>;
 
   KoaBufferDepot() : fTop(nullptr) {}
   ~KoaBufferDepot() {
@@ -173,7 +174,7 @@ template<typename DataType>
 KoaBufferDepot<DataType>* KoaBufferDepot<DataType>::fInstance = nullptr;
 
 template<typename DataType>
-KoaBufferDepotCleaner<DataType>* KoaBufferDepot<DataType>::fDepotCleaner;
+KoaBufferDepotCleaner<DataType> KoaBufferDepot<DataType>::fDepotCleaner;
 /************** KoaBufferDepot End ********************/
 
 /************** KoaBuffer Begin ********************/
@@ -300,7 +301,7 @@ public:
 
   // Recycle all item space from top to current item
   void RecycleUptoCurrent() {
-    Item* temp;
+    ItemType* temp;
     while ( fTop != fCurrent ) {
       temp = fTop;
       fTop = fTop->fNext;
@@ -394,7 +395,8 @@ public:
   }
 
 private:
-  friend class CleanerType;
+  /* friend class CleanerType; */
+  friend class KoaBufferManagerCleaner<DataType>;
 
   KoaBufferManager() {}
   ~KoaBufferManager() {
@@ -420,6 +422,6 @@ template<typename DataType>
 KoaBufferManager<DataType>* KoaBufferManager<DataType>::fInstance = nullptr;
 
 template<typename DataType>
-KoaBufferManagerCleaner<DataType>* KoaBufferManager<DataType>::fManagerCleaner;
+KoaBufferManagerCleaner<DataType> KoaBufferManager<DataType>::fManagerCleaner;
 /************** KoaBufferManager End ********************/
 #endif

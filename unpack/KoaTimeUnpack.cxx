@@ -8,7 +8,7 @@ Bool_t KoaTimeUnpack::Init()
   return true;
 }
 
-Int_t KoaTimeUnpack::DoUnpack(ems_u32* buf, Int_t size)
+Int_t KoaTimeUnpack::DoUnpack(const ems_u32* buf, Int_t size)
 {
   if ( size!=2 ) {
     LOG(ERROR) << "KoaTimeUnpack::DoUnpack : timestamp should have 2 words, but found " << size;

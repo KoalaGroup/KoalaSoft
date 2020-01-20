@@ -24,7 +24,7 @@ Bool_t KoaMxdc32Unpack::Init()
   return true;
 }
 
-Int_t KoaMxdc32Unpack::DoUnpack(ems_u32* buf, Int_t size)
+Int_t KoaMxdc32Unpack::DoUnpack(const ems_u32* buf, Int_t size)
 {
   KoaMxdc32Buffer *priv = nullptr;
   KoaMxdc32DataItem *event = nullptr;

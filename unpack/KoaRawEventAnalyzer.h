@@ -3,12 +3,13 @@
 
 #include "TObject.h"
 #include "FairRootManager.h"
+#include "FairLogger.h"
 
 class KoaRawEventAnalyzer : public TObject
 {
 public:
   KoaRawEventAnalyzer() : fPersistence(false), fRootFile(nullptr) {}
-  ~KoaRawEventAnalyzer() {
+  virtual ~KoaRawEventAnalyzer() {
     DeleteHist();
 
     if (fRootFile) {
@@ -46,11 +47,11 @@ public:
 private:
   virtual void Decode() = 0;
 
-  virtual void InitHist() = 0;
-  virtual void FillHist() = 0;
-  virtual void DeleteHist() = 0;
+  virtual void InitHist() {}
+  virtual void FillHist() {}
+  virtual void DeleteHist() {}
 
-private:
+protected:
   bool fPersistence;
   TFile* fRootFile;
 

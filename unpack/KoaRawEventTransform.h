@@ -2,9 +2,10 @@
 #define KOA_RAWEVENT_TRANSFORM_H
 
 #include "FairTask.h"
+#include "TClonesArray.h"
+#include "FairLogger.h"
 
 class KoaRawEvent;
-class TClonesArray;
 
 /* This class is used to transform KOALA raw event to standard simulation output data form.
  * It should be used together with KoaEmsSource.

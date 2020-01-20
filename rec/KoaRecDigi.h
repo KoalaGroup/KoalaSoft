@@ -16,7 +16,6 @@
 #define KOARECDIGI_H
 
 #include "FairTimeStamp.h"
-#include "KoaDetectorList.h"
 #include "KoaMapEncoder.h"
 
 #include "TObject.h"

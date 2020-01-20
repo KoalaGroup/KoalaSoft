@@ -18,7 +18,7 @@ class KoaEventAssembler : public TObject
 public:
   KoaEventAssembler() : fQdcTimeDiff(3), fMaxTimeDiff(4)
   {}
-  ~KoaEventAssembler() {}
+  virtual ~KoaEventAssembler() {}
 
   virtual void Init();
   virtual void Assemble();
@@ -54,7 +54,7 @@ private:
   Bool_t IsFull()
   {
     for ( auto buffer : fModuleBuffer ) {
-      if ( buffer.second.IsEmpty() )
+      if ( buffer.second->IsEmpty() )
         return false;
     }
     return true;

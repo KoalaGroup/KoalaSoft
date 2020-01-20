@@ -3,7 +3,7 @@
 
 #include "TObject.h"
 #include <cstdint>
-#include <ifstream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include <map>
@@ -11,14 +11,18 @@
 /* Module type enumeration. The value comes from KoalaEms definition, which is not important in KoalaSoft. */
 enum class MesytecType : std::uint64_t
 {
-  MTDC32 = 0x23f10032UL,
-  MADC32 = 0x21f10032UL,
-  MQDC32 = 0x22f10032UL
+    MTDC32 = 0x23f10032UL,
+    MADC32 = 0x21f10032UL,
+    MQDC32 = 0x22f10032UL,
+    INVALID = 0x00000000UL
 };
 
 /* Module configuration table. Module id as key, Module info as value */
 struct ModuleInfo
 {
+  ModuleInfo() : type(MesytecType::INVALID), name("INVALID") {}
+  ModuleInfo(MesytecType& intype, std::string& inname) : type(intype), name(inname) {}
+
   MesytecType type;
   std::string name;
 };

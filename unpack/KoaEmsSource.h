@@ -4,6 +4,8 @@
 #include "FairSource.h"
 #include "FairLogger.h"
 #include "ems_interface.h"
+#include "KoaEventAssembler.h"
+#include "KoaRawEventAnalyzer.h"
 #include <map>
 #include "stdio.h"
 
@@ -83,7 +85,7 @@ class KoaEmsSource : public FairSource
   };
 
   // read in next cluster and saved in fCluster from input stream
-  virtual Int_t NextCluster();
+  virtual Bool_t NextCluster();
   // decode the cluster data saved in fCluster
   virtual Int_t DecodeCluster();
 
@@ -102,15 +104,18 @@ class KoaEmsSource : public FairSource
   Int_t ParseEvent(const ems_u32 *buf, Int_t size);
   Int_t ParseSubevent(const ems_u32 *buf, Int_t size, ems_u32 sev_id);
 
+protected:
+  int fInput; // posix file descriptor for input stream, disk file or network streaming
+
 private:
   ems_cluster fCluster; // buffer containing one raw binary EMS cluster, also in charge of cluster read
-  std::map<ems_u32, KoaEmsUnpacker*> fUnpackers; // unpackers for each subevent in EMS
+  std::map<ems_u32, KoaUnpack*> fUnpackers; // unpackers for each subevent in EMS
 
   KoaEventAssembler *fAssembler; // in charge of assemblying modules based on same timestamp
   KoaRawEventAnalyzer  *fKoaEvtAnalyzer; // decoding the module data into detector channel data
   KoaRawEventAnalyzer  *fEmsEvtAnalyzer; // decoding ems data
 
-  int fInput; // posix file descriptor for input stream, disk file or network streaming
-
   ClassDef(KoaEmsSource, 1)
 };
+
+#endif

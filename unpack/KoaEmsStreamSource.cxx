@@ -3,7 +3,7 @@
 #include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <string.h>
+#include <cstring>
 #include <cstdlib>
 
 // server string is combination of hostname + port like: hostname:port
@@ -42,12 +42,12 @@ Bool_t KoaEmsStreamSource::SetupInput(std::string ip, std::string port)
 
   int status = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
   if ( status != 0 ) {
-    LOG(fatal) << "KoaEmsStreamSource::SetupInput : " << gai_strerror(s);
+    LOG(fatal) << "KoaEmsStreamSource::SetupInput : " << gai_strerror(status);
     exit(EXIT_FAILURE);
   }
 
   // try each [host, port] returned by getaddrinfo until success
-  if ( rp = result; rp != NULL; rp = rp->ai_next ) {
+  for ( rp = result; rp != NULL; rp = rp->ai_next ) {
     fInput = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
 
     if ( fInput == -1 )
@@ -78,7 +78,7 @@ Bool_t KoaEmsStreamSource::SetupInput(std::string ip, std::string port)
 
 void KoaEmsStreamSource::Close()
 {
-  shutdown(fInput);
+  shutdown(fInput, SHUT_RDWR);
 
   KoaEmsSource::Close();
 }

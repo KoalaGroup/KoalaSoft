@@ -1,9 +1,11 @@
 #include "KoaEmsConfig.h"
 #include "KoaMapEncoder.h"
 #include "FairLogger.h"
+#include "TSystem.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 KoaEmsConfig* KoaEmsConfig::fgInstance = nullptr;
 
@@ -111,7 +113,7 @@ bool KoaEmsConfig::ReadEmsConfig(std::ifstream& ftxt)
     // insert into table
     auto search = fModuleTable.find(module_id);
     if ( search != fModuleTable.end() ) {
-      LOG(erro) << "KoaEmsConfig::ReadEmsConfig : duplicated module id!";
+      LOG(error) << "KoaEmsConfig::ReadEmsConfig : duplicated module id!";
       return false;
     }
 
@@ -127,8 +129,6 @@ bool KoaEmsConfig::ReadEmsConfig(std::ifstream& ftxt)
 
 bool KoaEmsConfig::ReadAmplitudeChannelMapConfig(std::ifstream& ftxt)
 {
-  KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-
   std::string line;
 
   // get comment line
@@ -181,7 +181,7 @@ bool KoaEmsConfig::ReadAmplitudeChannelMapConfig(std::ifstream& ftxt)
     // checking detector id
     auto encoded_id = encoder->EncodeChannelID(detector_id, detector_ch);
 
-    auto it = detector_encoded_ids.find(encoded_id);
+    auto it = std::find(detector_encoded_ids.begin(), detector_encoded_ids.end(), encoded_id);
     if ( it == detector_encoded_ids.end() ) {
       LOG(error) << "KoaEmsConfig::ReadAmplitudeChannelMapConfig : no detector channel found, with detector_id=" << detector_id << ", ch_id=" << detector_ch;
       return false;
@@ -209,8 +209,6 @@ bool KoaEmsConfig::ReadAmplitudeChannelMapConfig(std::ifstream& ftxt)
 
 bool KoaEmsConfig::ReadTimeChannelMapConfig(std::ifstream& ftxt)
 {
-  KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-
   std::string line;
 
   // get comment line
@@ -263,7 +261,7 @@ bool KoaEmsConfig::ReadTimeChannelMapConfig(std::ifstream& ftxt)
     // checking detector id
     auto encoded_id = encoder->EncodeChannelID(detector_id, detector_ch);
 
-    auto it = detector_encoded_ids.find(encoded_id);
+    auto it = std::find(detector_encoded_ids.begin(), detector_encoded_ids.end(), encoded_id);
     if ( it == detector_encoded_ids.end() ) {
       LOG(error) << "KoaEmsConfig::ReadTimeChannelMapConfig : no detector channel found, with detector_id=" << detector_id << ", ch_id=" << detector_ch;
       return false;
@@ -357,11 +355,11 @@ void KoaEmsConfig::PrintModuleTable(const char* filename)
 
   // write to file or screen
   if ( !filename ) {
-    std::cout << output;
+    std::cout << output.str();
   }
   else {
     std::ofstream ftxt(gSystem->ExpandPathName(filename));
-    ftxt << output;
+    ftxt << output.str();
     ftxt.close();
   }
 }
@@ -379,7 +377,7 @@ void KoaEmsConfig::PrintAmplitudeChannelMap(const char* filename)
     auto detector_chinfo = mapping.second;
 
     auto module_id = module_chinfo.first;
-    auto module_channel = moudle_chinfo.second;
+    auto module_channel = module_chinfo.second;
     auto detector_id = detector_chinfo.first;
     auto detector_channel = detector_chinfo.second;
     auto module_type = fModuleTable[module_id].type;
@@ -409,11 +407,11 @@ void KoaEmsConfig::PrintAmplitudeChannelMap(const char* filename)
 
   // write to file or screen
   if ( !filename ) {
-    std::cout << output;
+    std::cout << output.str();
   }
   else {
     std::ofstream ftxt(gSystem->ExpandPathName(filename));
-    ftxt << output;
+    ftxt << output.str();
     ftxt.close();
   }
 }
@@ -431,7 +429,7 @@ void KoaEmsConfig::PrintTimeChannelMap(const char* filename)
     auto detector_chinfo = mapping.second;
 
     auto module_id = module_chinfo.first;
-    auto module_channel = moudle_chinfo.second;
+    auto module_channel = module_chinfo.second;
     auto detector_id = detector_chinfo.first;
     auto detector_channel = detector_chinfo.second;
     auto module_type = fModuleTable[module_id].type;
@@ -461,11 +459,11 @@ void KoaEmsConfig::PrintTimeChannelMap(const char* filename)
 
   // write to file or screen
   if ( !filename ) {
-    std::cout << output;
+    std::cout << output.str();
   }
   else {
     std::ofstream ftxt(gSystem->ExpandPathName(filename));
-    ftxt << output;
+    ftxt << output.str();
     ftxt.close();
   }
 }
@@ -484,11 +482,11 @@ void KoaEmsConfig::PrintScalorChannelMap(const char* filename)
 
   // write to file or screen
   if ( !filename ) {
-    std::cout << output;
+    std::cout << output.str();
   }
   else {
     std::ofstream ftxt(gSystem->ExpandPathName(filename));
-    ftxt << output;
+    ftxt << output.str();
     ftxt.close();
   }
 }

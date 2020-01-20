@@ -1,4 +1,9 @@
 #include "KoaEmsSource.h"
+#include "KoaRawEventAnalyzer.h"
+#include "KoaEventAssembler.h"
+#include "KoaUnpack.h"
+#include "KoaEmsEventData.h"
+#include "FairLogger.h"
 
 KoaEmsSource::~KoaEmsSource()
 {
@@ -51,13 +56,11 @@ Bool_t KoaEmsSource::Init()
   return true;
 }
 
-Bool_t KoaEmsSource::SetParUnpackers()
+void KoaEmsSource::SetParUnpackers()
 {
   for (auto unpacker : fUnpackers) {
     unpacker.second->SetParContainers();
   }
-
-  return true;
 }
 
 Bool_t KoaEmsSource::InitUnpackers()
@@ -69,7 +72,7 @@ Bool_t KoaEmsSource::InitUnpackers()
   return true;
 }
 
-Int_t KoaEmsSource::ReadEvent()
+Int_t KoaEmsSource::ReadEvent(UInt_t value)
 {
   // 1) Get the next assembled koala event, if not read new cluster
   if ( fKoaEvtAnalyzer->Analyze() ) {
@@ -83,7 +86,7 @@ Int_t KoaEmsSource::ReadEvent()
   }
 
   // 3) parsing the new cluster
-  status = DecodeCluster();
+  Int_t status = DecodeCluster();
   if ( status < 0 ) {
     // cluster structure not correct, skip this cluster
     return 2;
@@ -132,7 +135,7 @@ Int_t KoaEmsSource::DecodeCluster()
 {
   Int_t idx=0;
   clustertypes clustertype;
-  ems_u32* buf = static_cast<ems_u32*>fCluster.buffer.data;
+  ems_u32* buf = reinterpret_cast<ems_u32*>(fCluster.buffer.data);
   Int_t size = static_cast<int>(fCluster.size/sizeof(ems_u32));
 
   // 1) size and endiantest are already known, skip them
@@ -141,53 +144,53 @@ Int_t KoaEmsSource::DecodeCluster()
     return -1; // invalid cluster, which value to return
 
   // 2) parse the cluster based on the type
-  clustertype=static_cast<clustertypes>(buf[idx++]);
+  clustertype = static_cast<clustertypes>(buf[idx++]);
 
   switch (clustertype) {
-  case clusterty_events: // event type
+  case clustertypes::clusterty_events: // event type
     {
       // TODO statistics
-      fStatistics.evclusters++;
-      LOG(INFO) << "cluster: events No."<< fStatistics.evclusters;
+      // fStatistics.evclusters++;
+      // LOG(INFO) << "cluster: events No."<< fStatistics.evclusters;
 
       if (ParseEvents(buf+idx, size-idx) < 0)
         return -1; // invalid cluster, which value to return
       break;
     }
-  case clusterty_ved_info:
+  case clustertypes::clusterty_ved_info:
     {
       // currently ignored
       LOG(INFO)<<"cluster: ved_info";
       break;
     }
-  case clusterty_text:
+  case clustertypes::clusterty_text:
     {
       // currently ignored
       LOG(INFO)<<"cluster: text";
       break;
     }
-  case clusterty_file:
+  case clustertypes::clusterty_file:
     {
       // currently ignored
       LOG(INFO)<<"cluster: file";
       break;
     }
-  case clusterty_no_more_data: // the last cluster in a file
+  case clustertypes::clusterty_no_more_data: // the last cluster in a file
     {
       LOG(INFO)<<"cluster: no more data";
       break;
     }
-  case clusterty_wendy_setup:  // unknown types
-  case clusterty_async_data:   // unknown types
-  case clusterty_async_data2:  // unknown types
+  case clustertypes::clusterty_wendy_setup:  // unknown types
+  case clustertypes::clusterty_async_data:   // unknown types
+  case clustertypes::clusterty_async_data2:  // unknown types
   default:
     {
-      LOG(ERROR) << "unknown or unhandled clustertype " << clustertype;
+      LOG(ERROR) << "unknown or unhandled clustertype " << static_cast<ems_u32>(clustertype);
       return -1; // invalid cluster, which value to return
     }
   }
 
-  return clustertype == clusterty_no_more_data ? 0 : 1; // whether there is more cluster to come, which value to return
+return clustertype == clustertypes::clusterty_no_more_data ? 0 : 1; // whether there is more cluster to come, which value to return
 }
 
 // return:
@@ -234,7 +237,7 @@ Int_t KoaEmsSource::ParseEvents(const ems_u32 *buf, Int_t size)
   }
 
   // TODO statistics
-  fStatistics.events+=nr_events;
+  // fStatistics.events+=nr_events;
 
   return 0; //
 }
@@ -276,8 +279,8 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
     return -1;
 
   // store event_number
-  event_data->event_nr = buf[idx++];
-  event_data->evnr_valid = true;
+  event_data->fData.event_nr = buf[idx++];
+  event_data->fData.evnr_valid = true;
 
   // skip trigger id
   idx++;
@@ -313,7 +316,7 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
   }
 
   // TODO statistics
-  fStatistics.subevents+=nr_sev;
+  // fStatistics.subevents+=nr_sev;
 
   // EmsEventData storage
   event_buffer->StoreNewItem();
@@ -331,14 +334,14 @@ Int_t KoaEmsSource::ParseSubevent(const ems_u32 *buf, Int_t size, ems_u32 is_id)
     return -1;
   }
 
-  if ( it->second->DoUnpack(buf, size) < 0 )
+  if ( search->second->DoUnpack(buf, size) < 0 )
     return -1;
 
   return 0;
 }
 
 //
-Bool_t KoaEmsSource::Close()
+void KoaEmsSource::Close()
 {
   // 1. event analyzers
   fEmsEvtAnalyzer->Finish();
@@ -357,11 +360,11 @@ Bool_t KoaEmsSource::Close()
 Bool_t KoaEmsSource::ReInitUnpackers()
 {
   for (auto unpacker : fUnpackers) {
-    unpacker.second->Reinit();
+    unpacker.second->ReInit();
   }
 }
 
-Bool_t KoaEmsSource::Reset()
+void KoaEmsSource::Reset()
 {
   for (auto unpacker : fUnpackers) {
     unpacker.second->Reset();

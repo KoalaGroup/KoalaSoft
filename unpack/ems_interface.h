@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 #include <poll.h>
-#include <string.h>
+#include <cstring>
+#include "FairLogger.h"
 
 typedef uint32_t ems_u32;
 typedef char ems_byte;
@@ -22,7 +23,7 @@ struct ems_buffer {
   ems_byte* data; // pointer to the read heap for storage
 
   ems_buffer() : capacity(8192) {
-    data = (ems_byte*)malloc(sizeof(ems_byte)*size);
+    data = (ems_byte*)malloc(sizeof(ems_byte)*capacity);
     if ( data == 0 ) {
       printf("error: malloc data (8192): %s\n", strerror(errno));
     }
@@ -64,7 +65,7 @@ class ems_cluster
   inline void delete_buffer(); // delete the underlying buffer space and reset all members
 
   bool is_valid() { return valid; }
-  bool is_initialized() ( return initialized; );
+  bool is_initialized() { return initialized; };
 
 private:
   friend class KoaEmsSource; // Ems Source should be able to access the data buffer directly

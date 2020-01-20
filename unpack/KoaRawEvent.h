@@ -1,7 +1,7 @@
 #ifndef KOA_RAW_EVENT_H
 #define KOA_RAW_EVENT_H
 
-#include <vector>
+#include <map>
 #include "KoaMapEncoder.h"
 
 constexpr Int_t UNDER_THRESHOLD = -5;
@@ -12,7 +12,7 @@ constexpr Int_t QDC_OVERFLOW = 0x1000;
  * Since it's an unamed class, it can only be registered as a tree branch through:
  * FairRootManager->RegisterAny() but not FairRootManager->Register()
  */
-class KoaRawEvent
+class KoaRawEvent : public TObject
 {
 public:
   // Amplitudes
@@ -35,23 +35,23 @@ public:
   Long64_t  Timestamp; // frq of VME bus, unit: 25 ns
 
 public:
-  inline std::vector<Int_t, Int_t*> GetAmplitudeValueMap();
-  inline std::vector<Int_t, Int_t*> GetRecAmplitudeValueMap();
-  inline std::vector<Int_t, Int_t*> GetFwdAmplitudeValueMap();
-  inline std::vector<Int_t, Int_t*> GetRecRearAmplitudeValueMap();
+  inline std::map<Int_t, Int_t*> GetAmplitudeValueMap();
+  inline std::map<Int_t, Int_t*> GetRecAmplitudeValueMap();
+  inline std::map<Int_t, Int_t*> GetFwdAmplitudeValueMap();
+  inline std::map<Int_t, Int_t*> GetRecRearAmplitudeValueMap();
 
-  inline std::vector<Int_t, Float_t*> GetTimeValueMap();
-  inline std::vector<Int_t, Float_t*> GetRecTimeValueMap();
-  inline std::vector<Int_t, Float_t*> GetFwdTimeValueMap();
-  inline std::vector<Int_t, Float_t*> GetRecRearTimeValueMap();
+  inline std::map<Int_t, Float_t*> GetTimeValueMap();
+  inline std::map<Int_t, Float_t*> GetRecTimeValueMap();
+  inline std::map<Int_t, Float_t*> GetFwdTimeValueMap();
+  inline std::map<Int_t, Float_t*> GetRecRearTimeValueMap();
 
   ClassDef(KoaRawEvent, 1)
 };
 
-inline std::vector<Int_t, Int_t*> KoaRawEvent::GetAmplitudeValueMap()
+inline std::map<Int_t, Int_t*> KoaRawEvent::GetAmplitudeValueMap()
 {
   //
-  std::vector<Int_t, Int_t*> value_map;
+  std::map<Int_t, Int_t*> value_map;
 
   // get encoder
   auto encoder = KoaMapEncoder::Instance();
@@ -94,10 +94,10 @@ inline std::vector<Int_t, Int_t*> KoaRawEvent::GetAmplitudeValueMap()
   return value_map;
 }
 
-inline std::vector<Int_t, Int_t*> KoaRawEvent::GetRecAmplitudeValueMap()
+inline std::map<Int_t, Int_t*> KoaRawEvent::GetRecAmplitudeValueMap()
 {
   //
-  std::vector<Int_t, Int_t*> value_map;
+  std::map<Int_t, Int_t*> value_map;
 
   // get encoder
   auto encoder = KoaMapEncoder::Instance();
@@ -125,10 +125,10 @@ inline std::vector<Int_t, Int_t*> KoaRawEvent::GetRecAmplitudeValueMap()
   return value_map;
 }
 
-inline std::vector<Int_t, Int_t*> KoaRawEvent::GetFwdAmplitudeValueMap()
+inline std::map<Int_t, Int_t*> KoaRawEvent::GetFwdAmplitudeValueMap()
 {
   //
-  std::vector<Int_t, Int_t*> value_map;
+  std::map<Int_t, Int_t*> value_map;
 
   // get encoder
   auto encoder = KoaMapEncoder::Instance();
@@ -144,10 +144,10 @@ inline std::vector<Int_t, Int_t*> KoaRawEvent::GetFwdAmplitudeValueMap()
   return value_map;
 }
 
-inline std::vector<Int_t, Int_t*> KoaRawEvent::GetRecRearAmplitudeValueMap()
+inline std::map<Int_t, Int_t*> KoaRawEvent::GetRecRearAmplitudeValueMap()
 {
   //
-  std::vector<Int_t, Int_t*> value_map;
+  std::map<Int_t, Int_t*> value_map;
 
   // get encoder
   auto encoder = KoaMapEncoder::Instance();
@@ -162,10 +162,10 @@ inline std::vector<Int_t, Int_t*> KoaRawEvent::GetRecRearAmplitudeValueMap()
   return value_map;
 }
 
-inline std::vector<Int_t, Float_t*> GetTimeValueMap()
+inline std::map<Int_t, Float_t*> KoaRawEvent::GetTimeValueMap()
 {
   //
-  std::vector<Int_t, Int_t*> value_map;
+  std::map<Int_t, Float_t*> value_map;
 
   // get encoder
   auto encoder = KoaMapEncoder::Instance();
@@ -208,10 +208,10 @@ inline std::vector<Int_t, Float_t*> GetTimeValueMap()
   return value_map;
 }
 
-inline std::vector<Int_t, Float_t*> KoaRawEvent::GetRecTimeValueMap()
+inline std::map<Int_t, Float_t*> KoaRawEvent::GetRecTimeValueMap()
 {
   //
-  std::vector<Int_t, Int_t*> value_map;
+  std::map<Int_t, Float_t*> value_map;
 
   // get encoder
   auto encoder = KoaMapEncoder::Instance();
@@ -239,10 +239,10 @@ inline std::vector<Int_t, Float_t*> KoaRawEvent::GetRecTimeValueMap()
   return value_map;
 }
 
-inline std::vector<Int_t, Float_t*> KoaRawEvent::GetFwdTimeValueMap()
+inline std::map<Int_t, Float_t*> KoaRawEvent::GetFwdTimeValueMap()
 {
   //
-  std::vector<Int_t, Int_t*> value_map;
+  std::map<Int_t, Float_t*> value_map;
 
   // get encoder
   auto encoder = KoaMapEncoder::Instance();
@@ -258,10 +258,10 @@ inline std::vector<Int_t, Float_t*> KoaRawEvent::GetFwdTimeValueMap()
   return value_map;
 }
 
-inline std::vector<Int_t, Float_t*> KoaRawEvent::GetRecRearTimeValueMap()
+inline std::map<Int_t, Float_t*> KoaRawEvent::GetRecRearTimeValueMap()
 {
   //
-  std::vector<Int_t, Int_t*> value_map;
+  std::map<Int_t, Float_t*> value_map;
 
   // get encoder
   auto encoder = KoaMapEncoder::Instance();
