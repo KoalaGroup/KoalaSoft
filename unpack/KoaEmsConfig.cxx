@@ -490,3 +490,5 @@ void KoaEmsConfig::PrintScalorChannelMap(const char* filename)
     ftxt.close();
   }
 }
+
+ClassImp(KoaEmsConfig)

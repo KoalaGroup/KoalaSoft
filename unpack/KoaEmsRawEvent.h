@@ -9,8 +9,9 @@
  * 
  */
 
-struct KoaEmsRawEvent
+class KoaEmsRawEvent : public TObject
 {
+public:
   UInt_t Scalor[32];
   Long_t Second;
   Long_t Usecond;
@@ -30,4 +31,6 @@ struct KoaEmsRawEvent
 
   ClassDef(KoaEmsRawEvent, 1)
 };
+
+ClassImp(KoaEmsRawEvent)
 #endif

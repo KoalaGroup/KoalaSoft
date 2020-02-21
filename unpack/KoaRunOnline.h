@@ -90,6 +90,8 @@ class KoaRunOnline : public FairRun
   Int_t fNevents;      //!
   THttpServer* fServer;             //!
   Int_t fServerRefreshRate;  //!
+
+  ClassDef(KoaRunOnline, 1)
 };
 
 #endif
