@@ -7,7 +7,7 @@
 class KoaScalorUnpack : public KoaUnpack
 {
  public:
- KoaScalorUnpack(ems_u32 is_id) : KoaUnpack(is_id, "Mxdc32Unpacker", "Unpacker for Mxdc32 module data")
+ KoaScalorUnpack(ems_u32 is_id) : KoaUnpack(is_id, "ScalorUnpacker", "Unpacker for Scalor Data")
     {}
   ~KoaScalorUnpack() {}
 

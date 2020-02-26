@@ -12,14 +12,12 @@
 set(INCLUDE_DIRECTORIES
 ${BASE_INCLUDE_DIRECTORIES}
 #put here all directories where header files are located
-${CMAKE_SOURCE_DIR}/unpack
+${CMAKE_SOURCE_DIR}/test
 ${CMAKE_SOURCE_DIR}/tools
-${CMAKE_SOURCE_DIR}/rec
-${CMAKE_SOURCE_DIR}/fwd
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
-include_directories(${SYSTEM_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
@@ -29,60 +27,24 @@ ${FAIRROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(HEADERS
-  KoaRunOnline.h
-  KoaEmsConfig.h
-  KoaEmsSource.h
-  KoaEmsFileSource.h
-  KoaEmsStreamSource.h
-  KoaUnpack.h
-  KoaScalorUnpack.h
-  KoaTimeUnpack.h
-  KoaMxdc32Unpack.h
-  KoaEmsRawEvent.h
-  KoaRawEvent.h
-  # KoaBufferTemplate.h
-  # KoaEventData.h
-  # KoaEmsEventData.h
-  # KoaMxdc32Data.h
-  KoaRawEventAnalyzer.h
-  KoaTestAnalyzer.h
-  KoaEventAnalyzer.h
-  KoaEmsEventAnalyzer.h
-  KoaEventAssembler.h
-  KoaRawEventTransform.h
+  KoaTest.h
+  KoaDumy.h
   )
 
 set(SRCS
 #Put here your sourcefiles
-KoaRunOnline.cxx
-KoaEmsConfig.cxx
-KoaEmsSource.cxx
-KoaEmsFileSource.cxx
-KoaEmsStreamSource.cxx
-KoaScalorUnpack.cxx
-KoaTimeUnpack.cxx
-KoaMxdc32Unpack.cxx
-KoaRawEventAnalyzer.cxx
-KoaTestAnalyzer.cxx
-KoaEventAnalyzer.cxx
-KoaEmsEventAnalyzer.cxx
-KoaEventAssembler.cxx
-KoaRawEventTransform.cxx
+KoaTest.cxx
 )
 
-Set(LINKDEF UnpackLinkDef.h)
+Set(LINKDEF KoaTestLinkDef.h)
 
-Set(LIBRARY_NAME Unpack)
+Set(LIBRARY_NAME KoaTest)
 
 Set(DEPENDENCIES
-    Alignment
     Base
     Geom
     Core
-    RHTTP
     KoaTools
-    KoaRec
-    KoaFwd
 )
 
 GENERATE_LIBRARY()

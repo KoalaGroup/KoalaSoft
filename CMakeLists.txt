@@ -237,6 +237,7 @@ add_subdirectory (field)
 add_subdirectory (tools)  
 add_subdirectory (analysis)  
 add_subdirectory (unpack)  
+add_subdirectory (test)  
 
 #######################################################
 WRITE_CONFIG_FILE(config.sh)

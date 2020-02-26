@@ -1,9 +1,11 @@
 #ifndef KOA_RAWEVENT_ANALYZER_H
 #define KOA_RAWEVENT_ANALYZER_H
 
-#include "TObject.h"
 #include "FairRootManager.h"
 #include "FairLogger.h"
+#include "TObject.h"
+#include "TFile.h"
+#include "TString.h"
 
 class KoaRawEventAnalyzer : public TObject
 {
@@ -17,16 +19,16 @@ public:
     }
   }
 
-  virtual void Init() = 0;
-  virtual bool Analyze() = 0;
+  virtual void Init() {}
+  virtual bool Analyze() { return true; }
   virtual void Finish() {
     if ( fPersistence && fRootFile ) {
       fRootFile->Write();
     }
   }
 
-  virtual void Recycle() = 0;
-  virtual void Fill() = 0;
+  virtual void Recycle() {}
+  virtual void Fill() {}
 
   virtual void SetPersistence(bool flag) {
     fPersistence = flag;
@@ -45,7 +47,7 @@ public:
   }
 
 private:
-  virtual void Decode() = 0;
+  virtual void Decode() {}
 
   virtual void InitHist() {}
   virtual void FillHist() {}

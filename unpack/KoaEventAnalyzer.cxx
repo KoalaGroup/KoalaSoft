@@ -1,6 +1,7 @@
 #include "FairRootManager.h"
 #include "KoaEventAnalyzer.h"
-#include "KoaMxdc32Data.h"
+
+Float_t KoaEventAnalyzer::fTimeUnit[9] = {-1,1./256,2./256,4./256,8./256,16./256,32./256,64./256,128./256}; //! unit: ns
 
 KoaEventAnalyzer::~KoaEventAnalyzer()
 {
@@ -254,3 +255,5 @@ void KoaEventAnalyzer::Fill()
   // 3. fill histograms if any
   FillHist();
 }
+
+// ClassImp(KoaEventAnalyzer)

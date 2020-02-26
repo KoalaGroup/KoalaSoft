@@ -7,7 +7,7 @@
 class KoaTimeUnpack : public KoaUnpack
 {
  public:
- KoaTimeUnpack(ems_u32 is_id) : KoaUnpack(is_id, "Mxdc32Unpacker", "Unpacker for Mxdc32 module data")
+ KoaTimeUnpack(ems_u32 is_id) : KoaUnpack(is_id, "TimeUnpacker", "Unpacker for Ems Time information")
     {}
   ~KoaTimeUnpack() {}
 

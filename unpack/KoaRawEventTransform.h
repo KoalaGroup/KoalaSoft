@@ -12,8 +12,9 @@ class KoaRawEvent;
  * If persistence flag is set, both the original and transformed objects are saved into file.
  * Otherwise, only the transformed objects are saved.
  */
-class KoaRawEventTransform : FairTask
+class KoaRawEventTransform : public FairTask
 {
+ public:
   /** Default constructor **/
   KoaRawEventTransform() : FairTask("KoaRawEventTransform"), fPersistence(false)
   {
