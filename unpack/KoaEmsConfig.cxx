@@ -93,7 +93,7 @@ bool KoaEmsConfig::ReadEmsConfig(std::ifstream& ftxt)
     std::getline(ftxt, line);
     std::stringstream ss(line);
 
-    ss >> module_id >> type >> module_name;
+    ss >> std::hex >> module_id >> std::dec >> type >> module_name;
 
     // checking the type
     if ( type == "madc32" ) {
@@ -145,7 +145,7 @@ bool KoaEmsConfig::ReadAmplitudeChannelMapConfig(std::ifstream& ftxt)
     std::getline(ftxt, line);
     std::stringstream ss(line);
 
-    ss >> module_id >> type >> module_ch >> detector_id >> detector_ch;
+    ss >> std::hex >> module_id >> type >> std::dec >> module_ch >> detector_id >> detector_ch;
 
     // checking the type
     if ( type == "madc32" ) {
@@ -225,7 +225,7 @@ bool KoaEmsConfig::ReadTimeChannelMapConfig(std::ifstream& ftxt)
     std::getline(ftxt, line);
     std::stringstream ss(line);
 
-    ss >> module_id >> type >> module_ch >> detector_id >> detector_ch;
+    ss >> std::hex >> module_id >> type >> std::dec >> module_ch >> detector_id >> detector_ch;
 
     // checking the type
     if ( type == "madc32" ) {

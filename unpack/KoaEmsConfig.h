@@ -52,7 +52,8 @@ using ScalorMap = std::map<std::string, int>;
    2. Each type of the module has a separate mapping table
 
    These information is provide by the user as a text configuration file.
-   It's a singleton class and should be instantiated once by the user directly.
+   It's a singleton class and should be instantiated once and owned by the user himself.
+   After the usage, the user is in charge of the destruction of this singleton.
  */
 class KoaEmsConfig : public TObject
 {

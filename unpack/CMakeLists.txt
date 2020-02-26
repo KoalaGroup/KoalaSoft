@@ -13,9 +13,9 @@ set(INCLUDE_DIRECTORIES
 ${BASE_INCLUDE_DIRECTORIES}
 #put here all directories where header files are located
 ${CMAKE_SOURCE_DIR}/unpack
+${CMAKE_SOURCE_DIR}/tools
 ${CMAKE_SOURCE_DIR}/rec
 ${CMAKE_SOURCE_DIR}/fwd
-${CMAKE_SOURCE_DIR}/tools
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -28,24 +28,33 @@ ${FAIRROOT_LIBRARY_DIR}
 
 link_directories( ${LINK_DIRECTORIES})
 
+set(HEADERs
+  KoaRunOnline.h
+  KoaEmsConfig.h
+  # KoaEmsRawEvent.h
+  # KoaRawEvent.h
+  )
+
 set(SRCS
 #Put here your sourcefiles
 KoaRunOnline.cxx
 KoaEmsConfig.cxx
-KoaEmsSource.cxx
-KoaEmsFileSource.cxx
-KoaEmsStreamSource.cxx
-KoaScalorUnpack.cxx
-KoaTimeUnpack.cxx
-KoaMxdc32Unpack.cxx
-KoaEventAnalyzer.cxx
-KoaEmsEventAnalyzer.cxx
-KoaEventAssembler.cxx
-KoaRawEventTransform.cxx
+# KoaEmsSource.cxx
+# KoaEmsFileSource.cxx
+# KoaEmsStreamSource.cxx
+# KoaScalorUnpack.cxx
+# KoaTimeUnpack.cxx
+# KoaMxdc32Unpack.cxx
+# KoaEventAnalyzer.cxx
+# KoaEmsEventAnalyzer.cxx
+# KoaEventAssembler.cxx
+# KoaRawEventTransform.cxx
 )
 
-Set(LINKDEF KoaUnpackLinkDef.h)
-Set(LIBRARY_NAME KoaUnpack)
+Set(LINKDEF UnpackLinkDef.h)
+
+Set(LIBRARY_NAME Unpack)
+
 Set(DEPENDENCIES
     Alignment
     Base

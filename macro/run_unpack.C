@@ -23,7 +23,7 @@ void run_unpack(const char* data)
   KoaRunOnline *fRun = new KoaRunOnline();
   // fRun->SetAutoFinish(kFALSE); // auto finish or not,  default is TRUE
 
-  // Setup ems configuration
+  // Setup ems configuration, it's owned by user himself
   KoaEmsConfig* emsConfig = new KoaEmsConfig();
 
   // Setup ems source
@@ -94,6 +94,7 @@ void run_unpack(const char* data)
   // -----   Finish   --------------------------------------------------------
   // fRun->Finish(); // in case automatic finish is not set
 
+  // KoaEmsConfig is owned and managed by user himself
   delete emsConfig;
 
   cout << endl << endl;
