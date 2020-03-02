@@ -15,7 +15,7 @@ class KoaMxdc32Unpack : public KoaUnpack
 
   Bool_t Init();
   Int_t  DoUnpack(const ems_u32* buf, Int_t size);
-  void   Reset();
+  void   Reset() {}
 
 private:
   std::map<ModuleId, KoaMxdc32Buffer*> fModuleBuffer;

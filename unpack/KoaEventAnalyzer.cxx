@@ -1,7 +1,7 @@
 #include "FairRootManager.h"
 #include "KoaEventAnalyzer.h"
 
-Float_t KoaEventAnalyzer::fTimeUnit[9] = {-1,1./256,2./256,4./256,8./256,16./256,32./256,64./256,128./256}; //! unit: ns
+const Float_t KoaEventAnalyzer::fTimeUnit[9] = {-1,1./256,2./256,4./256,8./256,16./256,32./256,64./256,128./256}; //! unit: ns
 
 KoaEventAnalyzer::~KoaEventAnalyzer()
 {
@@ -21,15 +21,15 @@ KoaEventAnalyzer::~KoaEventAnalyzer()
   }
 }
 
-void KoaEventAnalyzer::Init()
+void KoaEventAnalyzer::InitInputBuffer()
 {
-  // 1. get the event buffer
   auto bufferManager = KoaEventBufferManager::Instance();
-  // the default buffer name for koala event is 'KOALA'
   fBuffer = bufferManager->GetBuffer("KOALA");
+}
 
-  // 2. book the memory for decoded data
-  // 2.1 get the ems configuration first
+void KoaEventAnalyzer::InitChannelMap()
+{
+  // 1 get the ems configuration first
   auto emsConfig = KoaEmsConfig::Instance();
   if (!emsConfig) {
     LOG(fatal) << "KoaEventAnalyzer::Init : no valid EMS configuration information exists,"
@@ -40,21 +40,13 @@ void KoaEventAnalyzer::Init()
   fAmplitudeChannelMap = emsConfig->GetAmplitudeChMap();
   fTimeChannelMap = emsConfig->GetTimeChMap();
 
-  // 2.2 init the storage space
-  Int_t nr_mesymodules = fModuleTable.size();
-
+  // 2. index map
   Int_t indexnum = 0;
   for ( auto module : fModuleTable ) {
     fIndexMap[module.first] = indexnum++;
   }
 
-  fModuleId = new UChar_t[nr_mesymodules];
-  fResolution = new Char_t[nr_mesymodules];
-  fNrWords  =  new Short_t[nr_mesymodules];
-  fTimestamp = new Long64_t[nr_mesymodules];
-  fData      = new Int_t[nr_mesymodules][34];
-
-  // 2.3 get the value map
+  // 3. value map
   for( auto channel : fAmplitudeChannelMap ) {
     auto detector_encoded_id = channel.first;
     auto module_id = channel.second.first;
@@ -63,6 +55,7 @@ void KoaEventAnalyzer::Init()
 
     fAmplitudeValueMapInput.emplace(detector_encoded_id, *(fData+index)+module_ch);
   }
+
   for( auto channel : fTimeChannelMap ) {
     auto detector_encoded_id = channel.first;
     auto module_id = channel.second.first;
@@ -72,18 +65,34 @@ void KoaEventAnalyzer::Init()
     fTimeValueMapInput.emplace(detector_encoded_id, *(fData+index)+module_ch);
     fTimeResolutionMap.emplace(detector_encoded_id, fResolution+index);
   }
+}
 
-  // 3. register fRawEvent to RootManager in memory
-  // 3.1 register output object
+void KoaEventAnalyzer::InitOutputBuffer()
+{
+  // 1. init the storage space
+  Int_t nr_mesymodules = fModuleTable.size();
+
+  fModuleId = new UChar_t[nr_mesymodules];
+  fResolution = new Char_t[nr_mesymodules];
+  fNrWords  =  new Short_t[nr_mesymodules];
+  fTimestamp = new Long64_t[nr_mesymodules];
+  fData      = new Int_t[nr_mesymodules][34];
+
+
+  // 2. register fRawEvent to RootManager in memory
+  // 2.1 register output object
   FairRootManager* ioMan = FairRootManager::Instance();
   fRawEvent = new KoaRawEvent();
   ioMan->RegisterAny("KoaRawEvent", fRawEvent, kFALSE);
 
-  // 3.2 get the value map and check whether data available
+  // 2.2 get the value map and check whether data available
   fAmplitudeValueMapOutput = fRawEvent->GetAmplitudeValueMap();
   fTimeValueMapOutput = fRawEvent->GetTimeValueMap();
+}
 
-  // 4. check persistency flag, init TTree accordingly
+void KoaEventAnalyzer::InitOutputTree()
+{
+  // check persistency flag, init TTree accordingly
   if ( fPersistence ) {
     fRootFile->cd();
 
@@ -103,28 +112,15 @@ void KoaEventAnalyzer::Init()
       }
     }
   }
-
-  // 4. init histograms
-  InitHist();
 }
 
-bool KoaEventAnalyzer::Analyze()
+bool KoaEventAnalyzer::NextEvent()
 {
-  // 1. check whether there is koala event available
   fCurrentEvent = fBuffer->PopTopItem();
 
   if ( !fCurrentEvent )
     return false;
 
-  // 2 analyze this event
-  Decode();
-
-  // 3 fill into tree
-  Fill();
-
-  // 4 recycle this event
-  Recycle();
-  
   return true;
 }
 
@@ -213,7 +209,7 @@ void KoaEventAnalyzer::Decode()
   }
 }
 
-void KoaEventAnalyzer::Fill()
+void KoaEventAnalyzer::FillTree()
 {
   // 1. fill the raw event object
   for( auto value_map : fAmplitudeValueMapOutput ) {
@@ -251,9 +247,4 @@ void KoaEventAnalyzer::Fill()
       fTreeMap[module.first]->Fill();
     }
   }
-
-  // 3. fill histograms if any
-  FillHist();
 }
-
-// ClassImp(KoaEventAnalyzer)

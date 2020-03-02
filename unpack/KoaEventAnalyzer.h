@@ -14,17 +14,16 @@ public:
   KoaEventAnalyzer() {}
   ~KoaEventAnalyzer();
 
-  virtual void Init();
-  virtual bool Analyze();
-  virtual void Recycle() { fCurrentEvent->Recycle(); }
-  virtual void Fill();
-
 private:
-  virtual void Decode();
+  void InitInputBuffer();
+  void InitChannelMap();
+  void InitOutputBuffer();
+  void InitOutputTree();
 
-  virtual void InitHist() {}
-  virtual void FillHist() {}
-  virtual void DeleteHist() {}
+  bool NextEvent();
+  void Decode();
+  void FillTree();
+  void Recycle() { fCurrentEvent->Recycle(); }
 
 private:
   // koala event buffer
@@ -56,7 +55,7 @@ private:
   std::map<Int_t, Float_t*> fTimeValueMapOutput; //!
 
   /* constexpr static Float_t fTimeUnit[] = {-1,1./256,2./256,4./256,8./256,16./256,32./256,64./256,128./256}; //! unit: ns */
-  static Float_t fTimeUnit[9];
+  static const Float_t fTimeUnit[9];
 
   ClassDef(KoaEventAnalyzer, 1)
 };

@@ -62,7 +62,6 @@ KoaEmsStreamSource.cxx
 KoaScalorUnpack.cxx
 KoaTimeUnpack.cxx
 KoaMxdc32Unpack.cxx
-KoaRawEventAnalyzer.cxx
 KoaTestAnalyzer.cxx
 KoaEventAnalyzer.cxx
 KoaEmsEventAnalyzer.cxx

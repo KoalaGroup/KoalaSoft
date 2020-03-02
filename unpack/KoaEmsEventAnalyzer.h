@@ -14,19 +14,19 @@ class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
   KoaEmsEventAnalyzer() : fInitialEvent(true) {}
   ~KoaEmsEventAnalyzer();
 
-  virtual void Init();
-  virtual bool Analyze();
-  virtual void Recycle() { fCurrentEvent->Recycle(); }
-  virtual void Fill();
-
  private:
-  virtual void Decode();
+  void InitInputBuffer();
+  void InitChannelMap();
+  void InitOutputBuffer();
+  void InitOutputTree();
 
-  virtual void InitHist() {}
-  virtual void FillHist();
-  virtual void DeleteHist() {}
+  bool NextEvent();
+  void Decode();
+  void FillTree();
+  void Recycle() { fCurrentEvent->Recycle(); }
 
-  void UpdateRate();
+  void Update();
+  void FillHist();
 
  private:
   // ems event buffer and current item

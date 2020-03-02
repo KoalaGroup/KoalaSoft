@@ -66,7 +66,7 @@ Int_t KoaMxdc32Unpack::DoUnpack(const ems_u32* buf, Int_t size)
         case 0x10:
           { /* data */
             if ( !event ) {
-              LOG(ERROR) << "KoaMxdc32Unpack::DoUnpack : no corresponding header found in this event";
+              LOG(ERROR) << "KoaMxdc32Unpack::DoUnpack : data word, no corresponding header found in this event";
               return -1;
             }
           
@@ -94,7 +94,7 @@ Int_t KoaMxdc32Unpack::DoUnpack(const ems_u32* buf, Int_t size)
         case 0x12:
           { /* extended timestamp */
             if ( !event ) {
-              LOG(ERROR) << "KoaMxdc32Unpack::DoUnpack : no corresponding header found in this event";
+              LOG(ERROR) << "KoaMxdc32Unpack::DoUnpack : ts word, no corresponding header found in this event";
               return -1;
             }
             
@@ -106,6 +106,7 @@ Int_t KoaMxdc32Unpack::DoUnpack(const ems_u32* buf, Int_t size)
           LOG(WARNING) << "KoaMxdc32Unpack::Unpack : illegal data word " << std::hex << d << std::dec;
           break;
         }
+        break;
       }
     case 0x3:
       { /* footer */
@@ -133,10 +134,4 @@ Int_t KoaMxdc32Unpack::DoUnpack(const ems_u32* buf, Int_t size)
   }
 
   return 0;
-}
-
-void KoaMxdc32Unpack::Reset()
-{
-  fModuleTable.clear();
-  fModuleBuffer.clear();
 }

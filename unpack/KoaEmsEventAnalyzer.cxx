@@ -10,28 +10,36 @@ KoaEmsEventAnalyzer::~KoaEmsEventAnalyzer()
 
 }
 
-void KoaEmsEventAnalyzer::Init()
+
+void KoaEmsEventAnalyzer::InitInputBuffer()
 {
-  // 1. get the event buffer
   auto bufferManager = KoaEmsEventBufferManager::Instance();
-  // the default buffer name for koala event is 'KOALA'
   fBuffer = bufferManager->GetBuffer("EMS");
+}
 
-  // 2. get scalor channel mapping
-  fInitialEvent = true;
-
+void KoaEmsEventAnalyzer::InitChannelMap()
+{
   auto emsConfig = KoaEmsConfig::Instance();
   if (!emsConfig) {
-  LOG(fatal) << "KoaEmsEventAnalyzer::Init : no valid EMS configuration information exists,"
-             << "instantiate an instance of KoaEmsConfig first!";
-}
+    LOG(fatal) << "KoaEmsEventAnalyzer::Init : no valid EMS configuration information exists,"
+               << "instantiate an instance of KoaEmsConfig first!";
+  }
   fScalorChMap = emsConfig->GetScalorChMap();
+}
 
-  // 3. book the memory for decoded data
+void KoaEmsEventAnalyzer::InitOutputBuffer()
+{
+  // 1. first entry flag
+  fInitialEvent = true;
+
+  // 2. init the storage space
   fCurrentRawEvent = new KoaEmsRawEvent();
   fPreviousRawEvent = new KoaEmsRawEvent();
+}
 
-  // 4. check persistence flag, init Tree accordingly
+void KoaEmsEventAnalyzer::InitOutputTree()
+{
+  // check persistence flag, init Tree accordingly
   if ( fPersistence ) {
     fRootFile->cd();
 
@@ -42,30 +50,15 @@ void KoaEmsEventAnalyzer::Init()
     // write the scalor mapping
     fRootFile->WriteObjectAny(&fScalorChMap, "std::map<std::string,int>", "ScalorChMap");
   }
-
-  // 5. init histograms if any
-  InitHist();
 }
 
-bool KoaEmsEventAnalyzer::Analyze()
+bool KoaEmsEventAnalyzer::NextEvent()
 {
   // 1. check whether there is new ems event available
   fCurrentEvent = fBuffer->PopTopItem();
   if (!fCurrentEvent) {
     return false;
   }
-
-  // 2. Decode
-  Decode();
-
-  // 3. Update rate
-  UpdateRate();
-
-  // 4. Fill
-  Fill();
-
-  // 5. Recycle
-  Recycle();
 
   return true;
 }
@@ -80,7 +73,7 @@ void KoaEmsEventAnalyzer::Decode()
   fCurrentRawEvent->EventNr = fCurrentEvent->fData.event_nr;
 }
 
-void KoaEmsEventAnalyzer::UpdateRate()
+void KoaEmsEventAnalyzer::Update()
 {
   if ( fInitialEvent ) { // skip the first event
     for ( auto rate : fRates ) {
@@ -120,15 +113,12 @@ void KoaEmsEventAnalyzer::UpdateRate()
   fPreviousRawEvent = fCurrentRawEvent;
 }
 
-void KoaEmsEventAnalyzer::Fill()
+void KoaEmsEventAnalyzer::FillTree()
 {
   //
   if ( fPersistence ) {
     fTree->Fill();
   }
-
-  //
-  FillHist();
 }
 
 void KoaEmsEventAnalyzer::FillHist()
@@ -143,5 +133,5 @@ void KoaEmsEventAnalyzer::FillHist()
   // TODO fill the current rate
   for ( auto scalor : fScalorChMap ) {
   
-}
+  }
 }

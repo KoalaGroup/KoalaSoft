@@ -17,14 +17,25 @@ void run_unpack(const char* data)
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
 
-  // -----   Decoding run   -------------------------------------------
+  // -----   Parameter Directories   --------------------------------------------------------
   TString dir = getenv("VMCWORKDIR");
 
+  TString param_dir = dir+"/parameters/";
+  TString config_module_table = param_dir + "mxdc32.config";
+  TString config_amplitude_map = param_dir + "mxdc32_amplitude_map.config";
+  TString config_time_map = param_dir + "mxdc32_time_map.config";
+  TString config_scalor_map = param_dir + "scalor_map.config";
+
+  // -----   Decoding run   -------------------------------------------
   KoaRunOnline *fRun = new KoaRunOnline();
   // fRun->SetAutoFinish(kFALSE); // auto finish or not,  default is TRUE
 
   // Setup ems configuration, it's owned by user himself
   KoaEmsConfig* emsConfig = new KoaEmsConfig();
+  emsConfig->SetEmsConfigFile(config_module_table.Data());
+  emsConfig->SetAmplitudeChannelMap(config_amplitude_map.Data());
+  emsConfig->SetTimeChannelMap(config_time_map);
+  emsConfig->SetScalorChannelMap(config_scalor_map);
 
   // Setup ems source
   KoaEmsFileSource *fFileSource = new KoaEmsFileSource(inFile);
@@ -46,6 +57,7 @@ void run_unpack(const char* data)
     // Config analyzer
     KoaEventAnalyzer* koalaAnalyzer = new KoaEventAnalyzer();
     fFileSource->SetKoaEventAnalyzer(koalaAnalyzer);
+
     KoaEmsEventAnalyzer* emsAnalyzer = new KoaEmsEventAnalyzer();
     fFileSource->SetEmsEventAnalyzer(emsAnalyzer);
 
@@ -54,6 +66,8 @@ void run_unpack(const char* data)
   // Setup sink
   FairRootFileSink *fFileSink = new FairRootFileSink(outFile);
   fRun->SetSink(fFileSink);
+  koalaAnalyzer->SetPersistence(true);
+  emsAnalyzer->SetPersistence(true);
 
   // -----   Parameters   --------------------------------------------------------
 
@@ -118,7 +132,10 @@ void run_unpack(const char* data)
 
   cout << endl << endl;
   cout << "Output file is "    << outFile << endl;
-  cout << "Parameter file is " << parFile << endl;
+  cout << "EMS module config table file is " << config_module_table << endl;
+  cout << "Amplitude channel map file is" << config_amplitude_map << endl;
+  cout << "Time channel map file is" << config_time_map << endl;
+  cout << "Scalor channel map file is" << config_scalor_map << endl;
   cout << "Real time " << rtime << " s, CPU time " << ctime
        << "s" << endl << endl;
   cout << "Macro finished successfully." << endl;
