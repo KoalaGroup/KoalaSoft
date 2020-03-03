@@ -1,3 +1,4 @@
+#include "FairRootManager.h"
 #include "KoaEmsEventAnalyzer.h"
 #include "KoaEmsConfig.h"
 #include "KoaEmsRawEvent.h"
@@ -10,6 +11,18 @@ KoaEmsEventAnalyzer::~KoaEmsEventAnalyzer()
 
 }
 
+TFile* KoaEmsEventAnalyzer::InitOutputFile()
+{
+  FairRootManager* ioMan = FairRootManager::Instance();
+  auto sink = ioMan->GetSink();
+  if(!sink) {
+    LOG(fatal) << "KoaEmsEventAnalyzer::InitOutputFile : no sink available, setup sink first";
+  }
+
+  TString fileName = sink->GetFileName();
+  fileName.ReplaceAll(".root","_EmsRawEvent.root");
+  return new TFile(fileName, "recreate");
+}
 
 void KoaEmsEventAnalyzer::InitInputBuffer()
 {

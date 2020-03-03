@@ -1,7 +1,6 @@
 #ifndef KOA_RAWEVENT_ANALYZER_H
 #define KOA_RAWEVENT_ANALYZER_H
 
-#include "FairRootManager.h"
 #include "FairLogger.h"
 #include "TObject.h"
 #include "TFile.h"
@@ -20,19 +19,13 @@ public:
   }
 
   /* whether save data into array based tree */
+  // CAVEAT: should be invoked after setting FairRootFileSink in macro
   void SetPersistence(bool flag) {
     fPersistence = flag;
+    fRootFile = nullptr;
 
     if (fPersistence) {
-      FairRootManager* ioMan = FairRootManager::Instance();
-      auto sink = ioMan->GetSink();
-      if(!sink) {
-        LOG(fatal) << "KoaRawEventAnalyzer::SetPersistence : no sink available, setup sink first";
-      }
-
-      TString fileName = sink->GetFileName();
-      fileName.ReplaceAll(".root","_RawModuleBased.root");
-      fRootFile = new TFile(fileName, "recreate");
+      fRootFile = InitOutputFile();
     }
   }
 
@@ -86,6 +79,8 @@ public:
 
 
 private:
+  virtual TFile* InitOutputFile() = 0;
+
   virtual void InitInputBuffer() = 0;
   virtual void InitChannelMap() = 0;
   virtual void InitOutputBuffer() = 0;

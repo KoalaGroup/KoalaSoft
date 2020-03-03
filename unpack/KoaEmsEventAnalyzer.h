@@ -15,6 +15,8 @@ class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
   ~KoaEmsEventAnalyzer();
 
  private:
+  TFile* InitOutputFile();
+
   void InitInputBuffer();
   void InitChannelMap();
   void InitOutputBuffer();

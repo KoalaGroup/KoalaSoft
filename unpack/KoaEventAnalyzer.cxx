@@ -21,6 +21,19 @@ KoaEventAnalyzer::~KoaEventAnalyzer()
   }
 }
 
+TFile* KoaEventAnalyzer::InitOutputFile()
+{
+  FairRootManager* ioMan = FairRootManager::Instance();
+  auto sink = ioMan->GetSink();
+  if(!sink) {
+    LOG(fatal) << "KoaEventAnalyzer::InitOutputFile : no sink available, setup sink first";
+  }
+
+  TString fileName = sink->GetFileName();
+  fileName.ReplaceAll(".root","_RawModuleBased.root");
+  return new TFile(fileName, "recreate");
+}
+
 void KoaEventAnalyzer::InitInputBuffer()
 {
   auto bufferManager = KoaEventBufferManager::Instance();
@@ -39,6 +52,19 @@ void KoaEventAnalyzer::InitChannelMap()
   fModuleTable = emsConfig->GetModuleTable();
   fAmplitudeChannelMap = emsConfig->GetAmplitudeChMap();
   fTimeChannelMap = emsConfig->GetTimeChMap();
+
+}
+
+void KoaEventAnalyzer::InitOutputBuffer()
+{
+  // 1. init the storage space
+  Int_t nr_mesymodules = fModuleTable.size();
+
+  fModuleId = new UChar_t[nr_mesymodules];
+  fResolution = new Char_t[nr_mesymodules];
+  fNrWords  =  new Short_t[nr_mesymodules];
+  fTimestamp = new Long64_t[nr_mesymodules];
+  fData      = new Int_t[nr_mesymodules][34];
 
   // 2. index map
   Int_t indexnum = 0;
@@ -65,27 +91,14 @@ void KoaEventAnalyzer::InitChannelMap()
     fTimeValueMapInput.emplace(detector_encoded_id, *(fData+index)+module_ch);
     fTimeResolutionMap.emplace(detector_encoded_id, fResolution+index);
   }
-}
 
-void KoaEventAnalyzer::InitOutputBuffer()
-{
-  // 1. init the storage space
-  Int_t nr_mesymodules = fModuleTable.size();
-
-  fModuleId = new UChar_t[nr_mesymodules];
-  fResolution = new Char_t[nr_mesymodules];
-  fNrWords  =  new Short_t[nr_mesymodules];
-  fTimestamp = new Long64_t[nr_mesymodules];
-  fData      = new Int_t[nr_mesymodules][34];
-
-
-  // 2. register fRawEvent to RootManager in memory
-  // 2.1 register output object
+  // 4. register fRawEvent to RootManager in memory
+  // 4.1 register output object
   FairRootManager* ioMan = FairRootManager::Instance();
   fRawEvent = new KoaRawEvent();
   ioMan->RegisterAny("KoaRawEvent", fRawEvent, kFALSE);
 
-  // 2.2 get the value map and check whether data available
+  // 4.2 get the value map and check whether data available
   fAmplitudeValueMapOutput = fRawEvent->GetAmplitudeValueMap();
   fTimeValueMapOutput = fRawEvent->GetTimeValueMap();
 }

@@ -15,6 +15,8 @@ public:
   ~KoaEventAnalyzer();
 
 private:
+  TFile* InitOutputFile();
+
   void InitInputBuffer();
   void InitChannelMap();
   void InitOutputBuffer();
