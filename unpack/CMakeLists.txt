@@ -45,7 +45,7 @@ set(HEADERS
   # KoaEmsEventData.h
   # KoaMxdc32Data.h
   KoaRawEventAnalyzer.h
-  KoaTestAnalyzer.h
+  #  KoaTestAnalyzer.h
   KoaEventAnalyzer.h
   KoaEmsEventAnalyzer.h
   KoaEventAssembler.h
@@ -62,7 +62,7 @@ KoaEmsStreamSource.cxx
 KoaScalorUnpack.cxx
 KoaTimeUnpack.cxx
 KoaMxdc32Unpack.cxx
-KoaTestAnalyzer.cxx
+#KoaTestAnalyzer.cxx
 KoaEventAnalyzer.cxx
 KoaEmsEventAnalyzer.cxx
 KoaEventAssembler.cxx
