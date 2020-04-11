@@ -31,6 +31,8 @@ public:
 
   /* initialize */
   void Init() {
+    LOG(info) << "KoaRawEventAnalyzer::Init";
+
     // 1. get channel mapping parameter
     InitChannelMap();
 

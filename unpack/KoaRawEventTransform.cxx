@@ -7,7 +7,7 @@
 
 InitStatus KoaRawEventTransform::Init()
 {
-  LOG(debug) << "KoaRawEventTransform::Init";
+  LOG(info) << "KoaRawEventTransform::Init";
 
   // Get a handle from the IO manager
   FairRootManager* ioman = FairRootManager::Instance();

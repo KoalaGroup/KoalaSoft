@@ -7,6 +7,17 @@
  ********************************************************************************/
 void run_unpack(const char* data)
 {
+  // ----    Debug option   -------------------------------------------------
+  gDebug = 0;
+
+  FairLogger *logger = FairLogger::GetLogger();
+  //  logger->SetLogFileName("MyLog.log");
+  logger->SetLogToScreen(kTRUE);
+  //  logger->SetLogToFile(kTRUE);
+  // logger->SetLogVerbosityLevel("HIGH");
+  //  logger->SetLogFileLevel("DEBUG4");
+  // logger->SetLogScreenLevel("DEBUG2");
+
   // Input file (MC events)
   TString inFile(data);
 
@@ -93,7 +104,8 @@ void run_unpack(const char* data)
   // -----   Tasks   --------------------------------------------------------
 
   // Transform to simulation data format, i.e. TClonesArray based
-  KoaRawEventTransform *evtTransTask = new KoaRawEventTransform();
+  // KoaRawEventTransform *evtTransTask = new KoaRawEventTransform();
+  // fRun->AddTask(evtTransTask);
 
   // -----   Init   --------------------------------------------------------
   fRun->Init();

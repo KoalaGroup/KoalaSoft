@@ -95,6 +95,9 @@ void KoaEventAnalyzer::InitOutputBuffer()
   // 4. register fRawEvent to RootManager in memory
   // 4.1 register output object
   FairRootManager* ioMan = FairRootManager::Instance();
+  if (!ioMan)
+    LOG(fatal) << "No FairRootManager";
+
   fRawEvent = new KoaRawEvent();
   ioMan->RegisterAny("KoaRawEvent", fRawEvent, kFALSE);
 
