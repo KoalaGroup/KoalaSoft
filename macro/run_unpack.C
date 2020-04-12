@@ -103,11 +103,17 @@ void run_unpack(const char* data)
   // parInput2->open(parFileList,"in");
   // rtdb->setSecondInput(parInput2);
 
+  Bool_t kParameterMerged = kTRUE;
+  FairParRootFileIo *parOut = new FairParRootFileIo(kParameterMerged);
+  parOut->open(paraFile.Data());
+  rtdb->setOutput(parOut);
+
   // -----   Tasks   --------------------------------------------------------
 
   // Transform to simulation data format, i.e. TClonesArray based
-  // KoaRawEventTransform *evtTransTask = new KoaRawEventTransform();
-  // fRun->AddTask(evtTransTask);
+  KoaRawEventTransform *evtTransTask = new KoaRawEventTransform();
+  evtTransTask->SetPersistence(kTRUE);
+  fRun->AddTask(evtTransTask);
 
   // -----   Init   --------------------------------------------------------
   fRun->Init();
@@ -116,10 +122,6 @@ void run_unpack(const char* data)
   timer.Start();
   fRun->Run();
 
-  Bool_t kParameterMerged = kTRUE;
-  FairParRootFileIo *parOut = new FairParRootFileIo(kParameterMerged);
-  parOut->open(paraFile.Data());
-  rtdb->setOutput(parOut);
   rtdb->saveOutput();
   rtdb->print();
 
