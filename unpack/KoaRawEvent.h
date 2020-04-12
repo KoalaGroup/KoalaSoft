@@ -2,6 +2,7 @@
 #define KOA_RAW_EVENT_H
 
 #include <map>
+#include <utility>
 #include "KoaMapEncoder.h"
 
 constexpr Int_t UNDER_THRESHOLD = -5;
@@ -12,7 +13,7 @@ constexpr Int_t QDC_OVERFLOW = 0x1000;
  * Since it's an unamed class, it can only be registered as a tree branch through:
  * FairRootManager->RegisterAny() but not FairRootManager->Register()
  */
-class KoaRawEvent : public TObject
+class KoaRawEvent
 {
 public:
   // Amplitudes
@@ -35,20 +36,20 @@ public:
   Long64_t  Timestamp; // frq of VME bus, unit: 25 ns
 
 public:
-  inline std::map<Int_t, Int_t*> GetAmplitudeValueMap();
-  inline std::map<Int_t, Int_t*> GetRecAmplitudeValueMap();
-  inline std::map<Int_t, Int_t*> GetFwdAmplitudeValueMap();
-  inline std::map<Int_t, Int_t*> GetRecRearAmplitudeValueMap();
+  inline std::map<Int_t, Int_t*> GetAmplitudeValueMap() const;
+  inline std::map<Int_t, Int_t*> GetRecAmplitudeValueMap() const;
+  inline std::map<Int_t, Int_t*> GetFwdAmplitudeValueMap() const;
+  inline std::map<Int_t, Int_t*> GetRecRearAmplitudeValueMap() const;
 
-  inline std::map<Int_t, Float_t*> GetTimeValueMap();
-  inline std::map<Int_t, Float_t*> GetRecTimeValueMap();
-  inline std::map<Int_t, Float_t*> GetFwdTimeValueMap();
-  inline std::map<Int_t, Float_t*> GetRecRearTimeValueMap();
+  inline std::map<Int_t, Float_t*> GetTimeValueMap() const;
+  inline std::map<Int_t, Float_t*> GetRecTimeValueMap() const;
+  inline std::map<Int_t, Float_t*> GetFwdTimeValueMap() const;
+  inline std::map<Int_t, Float_t*> GetRecRearTimeValueMap() const;
 
   ClassDef(KoaRawEvent, 1)
 };
 
-inline std::map<Int_t, Int_t*> KoaRawEvent::GetAmplitudeValueMap()
+inline std::map<Int_t, Int_t*> KoaRawEvent::GetAmplitudeValueMap() const
 {
   //
   std::map<Int_t, Int_t*> value_map;
@@ -64,37 +65,42 @@ inline std::map<Int_t, Int_t*> KoaRawEvent::GetAmplitudeValueMap()
   // recoil front
   for( int i =0; i<48; i++) {
     auto id = encoder->EncodeChannelID(rec_low, i);
-    value_map.emplace(id, Si1A+i);
+    value_map.emplace(id, (Int_t*)Si1A+i);
+    // value_map.emplace(std::make_pair(id, (Int_t*)Si1A+i));
+    // value_map.emplace(std::make_pair<Int_t,const Int_t*>(id, Si1A+i));
   }
   for( int i =0; i<64; i++) {
     auto id = encoder->EncodeChannelID(rec_low+1, i);
-    value_map.emplace(id, Si2A+i);
+    // value_map.emplace(id, Si2A+i);
+    value_map.emplace(std::make_pair(id, (Int_t*)Si2A+i));
   }
   for( int i =0; i<32; i++) {
     auto id = encoder->EncodeChannelID(rec_low+2, i);
-    value_map.emplace(id, Ge1A+i);
+    // value_map.emplace(id, Ge1A+i);
+    value_map.emplace(std::make_pair(id, (Int_t*)Ge1A+i));
   }
   for( int i =0; i<32; i++) {
     auto id = encoder->EncodeChannelID(rec_low+3, i);
-    value_map.emplace(id, Ge2A+i);
+    // value_map.emplace(id, Ge2A+i);
+    value_map.emplace(std::make_pair(id, (Int_t*)Ge2A+i));
   }
 
   // fwd 
   for( int i =0; i<8; i++) {
     auto id = encoder->EncodeChannelID(fwd_low+i, 0);
-    value_map.emplace(id, FwdA+i);
+    value_map.emplace(std::make_pair( id, (Int_t*)FwdA+i ));
   }
 
   // recoil rear
   for( int i =0; i<4; i++) {
     auto id = encoder->EncodeChannelID(rec_rear, i);
-    value_map.emplace(id, RecRearA+i);
+    value_map.emplace(std::make_pair( id, (Int_t*)RecRearA+i ));
   }
 
   return value_map;
 }
 
-inline std::map<Int_t, Int_t*> KoaRawEvent::GetRecAmplitudeValueMap()
+inline std::map<Int_t, Int_t*> KoaRawEvent::GetRecAmplitudeValueMap() const
 {
   //
   std::map<Int_t, Int_t*> value_map;
@@ -107,25 +113,25 @@ inline std::map<Int_t, Int_t*> KoaRawEvent::GetRecAmplitudeValueMap()
   // recoil front
   for( int i =0; i<48; i++) {
     auto id = encoder->EncodeChannelID(rec_low, i);
-    value_map.emplace(id, Si1A+i);
+    value_map.emplace(std::make_pair( id, (Int_t*)Si1A+i ));
   }
   for( int i =0; i<64; i++) {
     auto id = encoder->EncodeChannelID(rec_low+1, i);
-    value_map.emplace(id, Si2A+i);
+    value_map.emplace(std::make_pair( id, (Int_t*)Si2A+i ));
   }
   for( int i =0; i<32; i++) {
     auto id = encoder->EncodeChannelID(rec_low+2, i);
-    value_map.emplace(id, Ge1A+i);
+    value_map.emplace(std::make_pair( id, (Int_t*)Ge1A+i ));
   }
   for( int i =0; i<32; i++) {
     auto id = encoder->EncodeChannelID(rec_low+3, i);
-    value_map.emplace(id, Ge2A+i);
+    value_map.emplace(std::make_pair( id, (Int_t*)Ge2A+i ));
   }
 
   return value_map;
 }
 
-inline std::map<Int_t, Int_t*> KoaRawEvent::GetFwdAmplitudeValueMap()
+inline std::map<Int_t, Int_t*> KoaRawEvent::GetFwdAmplitudeValueMap() const
 {
   //
   std::map<Int_t, Int_t*> value_map;
@@ -138,13 +144,13 @@ inline std::map<Int_t, Int_t*> KoaRawEvent::GetFwdAmplitudeValueMap()
   // fwd 
   for( int i =0; i<8; i++) {
     auto id = encoder->EncodeChannelID(fwd_low+i, 0);
-    value_map.emplace(id, FwdA+i);
+    value_map.emplace(std::make_pair( id, (Int_t*)FwdA+i ));
   }
 
   return value_map;
 }
 
-inline std::map<Int_t, Int_t*> KoaRawEvent::GetRecRearAmplitudeValueMap()
+inline std::map<Int_t, Int_t*> KoaRawEvent::GetRecRearAmplitudeValueMap() const
 {
   //
   std::map<Int_t, Int_t*> value_map;
@@ -156,13 +162,13 @@ inline std::map<Int_t, Int_t*> KoaRawEvent::GetRecRearAmplitudeValueMap()
   // recoil rear
   for( int i =0; i<4; i++) {
     auto id = encoder->EncodeChannelID(rec_rear, i);
-    value_map.emplace(id, RecRearA+i);
+    value_map.emplace(std::make_pair( id, (Int_t*)RecRearA+i ));
   }
 
   return value_map;
 }
 
-inline std::map<Int_t, Float_t*> KoaRawEvent::GetTimeValueMap()
+inline std::map<Int_t, Float_t*> KoaRawEvent::GetTimeValueMap() const
 {
   //
   std::map<Int_t, Float_t*> value_map;
@@ -178,37 +184,37 @@ inline std::map<Int_t, Float_t*> KoaRawEvent::GetTimeValueMap()
   // recoil front
   for( int i =0; i<48; i++) {
     auto id = encoder->EncodeChannelID(rec_low, i);
-    value_map.emplace(id, Si1T+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)Si1T+i ));
   }
   for( int i =0; i<64; i++) {
     auto id = encoder->EncodeChannelID(rec_low+1, i);
-    value_map.emplace(id, Si2T+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)Si2T+i ));
   }
   for( int i =0; i<32; i++) {
     auto id = encoder->EncodeChannelID(rec_low+2, i);
-    value_map.emplace(id, Ge1T+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)Ge1T+i ));
   }
   for( int i =0; i<32; i++) {
     auto id = encoder->EncodeChannelID(rec_low+3, i);
-    value_map.emplace(id, Ge2T+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)Ge2T+i ));
   }
 
   // fwd 
   for( int i =0; i<8; i++) {
     auto id = encoder->EncodeChannelID(fwd_low+i, 0);
-    value_map.emplace(id, FwdT+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)FwdT+i ));
   }
 
   // recoil rear
   for( int i =0; i<4; i++) {
     auto id = encoder->EncodeChannelID(rec_rear, i);
-    value_map.emplace(id, RecRearT+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)RecRearT+i ));
   }
 
   return value_map;
 }
 
-inline std::map<Int_t, Float_t*> KoaRawEvent::GetRecTimeValueMap()
+inline std::map<Int_t, Float_t*> KoaRawEvent::GetRecTimeValueMap() const
 {
   //
   std::map<Int_t, Float_t*> value_map;
@@ -221,25 +227,25 @@ inline std::map<Int_t, Float_t*> KoaRawEvent::GetRecTimeValueMap()
   // recoil front
   for( int i =0; i<48; i++) {
     auto id = encoder->EncodeChannelID(rec_low, i);
-    value_map.emplace(id, Si1T+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)Si1T+i ));
   }
   for( int i =0; i<64; i++) {
     auto id = encoder->EncodeChannelID(rec_low+1, i);
-    value_map.emplace(id, Si2T+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)Si2T+i ));
   }
   for( int i =0; i<32; i++) {
     auto id = encoder->EncodeChannelID(rec_low+2, i);
-    value_map.emplace(id, Ge1T+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)Ge1T+i ));
   }
   for( int i =0; i<32; i++) {
     auto id = encoder->EncodeChannelID(rec_low+3, i);
-    value_map.emplace(id, Ge2T+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)Ge2T+i ));
   }
 
   return value_map;
 }
 
-inline std::map<Int_t, Float_t*> KoaRawEvent::GetFwdTimeValueMap()
+inline std::map<Int_t, Float_t*> KoaRawEvent::GetFwdTimeValueMap() const
 {
   //
   std::map<Int_t, Float_t*> value_map;
@@ -252,13 +258,13 @@ inline std::map<Int_t, Float_t*> KoaRawEvent::GetFwdTimeValueMap()
   // fwd 
   for( int i =0; i<8; i++) {
     auto id = encoder->EncodeChannelID(fwd_low+i, 0);
-    value_map.emplace(id, FwdT+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)FwdT+i ));
   }
 
   return value_map;
 }
 
-inline std::map<Int_t, Float_t*> KoaRawEvent::GetRecRearTimeValueMap()
+inline std::map<Int_t, Float_t*> KoaRawEvent::GetRecRearTimeValueMap() const
 {
   //
   std::map<Int_t, Float_t*> value_map;
@@ -270,7 +276,7 @@ inline std::map<Int_t, Float_t*> KoaRawEvent::GetRecRearTimeValueMap()
   // recoil rear
   for( int i =0; i<4; i++) {
     auto id = encoder->EncodeChannelID(rec_rear, i);
-    value_map.emplace(id, RecRearT+i);
+    value_map.emplace(std::make_pair( id, (Float_t*)RecRearT+i ));
   }
 
   return value_map;

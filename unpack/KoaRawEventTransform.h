@@ -16,7 +16,12 @@ class KoaRawEventTransform : public FairTask
 {
  public:
   /** Default constructor **/
-  KoaRawEventTransform() : FairTask("KoaRawEventTransform"), fPersistence(false)
+  KoaRawEventTransform() : FairTask("KoaRawEventTransform"),
+                           fPersistence(false),
+                           fRawEvent(nullptr),
+                           fFwdDigis(nullptr),
+                           fRecDigis(nullptr),
+                           fRecRearDigis(nullptr)
   {
     LOG(debug) << "KoaRawEventTransform : Default Constructor";
   }
@@ -73,7 +78,8 @@ private:
   bool fPersistence;
 
   // input object
-  KoaRawEvent* fRawEvent;
+  // KoaRawEvent *fRawEvent;
+  KoaRawEvent const *fRawEvent;
 
   // output objects
   TClonesArray* fRecDigis;

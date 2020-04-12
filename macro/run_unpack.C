@@ -25,6 +25,10 @@ void run_unpack(const char* data)
   TString outFile(data);
   outFile.ReplaceAll(".cl",".root");
 
+  // Output param file
+  TString paraFile(data);
+  paraFile.ReplaceAll(".cl","_param.root");
+
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
 
@@ -99,8 +103,6 @@ void run_unpack(const char* data)
   // parInput2->open(parFileList,"in");
   // rtdb->setSecondInput(parInput2);
 
-  // rtdb->setOutput(parInput1);
-
   // -----   Tasks   --------------------------------------------------------
 
   // Transform to simulation data format, i.e. TClonesArray based
@@ -114,6 +116,10 @@ void run_unpack(const char* data)
   timer.Start();
   fRun->Run();
 
+  Bool_t kParameterMerged = kTRUE;
+  FairParRootFileIo *parOut = new FairParRootFileIo(kParameterMerged);
+  parOut->open(paraFile.Data());
+  rtdb->setOutput(parOut);
   rtdb->saveOutput();
   rtdb->print();
 
