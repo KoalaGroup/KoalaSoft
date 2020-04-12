@@ -46,7 +46,7 @@ public:
   inline std::map<Int_t, Float_t*> GetFwdTimeValueMap() const;
   inline std::map<Int_t, Float_t*> GetRecRearTimeValueMap() const;
 
-  ClassDef(KoaRawEvent, 1)
+  ClassDef(KoaRawEvent, 2)
 };
 
 inline std::map<Int_t, Int_t*> KoaRawEvent::GetAmplitudeValueMap() const
