@@ -11,8 +11,10 @@
 class KoaEventAnalyzer : public KoaRawEventAnalyzer
 {
 public:
-  KoaEventAnalyzer() {}
+  KoaEventAnalyzer() : fSaveRawEvent(kFALSE) {}
   ~KoaEventAnalyzer();
+
+  void SaveRawEvent(bool flag) { fSaveRawEvent = flag; }
 
 private:
   TFile* InitOutputFile();
@@ -28,6 +30,9 @@ private:
   void Recycle() { fCurrentEvent->Recycle(); }
 
 private:
+  // whether same KoaRawEvent into disk
+  bool fSaveRawEvent;
+
   // koala event buffer
   KoaEventBuffer* fBuffer; //!
   KoaEventDataItem* fCurrentEvent; //!

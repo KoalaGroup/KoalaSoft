@@ -5,7 +5,9 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_unpack(const char* data)
+
+// only decode raw binary to the stage of KoaRawEvent data class
+void unpack_rawevent_only(const char* data)
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -71,6 +73,7 @@ void run_unpack(const char* data)
   
     // Config analyzer
     KoaEventAnalyzer* koalaAnalyzer = new KoaEventAnalyzer();
+    koalaAnalyzer->SaveRawEvent(kTRUE); // save channel-mapped raw data
     fFileSource->SetKoaEventAnalyzer(koalaAnalyzer);
 
     KoaEmsEventAnalyzer* emsAnalyzer = new KoaEmsEventAnalyzer();
@@ -81,39 +84,18 @@ void run_unpack(const char* data)
   // Setup sink
   FairRootFileSink *fFileSink = new FairRootFileSink(outFile);
   fRun->SetSink(fFileSink);
-  koalaAnalyzer->SetPersistence(true);
+  // koalaAnalyzer->SetPersistence(true);
   emsAnalyzer->SetPersistence(true);
 
   // -----   Parameters   --------------------------------------------------------
 
   FairRuntimeDb* rtdb = fRun->GetRuntimeDb();
-  // FairParRootFileIo* parInput1 = new FairParRootFileIo();
-  // parInput1->open(parFile.Data(), "UPDATE");
-  // rtdb->setFirstInput(parInput1);
 
-  // FairParAsciiFileIo* parInput2 = new FairParAsciiFileIo();
-  // TList *parFileList = new TList();
-  // TString paramDir = dir + "/parameters/";
-  // TString paramfile_fwd = paramDir + "fwd.par";
-  // TObjString *paramFile_fwd = new TObjString(paramfile_fwd);
-  // parFileList->Add(paramFile_fwd);
-  // TString paramfile_rec = paramDir + "rec.par";
-  // TObjString *paramFile_rec = new TObjString(paramfile_rec);
-  // parFileList->Add(paramFile_rec);
-  // parInput2->open(parFileList,"in");
-  // rtdb->setSecondInput(parInput2);
-
+  // output params
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo *parOut = new FairParRootFileIo(kParameterMerged);
   parOut->open(paraFile.Data());
   rtdb->setOutput(parOut);
-
-  // -----   Tasks   --------------------------------------------------------
-
-  // Transform to simulation data format, i.e. TClonesArray based
-  KoaRawEventTransform *evtTransTask = new KoaRawEventTransform();
-  evtTransTask->SetPersistence(kTRUE);
-  fRun->AddTask(evtTransTask);
 
   // -----   Init   --------------------------------------------------------
   fRun->Init();

@@ -17,7 +17,6 @@ class KoaRawEventTransform : public FairTask
  public:
   /** Default constructor **/
   KoaRawEventTransform() : FairTask("KoaRawEventTransform"),
-                           fPersistence(false),
                            fRawEvent(nullptr),
                            fFwdDigis(nullptr),
                            fRecDigis(nullptr),
@@ -67,16 +66,11 @@ class KoaRawEventTransform : public FairTask
   /** Reset eventwise counters **/
   void Reset();
   
-  void SetPersistence(bool flag) { fPersistence = flag; }
-
 private:
   KoaRawEventTransform(const KoaRawEventTransform&);
   KoaRawEventTransform operator=(const KoaRawEventTransform&);
 
 private:
-  //
-  bool fPersistence;
-
   // input object
   // KoaRawEvent *fRawEvent;
   KoaRawEvent const *fRawEvent;

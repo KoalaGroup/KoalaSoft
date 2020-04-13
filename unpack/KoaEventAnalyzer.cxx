@@ -99,7 +99,12 @@ void KoaEventAnalyzer::InitOutputBuffer()
     LOG(fatal) << "No FairRootManager";
 
   fRawEvent = new KoaRawEvent();
-  ioMan->RegisterAny("KoaRawEvent", fRawEvent, kFALSE);
+  if ( fSaveRawEvent ) {
+    ioMan->RegisterAny("KoaRawEvent", fRawEvent, kTRUE);
+  }
+  else {
+    ioMan->RegisterAny("KoaRawEvent", fRawEvent, kFALSE);
+  }
 
   // 4.2 get the value map and check whether data available
   fAmplitudeValueMapOutput = fRawEvent->GetAmplitudeValueMap();

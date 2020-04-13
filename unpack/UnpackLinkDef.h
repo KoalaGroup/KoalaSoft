@@ -26,7 +26,6 @@
 /* #pragma link C++ class KoaEmsEventData+; */
 /* #pragma link C++ class KoaMxdc32Data+; */
 #pragma link C++ class KoaRawEventAnalyzer+;
-#pragma link C++ class KoaTestAnalyzer+;
 #pragma link C++ class KoaEventAnalyzer+;
 #pragma link C++ class KoaEmsEventAnalyzer+;
 #pragma link C++ class KoaEventAssembler;

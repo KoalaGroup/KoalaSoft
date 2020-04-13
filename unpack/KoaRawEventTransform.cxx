@@ -33,9 +33,6 @@ InitStatus KoaRawEventTransform::Init()
   fRecRearTimeValueMap = fRawEvent->GetRecRearTimeValueMap();
 
   // Create other new output branches
-  if ( fPersistence ) {
-    ioman->RegisterAny("KoaRawEvent", fRawEvent, kTRUE);
-  }
 
   fRecDigis = new TClonesArray("KoaRecDigi", 300);
   ioman->Register("KoaRecDigi","KoaRec",fRecDigis,kTRUE);
