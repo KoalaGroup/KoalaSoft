@@ -1,0 +1,29 @@
+* Code Base Structure
+** Top level
+   - data :: Data classes used in simulation
+   - generators :: Event generators in simulation
+   - geometry :: Geometry files used in simulation, including the scripts for generating these files
+   - passive :: Cave and Pipe module in simulation
+   - detectors :: Sensitive detectors
+     - sds
+     - recoil
+       - simple
+       - full
+     - lmd-forward
+     - lmd-recoil
+   - daq ;: DAQ related functions like decoding
+     - ems
+   - tools :: Utility classed used in simulation, reconstruction and analysis like geometry handler and channel id encoding
+   - analysis :: Commonly used tasks used in analysis
+     - koala
+   - macro :: Example macros
+     - koala
+   - parameters :: All kinds of parameter files
+   - gconfig :: Configuration files for MC engines
+   - config :: Configuration files for FairRoot framework
+   - cmake :: CMake related files
+   - doc :: Documentations
+     - koala
+   - test :: Tests
+
+** /data/

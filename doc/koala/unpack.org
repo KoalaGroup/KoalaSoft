@@ -1,0 +1,29 @@
+* /unpack/ package
+** Macros
+*** /unpack.C/
+    Input: ems raw binary
+    
+    Output three root files: 
+    1. TClonesArray based digits
+       - KoaRecDigi
+       - KoaFwdDigi
+       - KoaRecRearDigi
+    2. KoaEmsRawEvent based
+       - KoaEmsRawEvent
+    3. parameters
+       - FairGeoParSet
+       - FairBaseParSet
+         
+*** /unpack_rawevent_only.C/
+    Input: ems raw binary
+    
+    Output three root files: 
+    1. KoaRawEvent based
+       - KoaRawEvent
+    2. KoaEmsRawEvent based
+       - KoaEmsRawEvent
+    3. parameters
+       - FairGeoParSet
+       - FairBaseParSet
+
+** Classes

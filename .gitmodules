@@ -1,4 +1,4 @@
-[submodule "macro/bt_analysis"]
-	path = macro/bt_analysis
+[submodule "macro/koala/bt_analysis"]
+	path = macro/koala/bt_analysis
 	url = git@git.panda.gsi.de:YongZhou/beamtestanalysis.git
 	branch = bt2019_august

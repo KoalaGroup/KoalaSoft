@@ -228,16 +228,14 @@ ENDIF(HAS_CXX11_SHAREDPOINTER)
 # cause another cmake executable to run.  The same process will walk through
 # the project's entire directory structure.
 
-add_subdirectory (KoaData)
-add_subdirectory (KoaGenerators)
-add_subdirectory (rec)
-add_subdirectory (fwd)
+add_subdirectory (data)
+add_subdirectory (generators)
 add_subdirectory (passive)
-add_subdirectory (field)  
-add_subdirectory (tools)  
-add_subdirectory (analysis)  
-add_subdirectory (unpack)  
-add_subdirectory (test)  
+add_subdirectory (detectors)
+add_subdirectory (daq)
+add_subdirectory (tools)
+add_subdirectory (analysis)
+add_subdirectory (test)
 
 #######################################################
 WRITE_CONFIG_FILE(config.sh)

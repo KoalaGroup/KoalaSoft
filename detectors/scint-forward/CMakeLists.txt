@@ -1,9 +1,11 @@
-# Create a library called "libKoaTools"
+# Create a library called "libKoaScintFwd"
 
 set(INCLUDE_DIRECTORIES
 #put here all directories where header files are located
 ${BASE_INCLUDE_DIRECTORIES}
 ${CMAKE_CURRENT_SOURCE_DIR}
+${CMAKE_SOURCE_DIR}/data
+${CMAKE_SOURCE_DIR}/tools
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -18,18 +20,24 @@ link_directories( ${LINK_DIRECTORIES})
 
 set(SRCS
 #Put here your sourcefiles
-KoaGeoHandler.cxx
-KoaMapHandler.cxx
-KoaMapEncoder.cxx
-KoaElasticCalculator.cxx
+KoaFwd.cxx
+KoaFwdContFact.cxx
+KoaFwdGeo.cxx
+KoaFwdGeoPar.cxx
+KoaFwdMisalignPar.cxx
+KoaFwdPoint.cxx
+KoaFwdDigi.cxx
+KoaFwdDigitization.cxx
+KoaFwdDigitizationPar.cxx
 )
 
-Set(LINKDEF ToolsLinkDef.h)
-Set(LIBRARY_NAME KoaTools)
+Set(LINKDEF ScintFwdLinkDef.h)
+Set(LIBRARY_NAME KoaScintFwd)
 Set(DEPENDENCIES
-  Base
-  Geom
-  Core
+    Base
+    Geom
+    KoaData
+    KoaTools
 )
 
 GENERATE_LIBRARY()

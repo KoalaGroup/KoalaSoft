@@ -2,7 +2,7 @@
 
 set(INCLUDE_DIRECTORIES
 ${BASE_INCLUDE_DIRECTORIES}
-${CMAKE_SOURCE_DIR}/KoaData
+${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 include_directories( ${INCLUDE_DIRECTORIES})
@@ -16,12 +16,12 @@ ${FAIRROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(SRCS
-KoaStack.cxx 
+KoaStack.cxx
 KoaMCTrack.cxx
 )
 
 Set(HEADERS )
-Set(LINKDEF MCStackLinkDef.h)
+Set(LINKDEF DataLinkDef.h)
 Set(LIBRARY_NAME KoaData)
 Set(DEPENDENCIES Base EG Physics Core)
 

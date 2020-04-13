@@ -36,7 +36,7 @@ set(SRCS
 KoaTest.cxx
 )
 
-Set(LINKDEF KoaTestLinkDef.h)
+Set(LINKDEF TestLinkDef.h)
 
 Set(LIBRARY_NAME KoaTest)
 

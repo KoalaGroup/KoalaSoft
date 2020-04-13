@@ -1,9 +1,11 @@
-# Create a library called "libKoaTools"
+# Create a library called "libKoaSimpleRec"
 
 set(INCLUDE_DIRECTORIES
 #put here all directories where header files are located
 ${BASE_INCLUDE_DIRECTORIES}
 ${CMAKE_CURRENT_SOURCE_DIR}
+${CMAKE_SOURCE_DIR}/data
+${CMAKE_SOURCE_DIR}/tools
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -18,18 +20,24 @@ link_directories( ${LINK_DIRECTORIES})
 
 set(SRCS
 #Put here your sourcefiles
-KoaGeoHandler.cxx
-KoaMapHandler.cxx
-KoaMapEncoder.cxx
-KoaElasticCalculator.cxx
+KoaRec.cxx
+KoaRecContFact.cxx
+KoaRecGeo.cxx
+KoaRecGeoPar.cxx
+KoaRecMisalignPar.cxx
+KoaRecPoint.cxx
+KoaRecDigi.cxx
+KoaRecDigitizationIdeal.cxx
+KoaRecCluster.cxx
 )
 
-Set(LINKDEF ToolsLinkDef.h)
-Set(LIBRARY_NAME KoaTools)
+Set(LINKDEF SimpleRecLinkDef.h)
+Set(LIBRARY_NAME KoaSimpleRec)
 Set(DEPENDENCIES
-  Base
-  Geom
-  Core
+    Base
+    Geom
+    KoaData
+    KoaTools
 )
 
 GENERATE_LIBRARY()

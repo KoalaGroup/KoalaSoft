@@ -1,21 +1,12 @@
- ################################################################################
- #    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    #
- #                                                                              #
- #              This software is distributed under the terms of the             # 
- #         GNU Lesser General Public Licence version 3 (LGPL) version 3,        #  
- #                  copied verbatim in the file "LICENSE"                       #
- ################################################################################
-# Create a library called "libKoaRec" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libKoaAnalysis"
 
 set(INCLUDE_DIRECTORIES
-${BASE_INCLUDE_DIRECTORIES}
 #put here all directories where header files are located
-${CMAKE_SOURCE_DIR}/analysis
-${CMAKE_SOURCE_DIR}/rec
+${BASE_INCLUDE_DIRECTORIES}
+${CMAKE_CURRENT_SOURCE_DIR}
+${CMAKE_SOURCE_DIR}/data
+${CMAKE_SOURCE_DIR}/detectors/recoil/simple
 ${CMAKE_SOURCE_DIR}/tools
-${CMAKE_SOURCE_DIR}/KoaGenerators
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -24,8 +15,7 @@ include_directories(${SYSTEM_INCLUDE_DIRECTORIES})
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
 ${FAIRROOT_LIBRARY_DIR}
-# ${SIMPATH}/lib
-) 
+)
 
 link_directories( ${LINK_DIRECTORIES})
 
@@ -34,15 +24,15 @@ set(SRCS
 KoaAnaSolidAngle.cxx
 )
 
-Set(LINKDEF KoaAnaLinkDef.h)
-Set(LIBRARY_NAME KoaAna)
+Set(LINKDEF AnalysisLinkDef.h)
+Set(LIBRARY_NAME KoaAnalysis)
 
 Set(DEPENDENCIES
     Base
     Geom
-    KoaRec
+    KoaData
+    KoaSimpleRec
     KoaTools
-    # KoaGen
 )
 
 GENERATE_LIBRARY()
