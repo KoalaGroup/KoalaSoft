@@ -4,6 +4,8 @@
 #include "FairLogger.h"
 #include <cstdint>
 #include <iostream>
+#include <map>
+#include <string>
 
 /************** KoaBufferStatistic Begin ********************/
 struct KoaBufferStatistic
