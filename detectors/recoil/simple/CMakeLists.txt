@@ -31,6 +31,8 @@ KoaRecDigitizationIdeal.cxx
 KoaRecChargeDivisionIdeal.cxx
 KoaRecAddNoise.cxx
 KoaRecNoisePar.cxx
+KoaRecAddFano.cxx
+KoaRecFanoPar.cxx
 KoaRecCluster.cxx
 )
 

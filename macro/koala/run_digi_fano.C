@@ -5,7 +5,7 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_digi_noise(const char* data, const char* para)
+void run_digi_fano(const char* data, const char* para)
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -23,7 +23,7 @@ void run_digi_noise(const char* data, const char* para)
 
   // Output file
   TString outFile(data);
-  outFile.ReplaceAll("_digi.root","_noise.root");
+  outFile.ReplaceAll("_digi.root","_fano.root");
 
 
   // -----   Timer   --------------------------------------------------------
@@ -58,15 +58,11 @@ void run_digi_noise(const char* data, const char* para)
   // rtdb->setOutput(parInput1);
 
   //
-  KoaRecAddNoise* recAddNoise = new KoaRecAddNoise();
-  recAddNoise->SetInputDigiName("RecDigi_ChargeDivision");
-  // recAddNoise->SetInputDigiName("KoaRecDigi");
-  recAddNoise->SetOutputDigiName("RecDigi_AddNoise");
-  recAddNoise->SaveOutputDigi(true);
-  fRun->AddTask(recAddNoise);
-
-  // KoaFwdDigitization* fwdDigiTask = new KoaFwdDigitization();
-  // fRun->AddTask(fwdDigiTask);
+  KoaRecAddFano* recAddFano = new KoaRecAddFano();
+  recAddFano->SetInputDigiName("RecDigi_ChargeDivision");
+  recAddFano->SetOutputDigiName("RecDigi_AddFano");
+  recAddFano->SaveOutputDigi(true);
+  fRun->AddTask(recAddFano);
 
   fRun->Init();
 

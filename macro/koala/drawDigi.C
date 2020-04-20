@@ -63,7 +63,7 @@ void drawDigi(const char* filename,  const char* branchName, const char* prefix)
       id = digi->GetDetID();
       ch_id = encoder->DecodeChannelID(id, det_id);
 
-      charge = 1000*digi->GetCharge(); // MeV
+      charge = digi->GetCharge()/1000.; // MeV
       h2map_EnergyVsPosition[det_id].Fill(ch_id+1, charge);
       h1map_Energy[id].Fill(charge);
     }
