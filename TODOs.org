@@ -1,5 +1,0 @@
-
-* TODO Get correct forward timing information
-<2020-04-23 Do>
-[[file:~/src/KoalaSoft/macro/koala/checkDigi.C::if((timestamp - fwd_time\[index0\]) > 500 &&]]
-

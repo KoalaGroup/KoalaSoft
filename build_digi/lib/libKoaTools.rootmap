@@ -1,8 +1,0 @@
-[ KoaTools.so ]
-# List of selected classes
-class KoaElasticCalculator
-class KoaGeoHandler
-class KoaMapEncoder
-class KoaMapHandler
-# List of selected namespaces
-namespace KoaUtility

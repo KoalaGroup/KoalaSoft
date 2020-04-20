@@ -62,6 +62,8 @@ Set(DEPENDENCIES
   Physics
   Hist
   KoaData
+  Physics
+  Hist
 )
 
 GENERATE_LIBRARY()

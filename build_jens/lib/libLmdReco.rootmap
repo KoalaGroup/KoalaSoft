@@ -1,8 +1,0 @@
-[ LmdReco.so ]
-# List of selected classes
-class KoaHitMergeTask
-class KoaPixelClusterTask
-class PndLmdHitMergeTask
-class PndLmdPixelClusterTask
-class PndSdsCell
-class PndSdsMergedHit
