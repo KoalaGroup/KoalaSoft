@@ -33,6 +33,8 @@ KoaRecAddNoise.cxx
 KoaRecNoisePar.cxx
 KoaRecAddFano.cxx
 KoaRecFanoPar.cxx
+KoaRecChargeCollection.cxx
+KoaRecChargeCollectionPar.cxx
 KoaRecCluster.cxx
 )
 

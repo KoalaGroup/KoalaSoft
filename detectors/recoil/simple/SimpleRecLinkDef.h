@@ -24,6 +24,8 @@
 #pragma link C++ class KoaRecNoisePar+;
 #pragma link C++ class KoaRecAddFano+;
 #pragma link C++ class KoaRecFanoPar+;
+#pragma link C++ class KoaRecChargeCollection+;
+#pragma link C++ class KoaRecChargeCollectionPar+;
 #pragma link C++ class KoaRecCluster+;
 
 #endif
