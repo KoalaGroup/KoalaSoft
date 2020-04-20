@@ -75,7 +75,7 @@ void drawDigi(const char* filename,  const char* branchName, const char* prefix)
   TString outfilename(filename);
   outfilename.ReplaceAll(".root","");
   outfilename.Append("_result.root");
-  TFile *fout = new TFile(outfilename.Data(),"update");
+  TFile *fout = new TFile(outfilename.Data(),"recreate");
 
   TDirectory* hdir;
   if(!(hdir=fout->GetDirectory("histograms")))

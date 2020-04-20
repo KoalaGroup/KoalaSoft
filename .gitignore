@@ -56,3 +56,6 @@ html/
 
 #editor tmp files
 .*.swp
+
+macro/koala/*.root
+macro/koala/*.par

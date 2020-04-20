@@ -1,0 +1,70 @@
+#include "KoaColors.h"
+
+using namespace KoaColors;
+
+void compareDigi(const char* base_path, const char* sensor, int strip)
+{
+  // setup color scheme
+  init_KoaColors();
+  set_KoaPalette_Sunset(100);
+
+  TH1::AddDirectory(false);
+
+  //
+  std::map<std::string, std::string> files;
+  auto insertFile = [&] (const char* prefix) -> bool
+                    {
+                      TString filename(base_path);
+                      filename.Append(Form("_%s_result.root", prefix));
+
+                      auto file = TFile::Open(filename);
+                      TDirectory *hdir = nullptr;
+                      if(!(hdir=file->GetDirectory("histograms"))){
+                        std::cerr << "Error: no histograms dir" << std::endl;
+                        return false;
+                      }
+
+                      files.emplace(filename, prefix);
+                      std::cout << filename << ", " << prefix << std::endl;
+                      delete file;
+                      return true;
+                    };
+
+  //
+  if(!insertFile("digi")) return;
+  if(!insertFile("fano")) return;
+  if(!insertFile("noise")) return;
+
+  //
+  auto getHist = [&] (std::string filename, std::string prefix) -> TH1D*
+                 {
+                   auto file = TFile::Open(filename.data());
+                   TDirectory *hdir = file->GetDirectory("histograms");
+                   TH1D *hist = nullptr;
+                   TString hname(Form("h1_%s_Sensor%s_%d", prefix.data(), sensor, strip));
+                   hdir->GetObject(hname, hist);
+                   if ( !hist ) {
+                     std::cerr << "Error: no histogram " << hname << std::endl;
+                   }
+
+                   delete file;
+                   return hist;
+                 };
+
+  std::vector<TH1*> histograms;
+  int index = 0;
+  for(auto& file: files) {
+    TH1D* hist = getHist(file.first, file.second);
+    if(!hist) return;
+    hist->SetLineColor(kTBriBlue+index);
+    hist->SetLineWidth(2);
+    histograms.emplace_back(hist);
+
+    index++;
+  }
+
+  auto can = new TCanvas();
+  for(auto& hist: histograms) {
+    hist->Draw("same");
+  }
+}
