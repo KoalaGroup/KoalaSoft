@@ -5,7 +5,7 @@
  #         GNU Lesser General Public Licence version 3 (LGPL) version 3,        #  
  #                  copied verbatim in the file "LICENSE"                       #
  ################################################################################
-# Create a library called "libKoaUnpack" which includes the source files given in
+# Create a library called "libKoaRecon" which includes the source files given in
 # the array .
 # The extension is already found.  Any number of sources could be listed here.
 
@@ -31,49 +31,40 @@ ${FAIRROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 set(HEADERS
-  KoaRunOnline.h
-  KoaEmsConfig.h
-  KoaEmsSource.h
-  KoaEmsFileSource.h
-  KoaEmsStreamSource.h
-  KoaUnpack.h
-  KoaScalorUnpack.h
-  KoaTimeUnpack.h
-  KoaMxdc32Unpack.h
-  KoaEmsRawEvent.h
-  KoaRawEvent.h
-  # KoaBufferTemplate.h
-  # KoaEventData.h
-  # KoaEmsEventData.h
-  # KoaMxdc32Data.h
-  KoaRawEventAnalyzer.h
-  #  KoaTestAnalyzer.h
-  KoaEventAnalyzer.h
-  KoaEmsEventAnalyzer.h
-  KoaEventAssembler.h
-  KoaRawEventTransform.h
+  KoaRecNoiseFilter.h
+  KoaRecEnergyRecon.h
+  KoaRecTimeShiftCorrect.h
+  KoaRecTimeWalkCorrect.h
+  KoaRecRearRecon.h
+  KoaFwdRecon.h
+  KoaRecClusterCollect.h
+  KoaRecClusterSeedFilter.h
+  KoaRecClusterThresholdFilter.h
+  KoaRecClusterSizeFilter.h
+  KoaRecClusterNoiseFilter.h
+  KoaRecClusterPurification.h
+  KoaRecClusterSmear.h
   )
 
 set(SRCS
-#Put here your sourcefiles
-KoaRunOnline.cxx
-KoaEmsConfig.cxx
-KoaEmsSource.cxx
-KoaEmsFileSource.cxx
-KoaEmsStreamSource.cxx
-KoaScalorUnpack.cxx
-KoaTimeUnpack.cxx
-KoaMxdc32Unpack.cxx
-#KoaTestAnalyzer.cxx
-KoaEventAnalyzer.cxx
-KoaEmsEventAnalyzer.cxx
-KoaEventAssembler.cxx
-KoaRawEventTransform.cxx
+  KoaRecNoiseFilter.cxx
+  KoaRecEnergyRecon.cxx
+  KoaRecTimeShiftCorrect.cxx
+  KoaRecTimeWalkCorrect.cxx
+  KoaRecRearRecon.cxx
+  KoaFwdRecon.cxx
+  KoaRecClusterCollect.cxx
+  KoaRecClusterSeedFilter.cxx
+  KoaRecClusterThresholdFilter.cxx
+  KoaRecClusterSizeFilter.cxx
+  KoaRecClusterNoiseFilter.cxx
+  KoaRecClusterPurification.cxx
+  KoaRecClusterSmear.cxx
 )
 
-Set(LINKDEF EmsDaqLinkDef.h)
+Set(LINKDEF KoaReconLinkDef.h)
 
-Set(LIBRARY_NAME KoaEmsDaq)
+Set(LIBRARY_NAME KoaRecon)
 
 Set(DEPENDENCIES
     Alignment

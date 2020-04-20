@@ -24,6 +24,19 @@ ${FAIRROOT_LIBRARY_DIR}
 include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 link_directories( ${LINK_DIRECTORIES})
 
+############### library ######################
+set(HEADERS
+  KoaGeoHandler.h
+  KoaMapHandler.h
+  KoaMapEncoder.h
+  KoaElasticCalculator.h
+  KoaTextUtility.h
+  PndGeoHandling.h
+  PndSensorNamePar.h
+  PndSensorNameContFact.h
+  PndStringSeparator.h
+  )
+
 set(SRCS
 #Put here your sourcefiles
 KoaGeoHandler.cxx
@@ -46,6 +59,8 @@ Set(DEPENDENCIES
   Physics
   Hist
   KoaData
+  Physics
+  Hist
 )
 
 GENERATE_LIBRARY()

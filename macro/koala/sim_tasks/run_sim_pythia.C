@@ -1,25 +1,17 @@
-void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const char* outdir="./", TString mcEngine = "TGeant4")
+void run_sim_pythia(Double_t beamMom = 2.6, Int_t nEvents = 100, const char* outdir = "./",  TString mcEngine = "TGeant4")
 {
-  // ----    Debug option   -------------------------------------------------
-  gDebug = 0;
-
   FairLogger *logger = FairLogger::GetLogger();
-  //  logger->SetLogFileName("MyLog.log");
   logger->SetLogToScreen(kTRUE);
-  //  logger->SetLogToFile(kTRUE);
-   // logger->SetLogVerbosityLevel("HIGH");
-  //  logger->SetLogFileLevel("DEBUG4");
   logger->SetLogScreenLevel("WARNING");
-    
-  TString dir = getenv("VMCWORKDIR");
+  // logger->SetLogScreenLevel("INFO");
 
+  TString dir = getenv("VMCWORKDIR");
   // Output file name
-  TString outFile =Form("%s/elastic_ideal_%.1fGeV_%d.root", outdir, beamMom, nEvents);
+  TString outFile =Form("%s/pythia_%d.root", outdir, nEvents);
     
-  // output Parameter file name
-  TString parFile=Form("%s/elastic_ideal_param_%.1f_%d.root", outdir, beamMom, nEvents);
+  // Parameter file name
+  TString parFile=Form("%s/param_pythia_%d.root",outdir, nEvents);
   
-  // input Parameter file name
   TList *parFileList = new TList();
   TString paramDir = dir + "/parameters/";
 
@@ -34,79 +26,66 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
   timer.Start();
-  // ------------------------------------------------------------------------
 
   // -----   Create simulation run   ----------------------------------------
   FairRunSim* run = new FairRunSim();
-
-  // The name of FairRunSim should be TGeant4, TGeant3 or TFluka
-  // TFluka is deprecated, I think.
-  // Based on the name of FairRunSim, different MC configuration and engine will be selected
   run->SetName(mcEngine);              // Transport engine
   run->SetUserConfig("g4KoalaConfig.C"); // use koala specific configuration
 
-  // the output root where simulation result (hits and digits) are saved
   run->SetSink(new FairRootFileSink(outFile));
-  // run->SetOutputFile(outFile);          // Output file
   FairRuntimeDb* rtdb = run->GetRuntimeDb();
-  // ------------------------------------------------------------------------
-  
+
   // -----   Create media   -------------------------------------------------
-  // Important: the materials used by all detector modules in the simultation is
-  // defined in a single file and imported here.
   run->SetMaterials("media.geo");       // Materials
-  // ------------------------------------------------------------------------
   
   // -----   Create geometry   ----------------------------------------------
-
   FairModule* cave= new KoaCave("CAVE");
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  FairModule* pipe = new KoaPipe("Pipe");
+  KoaPipe* pipe = new KoaPipe("Pipe");
   pipe->SetGeometryFileName("pipe.root");
   run->AddModule(pipe);
-    
+
   KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
-  rec_det->SetGeometryFileName("rec.root");
-  // rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
+  // rec_det->SetGeometryFileName("rec.root");
+  rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
   rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
   KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  fwd_det->SetGeometryFileName("fwd.root");
-  // fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
+  // fwd_det->SetGeometryFileName("fwd.root");
+  fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
   fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
 
-    
+ // ------------------------------------------------------------------------
+
   // -----   Create PrimaryGenerator   --------------------------------------
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
+  // FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
   
-    KoaPPElasticIdealGenerator* idealGen = new KoaPPElasticIdealGenerator(beamMom);
-    // idealGen->SetGeantino();
-    idealGen->SetAlphaRange(0,20);
-    primGen->AddGenerator(idealGen);
+    // Add a pythia generator also to the run
+    KoaPythia8Generator *pythiaGen = new KoaPythia8Generator();
+    pythiaGen->SetId(2212);
+    pythiaGen->SetMom(beamMom);
+    // pythiaGen->SetParameters("Main:numberOfEvents = 100");
+    // pythiaGen->SetParameters("Main:numberToList = 3");
+    // pythiaGen->SetParameters("Main:timesAllowErrors = 3");
+    // pythiaGen->SetParameters("Init:showChangedSettings = on");
+    // pythiaGen->SetParameters("Init:showChangedParticleData = off");
+    pythiaGen->SetParameters("SoftQCD:all = on");
+    // pythiaGen->Print();
+    primGen->AddGenerator(pythiaGen);
 
-  // Add filter
-  KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
-  evtFilter->SetX(-90.432);
-  evtFilter->SetZRange(-3,30);
-  evtFilter->SetYRange(-10,10);
-  primGen->AndFilter(evtFilter);
-
-  // Smear Interaction Point
-  primGen->SmearVertexZ(kTRUE);
-  primGen->SetTarget(0, 0.2); // target thickness: 2 mm
-  primGen->SmearVertexXY(kTRUE);
-  primGen->SetBeam(0, 0, 1., 1.); // beam width: 10 mm
+    // Add filter
+    KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
+    evtFilter->SetX(-90.432);
+    evtFilter->SetZRange(-3,30);
+    evtFilter->SetYRange(-10,10);
+    primGen->AndFilter(evtFilter);
 
   run->SetGenerator(primGen);
-// ------------------------------------------------------------------------
- 
-  //---Store the visualiztion info of the tracks, this make the output file very large!!
-  //--- Use it only to display but not for production!
-  // run->SetStoreTraj(kTRUE);
 
   // -----   Runtime database   ---------------------------------------------
 
@@ -118,12 +97,10 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   FairParAsciiFileIo* parIn = new FairParAsciiFileIo();
   parIn->open(parFileList, "in");
   rtdb->setFirstInput(parIn);
-  // ------------------------------------------------------------------------
     
   // -----   Initialize simulation run   ------------------------------------
   run->Init();
-  // ------------------------------------------------------------------------
-
+   
   // -----   Start run   ----------------------------------------------------
    run->Run(nEvents);
     
@@ -133,9 +110,9 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   //You can export your ROOT geometry ot a separate file
   // run->CreateGeometryFile("geofile_full.root");
   // ------------------------------------------------------------------------
-  
-  delete run;
 
+  delete run;
+  
   // -----   Finish   -------------------------------------------------------
   timer.Stop();
   Double_t rtime = timer.RealTime();
@@ -148,5 +125,4 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
        << "s" << endl << endl;
   // ------------------------------------------------------------------------
 }
-
 

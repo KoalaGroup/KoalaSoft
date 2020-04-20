@@ -1,14 +1,37 @@
-void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
+/* Just used to simulate nEvents empty events.
+ * It's used as a prerequiste for noise generator
+ */
+
+// pdg_id :
+//   proton : 2212
+//   pion   : 211
+//   muon   : 13
+void run_sim_mip(Int_t nEvents = 100, const char* outdir="./",
+                 Int_t pdg_id = 2212,
+                 TString mcEngine = "TGeant4")
 {
-    
+  FairLogger *logger = FairLogger::GetLogger();
+  //  logger->SetLogFileName("MyLog.log");
+  logger->SetLogToScreen(kTRUE);
+  //  logger->SetLogToFile(kTRUE);
+  //  logger->SetLogVerbosityLevel("HIGH");
+  //  logger->SetLogFileLevel("DEBUG4");
+  logger->SetLogScreenLevel("WARNING");
+  // logger->SetLogScreenLevel("INFO");
+
+  TString dir = getenv("VMCWORKDIR");
   // Output file name
-  TString outFile =Form("solidAngle_%d.root",nEvents);
+  TString outFile =Form("%s/mip_%d_%d.root", outdir, pdg_id, nEvents);
     
   // Parameter file name
-  TString parFile=Form("solidAngle_param_%d.root",nEvents);
+  TString parFile=Form("%s/param_mip_%d_%d.root",outdir, pdg_id, nEvents);
   
-  // ----    Debug option   -------------------------------------------------
-  gDebug = 0;
+  TList *parFileList = new TList();
+  TString paramDir = dir + "/parameters/";
+
+  TString paramfile_rec = paramDir + "rec.par";
+  TObjString* paramFile_rec = new TObjString(paramfile_rec);
+  parFileList->Add(paramFile_rec);
 
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -25,7 +48,8 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   run->SetUserConfig("g4KoalaConfig.C"); // use koala specific configuration
 
   // the output root where simulation result (hits and digits) are saved
-  run->SetOutputFile(outFile);          // Output file
+  // run->SetOutputFile(outFile);          // Output file
+  run->SetSink(new FairRootFileSink(outFile));
   FairRuntimeDb* rtdb = run->GetRuntimeDb();
   // ------------------------------------------------------------------------
   
@@ -41,60 +65,66 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  // FairModule* pipe = new KoaPipe("Pipe");
-  /* if not geometry file is specified, the default one will be used.
-   */
-  //pipe->SetGeometryFileName("pipe_simple.root");
-  // run->AddModule(pipe);
-    
-  FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
+  KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
+  rec_det->SetModifyGeometry(false);
   run->AddModule(rec_det);
 
-  FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
+  KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
   fwd_det->SetGeometryFileName("fwd.root");
   run->AddModule(fwd_det);
+ // ------------------------------------------------------------------------
 
   // -----   Create PrimaryGenerator   --------------------------------------
-  FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
-  
+  FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
+
     // Add a box generator also to the run
-    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 2212 = proton, 13 = muon; 1 = multipl.
-    boxGen->SetPRange(3.4,3.4); // GeV/c
+    FairBoxGenerator* boxGen = new FairBoxGenerator(pdg_id, 1); //0 = rootino/geantino, 2212 = proton; 1 = multipl.
+    boxGen->SetEkinRange(2, 4);// set kinematic energy range in GeV
     boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
     boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // cm
+    primGen->AddGenerator(boxGen);
 
-  primGen->AddGenerator(boxGen);
+    // Add filter
+    KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
+    evtFilter->SetX(-90.432);
+    evtFilter->SetZRange(-3,30);
+    evtFilter->SetYRange(-10,10);
+    primGen->AndFilter(evtFilter);
+
+    // Smear Interaction Vertex with Gaussian distribution
+    primGen->SmearGausVertexZ(kTRUE);
+    primGen->SetTarget(0, 0.2); // residual gas thickness sigma 3 cm
+    primGen->SmearGausVertexXY(kTRUE);
+    primGen->SetBeam(0, 0, 1., 1.); // beam profile sigma: 10 mm
+
   run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
  
-  //---Store the visualiztion info of the tracks, this make the output file very large!!
-  //--- Use it only to display but not for production!
-  // run->SetStoreTraj(kTRUE);
-
-    
-    
-  // -----   Initialize simulation run   ------------------------------------
-  run->Init();
-  // ------------------------------------------------------------------------
-
   // -----   Runtime database   ---------------------------------------------
 
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo* parOut = new FairParRootFileIo(kParameterMerged);
   parOut->open(parFile.Data());
   rtdb->setOutput(parOut);
-  rtdb->saveOutput();
-  rtdb->print();
+
+  FairParAsciiFileIo* parIn = new FairParAsciiFileIo();
+  parIn->open(parFileList, "in");
+  rtdb->setFirstInput(parIn);
+  // ------------------------------------------------------------------------
+    
+  // -----   Initialize simulation run   ------------------------------------
+  run->Init();
   // ------------------------------------------------------------------------
    
   // -----   Start run   ----------------------------------------------------
    run->Run(nEvents);
     
-  //You can export your ROOT geometry ot a separate file
-  run->CreateGeometryFile("geofile_full.root");
-  // ------------------------------------------------------------------------
+   rtdb->saveOutput();
+   rtdb->print();
+
+  delete run;
   
   // -----   Finish   -------------------------------------------------------
   timer.Stop();

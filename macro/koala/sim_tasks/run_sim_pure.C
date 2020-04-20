@@ -1,14 +1,31 @@
-void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
+void run_sim_pure(Int_t nEvents = 100, Int_t pdgid=0, const char* outdir="./", TString mcEngine = "TGeant4")
 {
-    
+  FairLogger *logger = FairLogger::GetLogger();
+  //  logger->SetLogFileName("MyLog.log");
+  logger->SetLogToScreen(kTRUE);
+  //  logger->SetLogToFile(kTRUE);
+  //  logger->SetLogVerbosityLevel("HIGH");
+  //  logger->SetLogFileLevel("DEBUG4");
+  logger->SetLogScreenLevel("WARNING");
+  // logger->SetLogScreenLevel("INFO");
+
+  TString dir = getenv("VMCWORKDIR");
   // Output file name
-  TString outFile =Form("solidAngle_%d.root",nEvents);
+  TString outFile =Form("%s/pure_pdg%d_%d.root", outdir, pdgid, nEvents);
     
   // Parameter file name
-  TString parFile=Form("solidAngle_param_%d.root",nEvents);
+  TString parFile=Form("%s/param_pure_pdg%d_%d.root",outdir, pdgid, nEvents);
   
-  // ----    Debug option   -------------------------------------------------
-  gDebug = 0;
+  TList *parFileList = new TList();
+  TString paramDir = dir + "/parameters/";
+
+  TString paramfile_rec = paramDir + "rec.par";
+  TObjString* paramFile_rec = new TObjString(paramfile_rec);
+  parFileList->Add(paramFile_rec);
+
+  TString paramfile_fwd = paramDir + "fwd.par";
+  TObjString* paramFile_fwd = new TObjString(paramfile_fwd);
+  parFileList->Add(paramFile_fwd);
 
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -25,7 +42,8 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   run->SetUserConfig("g4KoalaConfig.C"); // use koala specific configuration
 
   // the output root where simulation result (hits and digits) are saved
-  run->SetOutputFile(outFile);          // Output file
+  // run->SetOutputFile(outFile);          // Output file
+  run->SetSink(new FairRootFileSink(outFile));
   FairRuntimeDb* rtdb = run->GetRuntimeDb();
   // ------------------------------------------------------------------------
   
@@ -41,31 +59,44 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   cave->SetGeometryFileName("cave.geo");
   run->AddModule(cave);
 
-  // FairModule* pipe = new KoaPipe("Pipe");
-  /* if not geometry file is specified, the default one will be used.
-   */
-  //pipe->SetGeometryFileName("pipe_simple.root");
-  // run->AddModule(pipe);
-    
-  FairDetector* rec_det = new KoaRec("KoaRec", kTRUE);
+  KoaPipe* pipe = new KoaPipe("Pipe");
+  pipe->SetGeometryFileName("pipe.root");
+  //run->AddModule(pipe);
+
+  KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
+  //rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
+  rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
-  FairDetector* fwd_det = new KoaFwd("KoaFwd", kTRUE);
+  KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
   fwd_det->SetGeometryFileName("fwd.root");
+  //fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
+  fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
 
+ // ------------------------------------------------------------------------
+
   // -----   Create PrimaryGenerator   --------------------------------------
-  FairPrimaryGenerator* primGen = new FairPrimaryGenerator();
+  FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
     // Add a box generator also to the run
-    FairBoxGenerator* boxGen = new FairBoxGenerator(2212, 1); // 2212 = proton, 13 = muon; 1 = multipl.
-    boxGen->SetPRange(3.4,3.4); // GeV/c
+    FairBoxGenerator* boxGen = new FairBoxGenerator(pdgid, 1); //0 = rootino/geantino, 2212 = proton; 1 = multipl.
+    boxGen->SetEkinRange(0, 2.5e-3);// set kinematic energy range in GeV
     boxGen->SetPhiRange(0., 360.); // Azimuth angle range [degree]
     boxGen->SetThetaRange(0., 180.); // Polar angle in lab system range [degree]
     boxGen->SetXYZ(0., 0., 0.); // cm
+    primGen->AddGenerator(boxGen);
 
-  primGen->AddGenerator(boxGen);
+
+    // Add filter
+    KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
+    evtFilter->SetX(-90.432);
+    evtFilter->SetZRange(-3,30);
+    evtFilter->SetYRange(-10,10);
+    primGen->AndFilter(evtFilter);
+    // primGen->AndNotFilter(evtFilter);
+
   run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
  
@@ -73,28 +104,36 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   //--- Use it only to display but not for production!
   // run->SetStoreTraj(kTRUE);
 
-    
-    
-  // -----   Initialize simulation run   ------------------------------------
-  run->Init();
-  // ------------------------------------------------------------------------
-
   // -----   Runtime database   ---------------------------------------------
 
   Bool_t kParameterMerged = kTRUE;
   FairParRootFileIo* parOut = new FairParRootFileIo(kParameterMerged);
   parOut->open(parFile.Data());
   rtdb->setOutput(parOut);
-  rtdb->saveOutput();
-  rtdb->print();
+
+  FairParAsciiFileIo* parIn = new FairParAsciiFileIo();
+  parIn->open(parFileList, "in");
+  rtdb->setFirstInput(parIn);
+  // ------------------------------------------------------------------------
+    
+  // -----   Initialize simulation run   ------------------------------------
+  run->Init();
   // ------------------------------------------------------------------------
    
   // -----   Start run   ----------------------------------------------------
-   run->Run(nEvents);
-    
-  //You can export your ROOT geometry ot a separate file
+  //You can export your ROOT geometry ot a separate file, the misaligned geometry
+  run->CreateGeometryFile("geofile_misaligned.root");
+
+  run->Run(nEvents);
+
+  rtdb->saveOutput();
+  rtdb->print();
+
+  //You can export your ROOT geometry ot a separate file, the original geometry
   run->CreateGeometryFile("geofile_full.root");
   // ------------------------------------------------------------------------
+
+  delete run;
   
   // -----   Finish   -------------------------------------------------------
   timer.Stop();
@@ -104,6 +143,7 @@ void run_sim(Int_t nEvents = 100, TString mcEngine = "TGeant4")
   cout << "Macro finished succesfully." << endl;
   cout << "Output file is "    << outFile << endl;
   cout << "Parameter file is " << parFile << endl;
+  cout << "Total generated events: " << primGen->GetNumberOfGeneratedEvents() << endl;
   cout << "Real time " << rtime << " s, CPU time " << ctime 
        << "s" << endl << endl;
   // ------------------------------------------------------------------------

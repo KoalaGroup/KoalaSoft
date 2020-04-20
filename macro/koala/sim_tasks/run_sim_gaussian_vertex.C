@@ -1,4 +1,4 @@
-void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const char* outdir="./", TString mcEngine = "TGeant4")
+void run_sim_gaussian_vertex(Double_t beamMom = 2.6, Int_t nEvents = 100, const char* outdir="./", TString mcEngine = "TGeant4")
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -14,10 +14,10 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   TString dir = getenv("VMCWORKDIR");
 
   // Output file name
-  TString outFile =Form("%s/elastic_ideal_%.1fGeV_%d.root", outdir, beamMom, nEvents);
+  TString outFile =Form("%s/pp_%.1fGeV_%d.root", outdir, beamMom, nEvents);
     
   // output Parameter file name
-  TString parFile=Form("%s/elastic_ideal_param_%.1f_%d.root", outdir, beamMom, nEvents);
+  TString parFile=Form("%s/pp_param_%.1f_%d.root", outdir, beamMom, nEvents);
   
   // input Parameter file name
   TList *parFileList = new TList();
@@ -68,14 +68,14 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   run->AddModule(pipe);
     
   KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
-  rec_det->SetGeometryFileName("rec.root");
-  // rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
+  // rec_det->SetGeometryFileName("rec.root");
+  rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
   rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
   KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  fwd_det->SetGeometryFileName("fwd.root");
-  // fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
+  // fwd_det->SetGeometryFileName("fwd.root");
+  fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
   fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
 
@@ -83,23 +83,26 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   // -----   Create PrimaryGenerator   --------------------------------------
   FairFilteredPrimaryGenerator* primGen = new FairFilteredPrimaryGenerator();
   
-    KoaPPElasticIdealGenerator* idealGen = new KoaPPElasticIdealGenerator(beamMom);
-    // idealGen->SetGeantino();
-    idealGen->SetAlphaRange(0,20);
-    primGen->AddGenerator(idealGen);
+    // KoaPPElasticIdealGenerator* idealGen = new KoaPPElasticIdealGenerator(beamMom);
+    // // idealGen->SetGeantino();
+    // idealGen->SetAlphaRange(0,20);
+    // primGen->AddGenerator(idealGen);
+
+    KoaPpelasticGenerator* ppGen = new KoaPpelasticGenerator(beamMom);
+    primGen->AddGenerator(ppGen);
 
   // Add filter
   KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
   evtFilter->SetX(-90.432);
-  evtFilter->SetZRange(-3,30);
-  evtFilter->SetYRange(-10,10);
+  evtFilter->SetZRange(-3,30); // real: [-2.85,23.95]
+  evtFilter->SetYRange(-10,10); // real: [-5.675, 5.675]
   primGen->AndFilter(evtFilter);
 
-  // Smear Interaction Point
-  primGen->SmearVertexZ(kTRUE);
-  primGen->SetTarget(0, 0.2); // target thickness: 2 mm
-  primGen->SmearVertexXY(kTRUE);
-  primGen->SetBeam(0, 0, 1., 1.); // beam width: 10 mm
+  // Smear Interaction Vertex with Gaussian distribution
+  primGen->SmearGausVertexZ(kTRUE);
+  primGen->SetTarget(0, 3); // residual gas thickness sigma 3 cm
+  primGen->SmearGausVertexXY(kTRUE);
+  primGen->SetBeam(0, 0, 1., 1.); // beam profile sigma: 10 mm
 
   run->SetGenerator(primGen);
 // ------------------------------------------------------------------------
@@ -131,7 +134,7 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
    rtdb->print();
 
   //You can export your ROOT geometry ot a separate file
-  // run->CreateGeometryFile("geofile_full.root");
+  run->CreateGeometryFile("geofile_full.root");
   // ------------------------------------------------------------------------
   
   delete run;
