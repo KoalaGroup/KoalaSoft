@@ -22,6 +22,8 @@ void run_sim_mt(Int_t nEvents = 100, TString mcEngine = "TGeant4", Bool_t isMT=t
   run->SetName(mcEngine); // Transport engine
   run->SetIsMT(isMT); // multi-thread or not
   run->SetSink(new FairRootFileSink(outFile)); // Output file
+  run->SetUserConfig("g4KoalaConfig.C"); // use koala specific configuration
+
   FairRuntimeDb* rtdb = run->GetRuntimeDb();
   // ------------------------------------------------------------------------
   

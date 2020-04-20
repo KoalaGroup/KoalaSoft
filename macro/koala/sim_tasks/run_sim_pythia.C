@@ -30,6 +30,7 @@ void run_sim_pythia(Double_t beamMom = 2.6, Int_t nEvents = 100, const char* out
   // -----   Create simulation run   ----------------------------------------
   FairRunSim* run = new FairRunSim();
   run->SetName(mcEngine);              // Transport engine
+  run->SetUserConfig("g4KoalaConfig.C"); // use koala specific configuration
 
   run->SetSink(new FairRootFileSink(outFile));
   FairRuntimeDb* rtdb = run->GetRuntimeDb();

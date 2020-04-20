@@ -15,8 +15,9 @@ ${BASE_INCLUDE_DIRECTORIES}
 ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_SOURCE_DIR}/tools
 ${CMAKE_SOURCE_DIR}/data
+${CMAKE_SOURCE_DIR}/data/MCData
 ${CMAKE_SOURCE_DIR}/detectors/recoil/simple
-${CMAKE_SOURCE_DIR}/detectors/scint-forward
+${CMAKE_SOURCE_DIR}/detectors/scintforward
 )
 
 include_directories(${INCLUDE_DIRECTORIES})

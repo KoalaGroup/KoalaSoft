@@ -39,6 +39,7 @@ void run_sim_pure(Int_t nEvents = 100, Int_t pdgid=0, const char* outdir="./", T
   // TFluka is deprecated, I think.
   // Based on the name of FairRunSim, different MC configuration and engine will be selected
   run->SetName(mcEngine);              // Transport engine
+  run->SetUserConfig("g4KoalaConfig.C"); // use koala specific configuration
 
   // the output root where simulation result (hits and digits) are saved
   // run->SetOutputFile(outFile);          // Output file

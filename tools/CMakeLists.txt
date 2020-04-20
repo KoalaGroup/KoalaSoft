@@ -32,6 +32,10 @@ set(HEADERS
   KoaMapEncoder.h
   KoaElasticCalculator.h
   KoaTextUtility.h
+  PndGeoHandling.h
+  PndSensorNamePar.h
+  PndSensorNameContFact.h
+  PndStringSeparator.h
   )
 
 set(SRCS
@@ -55,6 +59,8 @@ Set(DEPENDENCIES
   Physics
   Hist
   KoaData
+  Physics
+  Hist
 )
 
 GENERATE_LIBRARY()

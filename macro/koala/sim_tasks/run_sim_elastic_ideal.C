@@ -46,6 +46,7 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   // TFluka is deprecated, I think.
   // Based on the name of FairRunSim, different MC configuration and engine will be selected
   run->SetName(mcEngine);              // Transport engine
+  run->SetUserConfig("g4KoalaConfig.C"); // use koala specific configuration
 
   // the output root where simulation result (hits and digits) are saved
   run->SetSink(new FairRootFileSink(outFile));
@@ -138,7 +139,6 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   //You can export your ROOT geometry ot a separate file
   // run->CreateGeometryFile("geofile_full.root");
   // ------------------------------------------------------------------------
-  
   delete run;
 
   // -----   Finish   -------------------------------------------------------
