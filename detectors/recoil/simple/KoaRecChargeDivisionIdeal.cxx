@@ -1,11 +1,11 @@
 /********************************************************************************
- *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
+ *  Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH      *
  *                                                                              *
  *              This software is distributed under the terms of the             * 
  *              GNU Lesser General Public Licence (LGPL) version 3,             *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#include "KoaRecDigitizationIdeal.h"
+#include "KoaRecChargeDivisionIdeal.h"
 #include "KoaGeoHandler.h"
 #include "TClonesArray.h"
 #include "KoaRecDigi.h"
@@ -15,17 +15,18 @@
 #include "TVirtualMC.h"
 
 // ---- Default constructor -------------------------------------------
-KoaRecDigitizationIdeal::KoaRecDigitizationIdeal()
-  :FairTask("KoaRecDigitizationIdeal"),
-   fGeoHandler(nullptr)
+KoaRecChargeDivisionIdeal::KoaRecChargeDivisionIdeal()
+  :FairTask("KoaRecChargeDivisionIdeal"),
+   fGeoHandler(nullptr),
+   fSaveOutput(true)
 {
-  LOG(debug) << "Defaul Constructor of KoaRecDigitizationIdeal";
+  LOG(debug) << "Defaul Constructor of KoaRecChargeDivisionIdeal";
 }
 
 // ---- Destructor ----------------------------------------------------
-KoaRecDigitizationIdeal::~KoaRecDigitizationIdeal()
+KoaRecChargeDivisionIdeal::~KoaRecChargeDivisionIdeal()
 {
-  LOG(debug) << "Destructor of KoaRecDigitizationIdeal";
+  LOG(debug) << "Destructor of KoaRecChargeDivisionIdeal";
 
   if ( fDigis ) {
     fDigis->Delete();
@@ -36,9 +37,9 @@ KoaRecDigitizationIdeal::~KoaRecDigitizationIdeal()
 }
 
 // ----  Initialisation  ----------------------------------------------
-void KoaRecDigitizationIdeal::SetParContainers()
+void KoaRecChargeDivisionIdeal::SetParContainers()
 {
-  LOG(debug) << "SetParContainers of KoaRecDigitizationIdeal";
+  LOG(debug) << "SetParContainers of KoaRecChargeDivisionIdeal";
   // Load all necessary parameter containers from the runtime data base
   /*
   FairRunAna* ana = FairRunAna::Instance();
@@ -50,9 +51,9 @@ void KoaRecDigitizationIdeal::SetParContainers()
 }
 
 // ---- Init ----------------------------------------------------------
-InitStatus KoaRecDigitizationIdeal::Init()
+InitStatus KoaRecChargeDivisionIdeal::Init()
 {
-  LOG(debug) << "Initilization of KoaRecDigitizationIdeal";
+  LOG(debug) << "Initilization of KoaRecChargeDivisionIdeal";
 
   // Get a handle from the IO manager
   FairRootManager* ioman = FairRootManager::Instance();
@@ -65,9 +66,9 @@ InitStatus KoaRecDigitizationIdeal::Init()
   }
   // Create the TClonesArray for the output data and register
   // it in the IO manager
-  
+  if (fOutputName.empty()) LOG(fatal) << "No output branch name set";
   fDigis = new TClonesArray("KoaRecDigi", 200);
-  ioman->Register("KoaRecDigi","KoaRec",fDigis,kTRUE);
+  ioman->Register(fOutputName.data(),"KoaRec",fDigis,fSaveOutput);
   // if(!gMC->IsMT()){
   //   ioman->Register("KoaRecDigi","KoaRec",fDigis,kTRUE);
   // }
@@ -88,9 +89,9 @@ InitStatus KoaRecDigitizationIdeal::Init()
 }
 
 // ---- ReInit  -------------------------------------------------------
-InitStatus KoaRecDigitizationIdeal::ReInit()
+InitStatus KoaRecChargeDivisionIdeal::ReInit()
 {
-  LOG(debug) << "Initilization of KoaRecDigitizationIdeal";
+  LOG(debug) << "Initilization of KoaRecChargeDivisionIdeal";
 
   Reset();
 
@@ -98,9 +99,9 @@ InitStatus KoaRecDigitizationIdeal::ReInit()
 }
 
 // ---- Exec ----------------------------------------------------------
-void KoaRecDigitizationIdeal::Exec(Option_t* /*option*/)
+void KoaRecChargeDivisionIdeal::Exec(Option_t* /*option*/)// in keV
 {
-  LOG(debug) << "Exec of KoaRecDigitizationIdeal";
+  LOG(debug) << "Exec of KoaRecChargeDivisionIdeal";// in keV
 
   Reset();
 
@@ -115,16 +116,16 @@ void KoaRecDigitizationIdeal::Exec(Option_t* /*option*/)
 }
 
 // ---- Finish --------------------------------------------------------
-void KoaRecDigitizationIdeal::Finish()
+void KoaRecChargeDivisionIdeal::Finish()
 {
-  LOG(debug) << "Finish of KoaRecDigitizationIdeal";
+  LOG(debug) << "Finish of KoaRecChargeDivisionIdeal";
 
 }
 
 // ---- Reset --------------------------------------------------------
-void KoaRecDigitizationIdeal::Reset()
+void KoaRecChargeDivisionIdeal::Reset()
 {
-  LOG(debug) << "Reset of KoaRecDigitizationIdeal";
+  LOG(debug) << "Reset of KoaRecChargeDivisionIdeal";
 
   fDigis->Clear();
   fFiredStrips.clear();
@@ -132,7 +133,7 @@ void KoaRecDigitizationIdeal::Reset()
 
 // ---- GetFiredStrips --------------------------------------------------------
 // Even charge distribution along the track
-void KoaRecDigitizationIdeal::FillFiredStrips(KoaRecPoint* McPoint)
+void KoaRecChargeDivisionIdeal::FillFiredStrips(KoaRecPoint* McPoint)
 {
   //
   Double_t global_in[3], global_out[3];
@@ -155,7 +156,7 @@ void KoaRecDigitizationIdeal::FillFiredStrips(KoaRecPoint* McPoint)
   chID_out = fGeoHandler->RecLocalPositionToDetCh(local_out, detID);
 
 
-  Double_t eLoss = McPoint->GetEnergyLoss();
+  Double_t eLoss = 1e6*McPoint->GetEnergyLoss();// in keV
   Double_t timestamp = McPoint->GetTime();
   if(chID_out == chID_in){
     FillFiredStrip(chID_in, timestamp, eLoss);
@@ -189,7 +190,7 @@ void KoaRecDigitizationIdeal::FillFiredStrips(KoaRecPoint* McPoint)
   }
 }
 
-void KoaRecDigitizationIdeal::FillFiredStrip(Int_t DetID, Double_t Timestamp, Double_t Charge)
+void KoaRecChargeDivisionIdeal::FillFiredStrip(Int_t DetID, Double_t Timestamp, Double_t Charge)
 {
   auto search = fFiredStrips.find(DetID);
   if(search != fFiredStrips.end()){
@@ -207,7 +208,7 @@ void KoaRecDigitizationIdeal::FillFiredStrip(Int_t DetID, Double_t Timestamp, Do
 }
 
 // ---- AddDigis --------------------------------------------------------
-void KoaRecDigitizationIdeal::AddDigis()
+void KoaRecChargeDivisionIdeal::AddDigis()
 {
   Int_t index =0;
   for(auto strip = fFiredStrips.begin(); strip != fFiredStrips.end(); strip++){
@@ -218,4 +219,4 @@ void KoaRecDigitizationIdeal::AddDigis()
   }
 }
 
-ClassImp(KoaRecDigitizationIdeal)
+ClassImp(KoaRecChargeDivisionIdeal)

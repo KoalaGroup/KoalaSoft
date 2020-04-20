@@ -5,8 +5,8 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#ifndef KOARECDIGITIZATIONIDEAL_H
-#define KOARECDIGITIZATIONIDEAL_H
+#ifndef KOA_REC_CHARGEDIVISIONIDEAL_H
+#define KOA_REC_CHARGEDIVISIONIDEAL_H
 
 #include "FairTask.h"
 #include <map>
@@ -15,19 +15,20 @@ class TClonesArray;
 class KoaGeoHandler;
 class KoaRecPoint;
 
-class KoaRecDigitizationIdeal : public FairTask
+
+class KoaRecChargeDivisionIdeal : public FairTask
 {
   public:
 
     /** Default constructor **/
-    KoaRecDigitizationIdeal();
+    KoaRecChargeDivisionIdeal();
 
     /** Constructor with parameters (Optional) **/
-    //  KoaRecDigitizationIdeal(Int_t verbose);
+    //  KoaRecChargeDivisionIdeal(Int_t verbose);
 
 
     /** Destructor **/
-    ~KoaRecDigitizationIdeal();
+    ~KoaRecChargeDivisionIdeal();
 
 
     /** Initiliazation of task at the beginning of a run **/
@@ -56,6 +57,13 @@ class KoaRecDigitizationIdeal : public FairTask
   };
   using KoaRecStrips = std::map<Int_t, KoaRecStrip>;
 
+  void SetOutputDigiName(const char* name) {
+    fOutputName = name;
+  }
+  void SaveOutputDigi(bool flag = true) {
+    fSaveOutput = flag;
+  }
+
  private:
     void FillFiredStrips(KoaRecPoint* McPoint);
     void FillFiredStrip(Int_t DetID, Double_t Timestamp, Double_t Charge);
@@ -66,18 +74,23 @@ class KoaRecDigitizationIdeal : public FairTask
     /** Geometry Handler **/
     KoaGeoHandler* fGeoHandler;
 
+  // Output digit branch name
+  std::string fOutputName;
+  // Flag indicate save output branch to file or in memory
+  bool fSaveOutput;
+
     /** Input array from previous already existing data level **/
     TClonesArray* fPoints;
 
     /** Output array to  new data level**/
-    TClonesArray* fDigis;
+    TClonesArray* fDigis; // fCharge in keV
 
     KoaRecStrips fFiredStrips;
 
-    KoaRecDigitizationIdeal(const KoaRecDigitizationIdeal&);
-    KoaRecDigitizationIdeal operator=(const KoaRecDigitizationIdeal&);
+    KoaRecChargeDivisionIdeal(const KoaRecChargeDivisionIdeal&);
+    KoaRecChargeDivisionIdeal operator=(const KoaRecChargeDivisionIdeal&);
 
-    ClassDef(KoaRecDigitizationIdeal,1);
+    ClassDef(KoaRecChargeDivisionIdeal,1);
 };
 
 #endif

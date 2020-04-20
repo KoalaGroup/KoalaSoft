@@ -28,6 +28,9 @@ KoaRecMisalignPar.cxx
 KoaRecPoint.cxx
 KoaRecDigi.cxx
 KoaRecDigitizationIdeal.cxx
+KoaRecChargeDivisionIdeal.cxx
+KoaRecAddNoise.cxx
+KoaRecNoisePar.cxx
 KoaRecCluster.cxx
 )
 

@@ -9,6 +9,7 @@
 
 #include "KoaRecGeoPar.h"
 #include "KoaRecMisalignPar.h"
+#include "KoaRecNoisePar.h"
 
 #include "FairRuntimeDb.h"
 
@@ -49,6 +50,14 @@ void KoaRecContFact::setAllContainers()
   p1->addContext("TestNonDefaultContext");
 
   containers->Add(p1);
+
+  //
+  p = new FairContainer("KoaRecNoisePar",
+                        "Noise parameter for KOALA recoil detector digitization",
+                        "TestDefaultContext");
+  p->addContext("TestNonDefaultContext");
+
+  containers->Add(p);
 }
 
 FairParSet* KoaRecContFact::createContainer(FairContainer* c)
@@ -68,5 +77,10 @@ FairParSet* KoaRecContFact::createContainer(FairContainer* c)
     p=new KoaRecMisalignPar(c->getConcatName().Data(),
                             c->GetTitle(), c->getContext());
   }
+  else if(strcmp(name,"KoaRecNoisePar")==0){
+    p=new KoaRecNoisePar(c->getConcatName().Data(),
+                            c->GetTitle(), c->getContext());
+  }
+
   return p;
 }

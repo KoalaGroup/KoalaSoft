@@ -19,6 +19,9 @@
 #pragma link C++ class KoaRecPoint+;
 #pragma link C++ class KoaRecDigi+;
 #pragma link C++ class KoaRecDigitizationIdeal+;
+#pragma link C++ class KoaRecChargeDivisionIdeal+;
+#pragma link C++ class KoaRecAddNoise+;
+#pragma link C++ class KoaRecNoisePar+;
 #pragma link C++ class KoaRecCluster+;
 
 #endif
