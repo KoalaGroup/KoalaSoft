@@ -12,8 +12,8 @@ void drawDigi(const char* filename,  const char* branchName, const char* prefix)
   using histo2d = std::map<Int_t, TH2D>;
 
   // parameters
-  Int_t nbin=2000;// in keV
-  Float_t xlow=0,xhigh=20000;
+  Int_t nbin=7000;// in MeV
+  Float_t xlow=0,xhigh=70;
 
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
   std::vector<Int_t> ChIDs = encoder->GetRecChIDs();
@@ -63,7 +63,7 @@ void drawDigi(const char* filename,  const char* branchName, const char* prefix)
       id = digi->GetDetID();
       ch_id = encoder->DecodeChannelID(id, det_id);
 
-      charge = digi->GetCharge(); // keV
+      charge = 1000*digi->GetCharge(); // MeV
       h2map_EnergyVsPosition[det_id].Fill(ch_id+1, charge);
       h1map_Energy[id].Fill(charge);
     }
