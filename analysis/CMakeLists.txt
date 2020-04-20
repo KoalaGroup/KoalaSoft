@@ -22,6 +22,7 @@ link_directories( ${LINK_DIRECTORIES})
 set(SRCS
 #Put here your sourcefiles
 KoaAnaSolidAngle.cxx
+KoaTransformToArray.cxx
 )
 
 Set(LINKDEF AnalysisLinkDef.h)

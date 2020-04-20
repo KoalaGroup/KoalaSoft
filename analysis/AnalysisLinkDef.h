@@ -12,5 +12,6 @@
 #pragma link off all functions;
 
 #pragma link C++ class KoaAnaSolidAngle+;
+#pragma link C++ class KoaTransformToArray+;
 
 #endif
