@@ -23,7 +23,7 @@ void run_digi_noise(const char* data, const char* para)
 
   // Output file
   TString outFile(data);
-  outFile.ReplaceAll("_digi.root","_noise.root");
+  outFile.ReplaceAll("_division.root","_noise.root");
 
 
   // -----   Timer   --------------------------------------------------------

@@ -12,7 +12,7 @@ void run_digi(const char* data, const char* para)
 
   FairLogger *logger = FairLogger::GetLogger();
   logger->SetLogToScreen(kTRUE);
-  logger->SetLogScreenLevel("WARNING");
+  logger->SetLogScreenLevel("INFO");
 
   // Input file (MC events)
   TString inFile(data);
@@ -55,11 +55,32 @@ void run_digi(const char* data, const char* para)
 
   // rtdb->setOutput(parInput1);
 
-  //
+  // charge division
   KoaRecChargeDivisionIdeal* recDigiTask = new KoaRecChargeDivisionIdeal();
   recDigiTask->SetOutputDigiName("RecDigi_ChargeDivision");
   recDigiTask->SaveOutputDigi(true);
   fRun->AddTask(recDigiTask);
+
+  // fano factor
+  KoaRecAddFano* recAddFano = new KoaRecAddFano();
+  recAddFano->SetInputDigiName("RecDigi_ChargeDivision");
+  recAddFano->SetOutputDigiName("RecDigi_AddFano");
+  recAddFano->SaveOutputDigi(true);
+  fRun->AddTask(recAddFano);
+
+  // charge collection
+  KoaRecChargeCollection* recChargeCollection = new KoaRecChargeCollection();
+  recChargeCollection->SetInputDigiName("RecDigi_ChargeDivision");
+  recChargeCollection->SetOutputDigiName("RecDigi_ChargeCollection");
+  recChargeCollection->SaveOutputDigi(true);
+  fRun->AddTask(recChargeCollection);
+
+  // noise addition
+  KoaRecAddNoise* recAddNoise = new KoaRecAddNoise();
+  recAddNoise->SetInputDigiName("RecDigi_ChargeCollection");
+  recAddNoise->SetOutputDigiName("KoaRecDigi");
+  recAddNoise->SaveOutputDigi(true);
+  fRun->AddTask(recAddNoise);
 
   KoaFwdDigitization* fwdDigiTask = new KoaFwdDigitization();
   fRun->AddTask(fwdDigiTask);

@@ -74,7 +74,9 @@ void drawDigi(const char* filename,  const char* branchName, const char* prefix)
   // output file
   TString outfilename(filename);
   outfilename.ReplaceAll(".root","");
+  // outfilename.ReplaceAll("_digi.root","");
   outfilename.Append("_result.root");
+  // outfilename.Append(Form("_%s_result.root",prefix));
   TFile *fout = new TFile(outfilename.Data(),"recreate");
 
   TDirectory* hdir;

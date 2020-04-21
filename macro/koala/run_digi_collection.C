@@ -23,7 +23,7 @@ void run_digi_collection(const char* data, const char* para)
 
   // Output file
   TString outFile(data);
-  outFile.ReplaceAll("_digi.root","_collection.root");
+  outFile.ReplaceAll("_division.root","_collection.root");
 
 
   // -----   Timer   --------------------------------------------------------

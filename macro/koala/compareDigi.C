@@ -2,7 +2,9 @@
 
 using namespace KoaColors;
 
-void compareDigi(const char* base_path, const char* sensor, int strip)
+void compareDigi(const char* base_path, const char* sensor, int strip,
+                 bool use_cut = true, bool use_rebin = false,
+                 double range_low=0, double range_high=70)
 {
   // setup color scheme
   init_KoaColors();
@@ -32,8 +34,10 @@ void compareDigi(const char* base_path, const char* sensor, int strip)
 
   //
   if(!insertFile("digi")) return;
-  if(!insertFile("fano")) return;
-  if(!insertFile("noise")) return;
+  // if(!insertFile("division")) return;
+  // if(!insertFile("fano")) return;
+  // if(!insertFile("noise")) return;
+  // if(!insertFile("collection")) return;
 
   //
   auto getHist = [&] (std::string filename, std::string prefix) -> TH1D*
@@ -63,8 +67,38 @@ void compareDigi(const char* base_path, const char* sensor, int strip)
     index++;
   }
 
+  // beam test spectrum
+  TH1D* hist;
+  if (use_cut){
+    hist = getHist("P_2.6_result.root", "energy_cut");
+  }
+  else{
+    hist = getHist("P_2.6_result.root", "energy");
+  }
+  if(!hist) return;
+
+  // if (use_rebin){
+  //   hist->Rebin(4);
+  // }
+  // hist->GetXaxis()->SetRange(range_low,range_high);
+  auto ref_max = hist->GetBinContent(hist->GetMaximumBin());
+
+  for(auto& h1: histograms) {
+    // if (use_rebin){
+    //   h1->Rebin(4);
+    // }
+    // h1->GetXaxis()->SetRange(range_low,range_high);
+    auto max = h1->GetBinContent(h1->GetMaximumBin());
+    h1->Scale(ref_max/max, "nosw2");
+  }
+
+  hist->SetLineColor(kBlack);
+  hist->SetLineWidth(2);
+  histograms.emplace_back(hist);
+
+  // draw
   auto can = new TCanvas();
-  for(auto& hist: histograms) {
-    hist->Draw("same");
+  for(auto& h1: histograms) {
+    h1->Draw("same");
   }
 }

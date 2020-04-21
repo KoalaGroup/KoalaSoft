@@ -150,8 +150,9 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename,
       //
       if ( digi->GetTimeStamp() > 0) {
         if ( fwd_amp[index0] > 1000 && fwd_amp[index1] > 1000
-             && (fwd_time[index0]-fwd_time[index1]) < 10
-             && (fwd_time[index0]-fwd_time[index1]) > -10) {
+             && ((fwd_time[index0] > 923 && fwd_time[index0] < 927 && fwd_time[index1] < 927)
+                 || (fwd_time[index1] > 923 && fwd_time[index1] < 927 && fwd_time[index0] < 927))
+             ) {
 
           h1map_Energy_cut[id].Fill(charge);
 
@@ -177,7 +178,7 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename,
   TString outfilename(filename);
   outfilename.ReplaceAll(".root","");
   outfilename.Append("_result.root");
-  TFile *fout = new TFile(outfilename.Data(),"update");
+  TFile *fout = new TFile(outfilename.Data(),"recreate");
 
   TDirectory* hdir;
   if(!(hdir=fout->GetDirectory("histograms")))

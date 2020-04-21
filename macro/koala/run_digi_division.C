@@ -5,15 +5,14 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_digi_fano(const char* data, const char* para)
+void run_digi_division(const char* data, const char* para)
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
 
   FairLogger *logger = FairLogger::GetLogger();
   logger->SetLogToScreen(kTRUE);
-  // logger->SetLogScreenLevel("DEBUG");
-  logger->SetLogScreenLevel("INFO");
+  logger->SetLogScreenLevel("WARNING");
 
   // Input file (MC events)
   TString inFile(data);
@@ -23,8 +22,7 @@ void run_digi_fano(const char* data, const char* para)
 
   // Output file
   TString outFile(data);
-  outFile.ReplaceAll("_division.root","_fano.root");
-
+  outFile.ReplaceAll(".root","_division.root");
 
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -58,13 +56,16 @@ void run_digi_fano(const char* data, const char* para)
   // rtdb->setOutput(parInput1);
 
   //
-  KoaRecAddFano* recAddFano = new KoaRecAddFano();
-  recAddFano->SetInputDigiName("RecDigi_ChargeDivision");
-  recAddFano->SetOutputDigiName("RecDigi_AddFano");
-  recAddFano->SaveOutputDigi(true);
-  fRun->AddTask(recAddFano);
+  KoaRecChargeDivisionIdeal* recDigiTask = new KoaRecChargeDivisionIdeal();
+  recDigiTask->SetOutputDigiName("RecDigi_ChargeDivision");
+  recDigiTask->SaveOutputDigi(true);
+  fRun->AddTask(recDigiTask);
+
+  KoaFwdDigitization* fwdDigiTask = new KoaFwdDigitization();
+  fRun->AddTask(fwdDigiTask);
 
   fRun->Init();
+
 
   timer.Start();
   fRun->Run();
