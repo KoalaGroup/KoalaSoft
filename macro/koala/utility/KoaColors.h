@@ -32,7 +32,7 @@
  * for the ROOT CERN software suite. Example usage:
  * ```
  * #include KoaColors.h
- * using namespace KoaColors;
+ * using namespace KoaUtility;
  * void routine() {
  *   init_KoaColors();
  *   hist->SetLineColor(kTVibBlue);
@@ -47,7 +47,7 @@
 #include "TColor.h"
 #include "TStyle.h"
 
-namespace KoaColors {
+namespace KoaUtility {
     /*
      * Handy enum for later color referencing
      */
