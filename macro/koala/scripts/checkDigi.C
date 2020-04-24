@@ -12,8 +12,7 @@ using namespace KoaUtility;
 //  iii) events with ToF time window cut
 // 2. The coincidence events are selected based on a entry list if exists
 //    Otherwise, it will be generated on the fly.
-void checkDigi(const char* filename, bool isSimulation,  const char* treename,
-               bool useList = true)
+void checkDigi(const char* filename,  const char* treename, bool isSimulation=false, bool useList = true)
 {
   // timer
   TStopwatch timer;
