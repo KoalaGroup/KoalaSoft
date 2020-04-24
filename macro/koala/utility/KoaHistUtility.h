@@ -301,11 +301,24 @@ std::map<Int_t, T*> getHistosByRecTdcChannelId(TDirectory *hDir, const char* hNa
   T* hist = nullptr;
   std::map<Int_t, T*> histoMap;
 
+  // checking TH1 or TH2
+  std::string hPrefix;
+  if ( std::is_base_of<TH1,T>::value) {
+    hPrefix = "h1";
+  }
+  else if( std::is_base_of<TH2,T>::value) {
+    hPrefix = "h2";
+  }
+  else {
+    std::cerr << "getHistosByRecTdcChannelId: only TH1 and TH2 are supported\n";
+    return histoMap;
+  }
+
   for (auto &ChID : ChIDs) {
     TString volName;
     auto ch = encoder->DecodeChannelID(ChID, volName);
     volName.ReplaceAll("Sensor", "");
-    TString name(Form("h1_%s_%s_%d", volName.Data(), hName, ch + 1));
+    TString name(Form("%s_%s_%s_%d", hPrefix.data(), volName.Data(), hName, ch + 1));
 
     hDir->GetObject(name, hist);
     if ( !hist ) {
@@ -316,9 +329,92 @@ std::map<Int_t, T*> getHistosByRecTdcChannelId(TDirectory *hDir, const char* hNa
 
   return histoMap;
 }
-// template<typename T>
-// T* getHisto(TDirectory)
 
+template <typename T>
+std::map<Int_t, T*> getHistosByDetectorId(TDirectory *hDir, const char* hName, bool IsRec=true)
+{
+  KoaMapEncoder *encoder = KoaMapEncoder::Instance();
+  IndexContainer ChIDs = encoder->GetRecTdcChIDs();
+
+  Int_t DetectorIdRange[2];
+  if (IsRec) {
+    encoder->GetRecDetIDRange(DetectorIdRange[0], DetectorIdRange[1]);
+  } else {
+    encoder->GetFwdDetIDRange(DetectorIdRange[0], DetectorIdRange[1]);
+  }
+
+  T* hist = nullptr;
+  std::map<Int_t, T*> histoMap;
+
+  // checking TH1 or TH2
+  std::string hPrefix;
+  if ( std::is_base_of<TH1,T>::value) {
+    hPrefix = "h1";
+  }
+  else if( std::is_base_of<TH2,T>::value) {
+    hPrefix = "h2";
+  }
+  else {
+    std::cerr << "getHistosByDetectorId: only TH1 and TH2 are supported\n";
+    return histoMap;
+  }
+
+  // loop
+  for (auto detector :
+           ROOT::TSeqI(DetectorIdRange[0], DetectorIdRange[1] + 1)) {
+    TString volName = encoder->DetectorIDToVolName(detector);
+    volName.ReplaceAll("Sensor", "");
+    TString name(Form("%s_%s_%s", hPrefix.data(), volName.Data(), hName));
+
+    hDir->GetObject(name, hist);
+    if ( !hist ) {
+      std::cerr << "Error: no histogram found " << name << std::endl;
+    }
+    histoMap.emplace(detector, hist);
+  }
+
+  return histoMap;
+}
+
+// get a single histogram from file
+// 1. sensorName: "Si1", "Si2", "Ge1", "Ge2"
+// 2. stripId:
+//    i) negative: detector id mapped histogram
+//   ii) >0: strip id mapped histogram
+template <typename T>
+T* getHisto(TDirectory *hDir, const char* hName, const char* sensorName, int stripId = -1)
+{
+  T* hist = nullptr;
+
+  // checking TH1 or TH2
+  std::string hPrefix;
+  if ( std::is_base_of<TH1,T>::value) {
+    hPrefix = "h1";
+  }
+  else if( std::is_base_of<TH2,T>::value) {
+    hPrefix = "h2";
+  }
+  else {
+    std::cerr << "getHistosByDetectorId: only TH1 and TH2 are supported\n";
+    return hist;
+  }
+
+  // get histogram
+  TString name;
+  if (stripId <0 ){
+    name.Form("%s_%s_%s", hPrefix.data(), sensorName, hName);
+  }
+  else {
+    name.Form("%s_%s_%s_%d", hPrefix.data(), sensorName, hName, stripId);
+  }
+
+  hDir->GetObject(name, hist);
+  if ( !hist ) {
+    std::cerr << "Error: no histogram found " << name << std::endl;
+  }
+
+  return hist;
+}
 /////////////////////// Compare two sets of histograms ///////////////////////
 bool compareTwoHisto(TH1* h1, TH1* h2)
 {
@@ -328,12 +424,13 @@ bool compareTwoHisto(TH1* h1, TH1* h2)
     return false;
   }
 
-  for(auto bin=0; bin < NrBinx1 ; bin++) {
+  for(auto bin=1; bin <= NrBinx1 ; bin++) {
     auto value1 = h1->GetBinContent(bin);
     auto value2 = h2->GetBinContent(bin);
 
     if ( value1 != value2 ) {
-      std::cout << "compareTwoHisto: uneual bin content found\n";
+      std::cout << "compareTwoHisto: uneual bin content found (" << h1->GetName() << ", " << h2->GetName() << ")\n";
+      std::cout << "(" << bin << ": " << value1 << ", " << value2 << ")\n";
       return false;
     }
   }
