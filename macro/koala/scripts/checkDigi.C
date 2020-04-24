@@ -159,18 +159,22 @@ void checkDigi(const char* filename, bool isSimulation,  const char* treename,
   TFile *fout = new TFile(outfilename.Data(),"update");
 
   TDirectory* hdir = getDirectory(fout, "energy_spectrum");
-  for (auto & hist : h2map_EnergyVsStripId ) {
-    hdir->WriteTObject(&hist.second,"","WriteDelete");
-  }
-  for (auto & hist : h1map_Energy ) {
-    hdir->WriteTObject(&hist.second,"","WriteDelete");
-  }
-  for (auto & hist : h1map_Energy_cut ) {
-    hdir->WriteTObject(&hist.second,"","WriteDelete");
-  }
-  for (auto & hist : h1map_Energy_tof ) {
-    hdir->WriteTObject(&hist.second,"","WriteDelete");
-  }
+  writeHistos(hdir, h2map_EnergyVsStripId);
+  writeHistos(hdir, h1map_Energy);
+  writeHistos(hdir, h1map_Energy_cut);
+  writeHistos(hdir, h1map_Energy_tof);
+  // for (auto & hist : h2map_EnergyVsStripId ) {
+  //   hdir->WriteTObject(&hist.second,"","WriteDelete");
+  // }
+  // for (auto & hist : h1map_Energy ) {
+  //   hdir->WriteTObject(&hist.second,"","WriteDelete");
+  // }
+  // for (auto & hist : h1map_Energy_cut ) {
+  //   hdir->WriteTObject(&hist.second,"","WriteDelete");
+  // }
+  // for (auto & hist : h1map_Energy_tof ) {
+  //   hdir->WriteTObject(&hist.second,"","WriteDelete");
+  // }
 
   //
   if(!useList){
