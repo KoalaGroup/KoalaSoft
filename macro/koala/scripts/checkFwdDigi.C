@@ -241,7 +241,7 @@ void checkFwdDigiWithAmplitudeCut(const char* filename, const char* treename,
   tree->SetBranchAddress("KoaFwdDigi",&FwdDigis);
 
   // time-cut object
-  KoaFwdAmpCut time_cut(fwd1_low, fwd1_high, fwd2_low, fwd2_high);
+  KoaFwdAmpCut amp_cut(fwd1_low, fwd1_high, fwd2_low, fwd2_high);
 
   // histograms definition
   Int_t nbin_amp=2000;
@@ -284,7 +284,7 @@ void checkFwdDigiWithAmplitudeCut(const char* filename, const char* treename,
     }
 
     // fill histograms
-    auto e = time_cut.GetType(fwd_amp[index0], fwd_amp[index1]);
+    auto e = amp_cut.GetType(fwd_amp[index0], fwd_amp[index1]);
     auto id = static_cast<int>(e);
 
     h1map_amp1[id].Fill(fwd_amp[index0]);

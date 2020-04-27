@@ -244,8 +244,8 @@ Histo2D bookH2dByRegionType(const char *hName, const char *hTitle,
 class KoaFwdTimeCut
 {
  public:
-  KoaFwdTimeCut(double low1, double high1, double low2, double high2,
-                double window_low, double window_high)
+  KoaFwdTimeCut(double low1 = 915, double high1 = 930, double low2 = 915, double high2 = 930,
+                double window_low = -10, double window_high = 10)
       : fLow1(low1), fHigh1(high1),
         fLow2(low2), fHigh2(high2),
         fWindowLow(window_low), fWindowHigh(window_high)
@@ -316,7 +316,7 @@ class KoaFwdTimeCut
 class KoaFwdAmpCut
 {
  public:
-  KoaFwdAmpCut(double low1, double high1, double low2, double high2)
+  KoaFwdAmpCut(double low1 = 790, double high1 = 1050, double low2 = 780, double high2 = 1030)
       : fLow1(low1), fHigh1(high1),
         fLow2(low2), fHigh2(high2)
   {}
