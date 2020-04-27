@@ -9,10 +9,10 @@ void checkDigiTof(const char* filename,   const char* treename, bool isSimulatio
   TStopwatch timer;
 
   // parameters
-  Int_t nbiny=3000;
+  Int_t nbiny=1500;
   Float_t ylow=450,yhigh=750;
 
-  Int_t nbinx=400;
+  Int_t nbinx=200;
   Float_t xlow=0,xhigh=8;
 
   // histograms definition
