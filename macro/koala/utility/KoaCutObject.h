@@ -180,6 +180,8 @@ std::string getRegionTitle(RegionType type)
   return name;
 }
 
+  ///////////////// book histograms based on cut conditon ///////////////////////////////////////////////////////////
+
 Histo1D bookH1dByRegionType(const char *hName, const char *hTitle, Int_t nBin = 7000,
                             Double_t xLow = 0, Double_t xHigh = 70, Bool_t IsAmpCut = true,
                             Int_t colorLine = kBlack) {
@@ -241,6 +243,29 @@ Histo2D bookH2dByRegionType(const char *hName, const char *hTitle,
   return h2book;
 }
 
+///////////////// Predefined Cut Objects, used for cut region identification and store the cut conditions //////////////
+
+////////////////////////////////////////////////////////////////////////////////
+// Region Type definition:
+//
+//     Fwd2_Time
+//         |
+//         |                               /---      /-
+//         |            Other           /--       /--
+//         |                        /---       /--
+//         +-------------------+----| BAND3 /--
+//         |     BAND2         |Main|    /--
+//         +-------------------+----+-
+//         | Other    ---/    -+ B  |
+// Invalid1|      ---/BAND4--/ | A  |
+//         |  ---/    ---/     | N  |
+//         |-/    ---/         | D  |    Other
+//         |  ---/      Other  | 1  |
+//         |-/                 |    |
+// --------+-------------------+----+----------- Fwd1_Time
+// Invalid |      Invalid2
+//         |
+
 class KoaFwdTimeCut 
 {
  public:
@@ -262,14 +287,6 @@ class KoaFwdTimeCut
 
     fWindowLow = window_low;
     fWindowHigh = window_high;
-  }
-
-  void Print()
-  {
-    std::cout << "KoaFwdTimeCut:\n";
-    std::cout << "Fwd1: " << fLow1 << " " << fHigh1 << std::endl;
-    std::cout << "Fwd2: " << fLow2 << " " << fHigh2 << std::endl;
-    std::cout << "Window: " << fWindowLow << " " << fWindowHigh << std::endl;
   }
 
   RegionType GetType(double fwd1_t, double fwd2_t)
@@ -307,6 +324,16 @@ class KoaFwdTimeCut
     return RegionType::FwdTimeOther;
   }
 
+  void Print()
+  {
+    std::cout << "Cut Object:   KoaFwdTimeCut\n";
+    std::cout << "Description:  Using Fwd scintillators' time information as cut condition\n";
+    std::cout << "Parameters:\n";
+    std::cout << "\t fLow1 = " << fLow1 << ",\t fHigh1 = " << fHigh1 << std::endl;
+    std::cout << "\t fLow2 = " << fLow2 << ",\t fHigh2 = " << fHigh2 << std::endl;
+    std::cout << "\t Window Size = [" << fWindowLow << ", " << fWindowHigh << "]" << std::endl;
+  }
+
  private:
   // fwd1 cut values
   double fLow1;
@@ -320,6 +347,25 @@ class KoaFwdTimeCut
   double fWindowLow;
   double fWindowHigh;
 };
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Region Type definition:
+  //
+  // Fwd2_Amplitude
+  //
+  //        |        |               |
+  //        |        |      Low1     |  Main
+  //        |        |               |
+  // fHigh2 +  Ped1  +---------------+-------
+  //        |        |               |
+  //        |        |      Low      |  Low2
+  //        |        |               |
+  // fLow2  +--------+---------------+-------
+  //        |        |
+  //        |  Ped   |             Ped2
+  //        |        |
+  //     ---+--------+---------------+------------ Fwd1_Amplitude
+  //        |      fLow1           fHigh1
 
 class KoaFwdAmpCut
 {
@@ -366,6 +412,15 @@ class KoaFwdAmpCut
         return RegionType::FwdAmpPed1;
       }
     }
+  }
+
+  void Print()
+  {
+    std::cout << "Cut Object:   KoaFwdAmpCut\n";
+    std::cout << "Description:  Using Fwd scintillators' amplitudes as cut condition\n";
+    std::cout << "Parameters:\n";
+    std::cout << "\t fLow1 = " << fLow1 << ",\t fHigh1 = " << fHigh1 << std::endl;
+    std::cout << "\t fLow2 = " << fLow2 << ",\t fHigh2 = " << fHigh2 << std::endl;
   }
 
  private:
