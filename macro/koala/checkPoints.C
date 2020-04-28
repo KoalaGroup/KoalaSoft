@@ -1,3 +1,6 @@
+#include "KoaHistUtility.h"
+using namespace KoaUtility;
+
 void checkPoints(const char* filename)
 {
   TH2D* h2Fwd=new TH2D("h2Fwd","h2Fwd",200,0,70,200,-1.5,1.5);
@@ -108,4 +111,29 @@ void checkRecSize(const char* filename)
   h2Rec->Draw("colz");
   TCanvas* cmulti = new TCanvas("cmulti");
   h1Rec->Draw();
+}
+
+void checkRecEnergy1D(const char* filename)
+{
+  auto fin = TFile::Open(filename);
+  TTree* tin; fin->GetObject("koalasim", tin);
+
+  auto recPts = new TClonesArray("KoaRecPoint", 200);
+  tin->SetBranchAddress("KoaRecPoint", &recPts);
+
+  //
+  auto h2map = bookH2dByDetectorId("EvsZ","Energy vs Z;MeV;mm",
+                                   260, -10, 250,
+                                   7100, -1, 70);
+
+  //
+  auto entries = tin->GetEntries();
+  for(auto entry=0; entry < entries; entry++) {
+    tin->GetEntry(entry);
+
+    auto points = tin->GetEntries();
+    for(int pt=0; pt < points; pt++) {
+      KoaRecPoint* point = static_cast<KoaRecPoint*>recPts->At(pt);
+    }
+  }
 }

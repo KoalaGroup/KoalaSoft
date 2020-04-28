@@ -1,3 +1,7 @@
+#include "KoaHistUtility.h"
+
+using namespace KoaUtility;
+
 void drawDigi(const char* filename,  const char* branchName, const char* prefix)
 {
   TH1::AddDirectory(false);
@@ -29,13 +33,13 @@ void drawDigi(const char* filename,  const char* branchName, const char* prefix)
     h2map_EnergyVsPosition.emplace(std::piecewise_construct, tindex, thist);
   }
 
-  histo1d h1map_Energy;
+  histo1d h1map;
   for(auto& id: ChIDs){
     TString volName; Int_t ch_id = encoder->DecodeChannelID(id, volName);
 
     auto tindex = std::make_tuple(id);
     auto thist  = std::make_tuple(Form("h1_%s_%s_%d",prefix, volName.Data(), ch_id+1), Form("h1_energy_%s_%s_%d",prefix, volName.Data(), ch_id+1), nbin, xlow, xhigh);
-    auto it = h1map_Energy.emplace(std::piecewise_construct, tindex, thist);
+    auto it = h1map.emplace(std::piecewise_construct, tindex, thist);
   }
 
   // input
@@ -65,7 +69,7 @@ void drawDigi(const char* filename,  const char* branchName, const char* prefix)
 
       charge = digi->GetCharge()/1000.; // MeV
       h2map_EnergyVsPosition[det_id].Fill(ch_id+1, charge);
-      h1map_Energy[id].Fill(charge);
+      h1map[id].Fill(charge);
     }
   }
   cout << "EventNr processed : "<< entries << endl;
@@ -87,7 +91,7 @@ void drawDigi(const char* filename,  const char* branchName, const char* prefix)
   for (auto & hist : h2map_EnergyVsPosition ) {
     hist.second.Write(0, TObject::kOverwrite);
   }
-  for (auto & hist : h1map_Energy ) {
+  for (auto & hist : h1map ) {
     hist.second.Write(0, TObject::kOverwrite);
   }
 

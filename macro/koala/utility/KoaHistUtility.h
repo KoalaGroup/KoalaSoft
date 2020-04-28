@@ -415,6 +415,7 @@ T* getHisto(TDirectory *hDir, const char* hName, const char* sensorName, int str
 
   return hist;
 }
+
 /////////////////////// Compare two sets of histograms ///////////////////////
 bool compareTwoHisto(TH1* h1, TH1* h2)
 {
@@ -459,6 +460,28 @@ bool compareHistos(HistoPtr1D& hMap1, HistoPtr1D& hMap2)
   }
 
   return true;
+}
+
+/////////////////////// Shift histogram ///////////////////////
+void shiftHisto(TH1* h, int shift)
+{
+  auto nbin = h->GetNbinsX();
+  if ( shift > 0 ) {
+    for ( auto i = nbin ; i > shift; i--) {
+      h->SetBinContent(i, h->GetBinContent(i-shift));
+    }
+    for (auto i = 1; i <= shift; ++i) {
+      h->SetBinContent(i, 0);
+    }
+  }
+  else {
+    for (auto i=1; i <= (nbin-shift); ++i) {
+      h->SetBinContent(i, h->GetBinContent(i+shift));
+    }
+    for (auto i = (nbin-shift+1); i <= nbin; ++i) {
+        h->SetBinContent(i, 0);
+    }
+  }
 }
 
 };  // namespace KoaUtility

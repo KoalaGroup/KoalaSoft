@@ -241,7 +241,7 @@ Histo2D bookH2dByRegionType(const char *hName, const char *hTitle,
   return h2book;
 }
 
-class KoaFwdTimeCut
+class KoaFwdTimeCut 
 {
  public:
   KoaFwdTimeCut(double low1 = 915, double high1 = 930, double low2 = 915, double high2 = 930,
@@ -262,6 +262,14 @@ class KoaFwdTimeCut
 
     fWindowLow = window_low;
     fWindowHigh = window_high;
+  }
+
+  void Print()
+  {
+    std::cout << "KoaFwdTimeCut:\n";
+    std::cout << "Fwd1: " << fLow1 << " " << fHigh1 << std::endl;
+    std::cout << "Fwd2: " << fLow2 << " " << fHigh2 << std::endl;
+    std::cout << "Window: " << fWindowLow << " " << fWindowHigh << std::endl;
   }
 
   RegionType GetType(double fwd1_t, double fwd2_t)

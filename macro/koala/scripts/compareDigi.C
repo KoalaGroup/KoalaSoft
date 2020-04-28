@@ -1,6 +1,6 @@
 #include "KoaColors.h"
 
-using namespace KoaColors;
+using namespace KoaUtility;
 
 void compareDigi(const char* base_path, const char* sensor, int strip,
                  bool use_cut = true, bool use_rebin = false,
