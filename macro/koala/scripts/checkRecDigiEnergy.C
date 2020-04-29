@@ -46,7 +46,7 @@ void checkRecDigiEnergy(const char* filename,  const char* treename,
   KoaFwdAmpCut amp_cut(fwd1_alow, fwd1_ahigh, fwd2_alow, fwd2_ahigh);
 
   std::vector<RegionType> cut_condition = {RegionType::FwdTimeMain, RegionType::FwdTimeBand1, RegionType::FwdTimeBand2,
-                                           RegionType::FwdAmpMain};
+                                           RegionType::FwdTimeBand3, RegionType::FwdAmpMain};
 
   auto IfCut = [&] (RegionType  region) -> bool
                {
