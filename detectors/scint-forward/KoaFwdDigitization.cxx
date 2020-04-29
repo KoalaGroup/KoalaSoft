@@ -140,7 +140,7 @@ void KoaFwdDigitization::FillFiredStrip(KoaFwdPoint* McPoint)
   //
   Int_t detID = McPoint->GetDetectorID();
   Int_t chID = fMapEncoder->EncodeChannelID(detID, 0);
-  Double_t eLoss = 1.e6*McPoint->GetEnergyLoss();
+  Double_t eLoss = 1.e6*McPoint->GetEnergyLoss(); // transfer to keV
   Double_t timestamp = McPoint->GetTime();
 
   auto search = fFiredStrips.find(chID);

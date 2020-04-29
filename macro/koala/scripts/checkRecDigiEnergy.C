@@ -1,65 +1,64 @@
 #include "KoaHistUtility.h"
 #include "KoaCutList.h"
+#include "KoaCutObject.h"
 
 using namespace KoaUtility;
 
 // Checking the energy spectrum from simulation or beam data.
 //
 // Outputs:
-// 1. Three type of histograms of recoil energy:
+// . Three type of histograms of recoil energy:
 //    i) all events
 //   ii) events with coincidence with forward
-//  iii) events with ToF time window cut
-// 2. The coincidence events are selected based on a entry list if exists
-//    Otherwise, it will be generated on the fly.
-void checkRecDigi(const char* filename,  const char* treename, std::string cutName = "")
+//  iii) Energy VS StripId
+void checkRecDigiEnergy(const char* filename,  const char* treename,
+                        const char* brName_rec = "KoaRecDigi", const char* brName_fwd = "KoaFwdDigi",
+                        int fwd1_tlow=915, int fwd1_thigh = 930,
+                        int fwd2_tlow=915, int fwd2_thigh = 930,
+                        double window_tlow = -10, double window_thigh = 10,
+                        int fwd1_alow=790, int fwd1_ahigh = 1050,
+                        int fwd2_alow=780, int fwd2_ahigh = 1030)
 {
   // timer
   TStopwatch timer;
 
-  // histograms definition
-  Int_t nbin=7000;
-  Float_t xlow=0,xhigh=70;
-
-  auto h2map_EnergyVsStripId = bookH2dByRecDetectorId("EnergyVsStripId","Energy VS Strip_id;Strip id;Energy(MeV)", nbin, xlow, xhigh);
-
-  auto h1map_Energy = bookH1dByChannelId("energy", "Energy (no cut);MeV", nbin, xlow, xhigh);
-  auto h1map_Energy_cut = bookH1dByRecTdcChannelId("energy_CoinCut", "Energy (coincidence cut);MeV", nbin, xlow, xhigh);
-  auto h1map_Energy_tof = bookH1dByRecTdcChannelId("energy_TofCut", "Energy (ToF cut);MeV", nbin, xlow, xhigh);
+  // use koala color
+  // init_KoaColors();
 
   // input
   TFile* f = new TFile(filename,"update");
   TTree* tree = (TTree*)f->Get(treename);
   TClonesArray* RecDigis = new TClonesArray("KoaRecDigi");
-  tree->SetBranchAddress("KoaRecDigi",&RecDigis);
+  tree->SetBranchAddress(brName_rec, &RecDigis);
   TClonesArray* FwdDigis = new TClonesArray("KoaFwdDigi");
-  tree->SetBranchAddress("KoaFwdDigi",&FwdDigis);
+  tree->SetBranchAddress(brName_fwd, &FwdDigis);
 
-  // output/input entry list 
-  TDirectory *edir = getDirectory(f, "elists");
-  std::string listName = getCutListName("fwdhit");
+  // histograms definition
+  Int_t nbin=7000;
+  Float_t xlow=0,xhigh=70;
 
-  TEntryList *cutlist;
-  TEntryList *elist;
-  if (useList) {
-    edir->GetObject(listName.data(), cutlist);
-    if(!cutlist){
-      std::cout << "Error: no list found in file: " << filename << std::endl;
-      return;
-    }
+  auto h1map_Energy = bookH1dByChannelId("energy", "Energy (no cut);MeV", nbin, xlow, xhigh);
+  auto h1map_Energy_cut = bookH1dByRecTdcChannelId("energy_coin", "Energy (coincidence cut);MeV", nbin, xlow, xhigh);
+  auto h2map_EnergyVsStripId = bookH2dByRecDetectorId("EnergyVsStripId","Energy VS Strip_id;Strip id;Energy(MeV)", nbin, xlow, xhigh);
 
-    tree->SetEntryList(cutlist);
-  }
-  else {
-    elist = new TEntryList(listName.data(),"fwdhit");
-    elist->SetTree(tree);
-    elist->SetDirectory(edir);
-  }
+  // cut object
+  KoaFwdTimeCut time_cut(fwd1_tlow, fwd1_thigh, fwd2_tlow, fwd2_thigh, window_tlow, window_thigh);
+  KoaFwdAmpCut amp_cut(fwd1_alow, fwd1_ahigh, fwd2_alow, fwd2_ahigh);
+
+  std::vector<RegionType> cut_condition = {RegionType::FwdTimeMain, RegionType::FwdTimeBand1, RegionType::FwdTimeBand2,
+                                           RegionType::FwdAmpMain};
+
+  auto IfCut = [&] (RegionType  region) -> bool
+               {
+                 if ( std::find(cut_condition.begin(), cut_condition.end(), region) != cut_condition.end() )
+                   return true;
+                 return false;
+               };
 
   // Parameters used in event loop
   Int_t det_id, ch_id, id;
-  Double_t charge;
-  Double_t timestamp;
+  Double_t rec_charge;
+  Double_t rec_timestamp;
 
   std::map<Int_t, Double_t> fwd_time;
   std::map<Int_t, Double_t> fwd_amp;
@@ -71,22 +70,9 @@ void checkRecDigi(const char* filename,  const char* treename, std::string cutNa
   Int_t index1 = encoder->EncodeChannelID(fwd_low+1, 0);
 
   // event loop
-  Long_t entries;
-  if(useList){
-    entries = cutlist->GetN();
-  }
-  else{
-    entries = tree->GetEntries();
-  }
-
+  Long_t entries = tree->GetEntries();
   for(auto entry=0;entry<entries;entry++){
-    if(useList) {
-      Int_t entrynum = tree->GetEntryNumber(entry);
-      tree->GetEntry(entrynum);
-    }
-    else{
-      tree->GetEntry(entry);
-    }
+    tree->GetEntry(entry);
 
     // fwd digis
     Int_t fwddigis = FwdDigis->GetEntriesFast();
@@ -97,51 +83,28 @@ void checkRecDigi(const char* filename,  const char* treename, std::string cutNa
       fwd_amp[id]  = digi->GetCharge();
     }
 
-    // recoil digis
+    // check cut condition
+    auto passed =  IfCut(time_cut.GetType(fwd_time[index0], fwd_time[index1]))
+                   && IfCut(amp_cut.GetType(fwd_amp[index0], fwd_amp[index1]));
+
+    // rec digis
     Int_t digis=RecDigis->GetEntriesFast();
     for(int i=0;i<digis;i++){
-      // rec digis
       KoaRecDigi* digi=(KoaRecDigi*)RecDigis->At(i);
       id = digi->GetDetID();
       ch_id = encoder->DecodeChannelID(id, det_id);
 
-      // convert unit to MeV
-      if (isSimulation) {
-        charge = 1000*digi->GetCharge(); 
-      }
-      else {
-        charge = digi->GetCharge()/1000.;
-      }
-
-      // timestamp
-      timestamp = digi->GetTimeStamp();
+      // rec enerty and timestamp
+      rec_charge = digi->GetCharge()/1000.; // in MeV
+      rec_timestamp = digi->GetTimeStamp();
 
       //
-      h2map_EnergyVsStripId[det_id].Fill(ch_id+1, charge);
-      h1map_Energy[id].Fill(charge);
+      h2map_EnergyVsStripId[det_id].Fill(ch_id+1, rec_charge);
+      h1map_Energy[id].Fill(rec_charge);
 
-      //
-      auto fill_at_coincidence = [&] () {
-                                   h1map_Energy_cut[id].Fill(charge);
-                                   if((timestamp - fwd_time[index0]) > 500 &&
-                                       (timestamp - fwd_time[index0]) < 520) {
-                                     h1map_Energy_tof[id].Fill(charge);
-                                   }
-                                 };
-      auto search = h1map_Energy_cut.find(id);
-      if( search != h1map_Energy_cut.end() && timestamp > 0 ) {
-        if (useList) {
-          fill_at_coincidence();
-        }
-        else if ( fwd_amp[index0] > 1000 && fwd_amp[index1] > 1000
-                  && ((fwd_time[index0] > 923 && fwd_time[index0] < 927 && fwd_time[index1] < 927)
-                      || (fwd_time[index1] > 923 && fwd_time[index1] < 927 && fwd_time[index0] < 927))
-                  ) {
-          fill_at_coincidence();
-
-          //
-          elist->Enter(entry);
-        }
+      if ( h1map_Energy_cut.find(id) != h1map_Energy_cut.end() &&
+           passed && rec_timestamp > 0 ) {
+        h1map_Energy_cut[id].Fill(rec_charge);
       }
     }
 
@@ -161,24 +124,6 @@ void checkRecDigi(const char* filename,  const char* treename, std::string cutNa
   writeHistos(hdir, h2map_EnergyVsStripId);
   writeHistos(hdir, h1map_Energy);
   writeHistos(hdir, h1map_Energy_cut);
-  writeHistos(hdir, h1map_Energy_tof);
-  // for (auto & hist : h2map_EnergyVsStripId ) {
-  //   hdir->WriteTObject(&hist.second,"","WriteDelete");
-  // }
-  // for (auto & hist : h1map_Energy ) {
-  //   hdir->WriteTObject(&hist.second,"","WriteDelete");
-  // }
-  // for (auto & hist : h1map_Energy_cut ) {
-  //   hdir->WriteTObject(&hist.second,"","WriteDelete");
-  // }
-  // for (auto & hist : h1map_Energy_tof ) {
-  //   hdir->WriteTObject(&hist.second,"","WriteDelete");
-  // }
-
-  //
-  if(!useList){
-    edir->WriteTObject(elist,"","WriteDelete");
-  }
 
   delete f;
   delete fout;

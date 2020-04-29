@@ -5,7 +5,8 @@
 
 using namespace KoaUtility;
 
-void checkFwdDigi(const char* filename, const char* treename, bool isSimulation = false)
+void checkFwdDigi(const char* filename, const char* treename,
+                  const char* brName_rec = "KoaRecDigi", const char* brName_fwd = "KoaFwdDigi")
 {
   // timer
   TStopwatch timer;
@@ -17,13 +18,13 @@ void checkFwdDigi(const char* filename, const char* treename, bool isSimulation 
   TFile* f = new TFile(filename);
   TTree* tree = (TTree*)f->Get(treename);
   TClonesArray* RecDigis = new TClonesArray("KoaRecDigi");
-  tree->SetBranchAddress("KoaRecDigi",&RecDigis);
+  tree->SetBranchAddress(brName_rec, &RecDigis);
   TClonesArray* FwdDigis = new TClonesArray("KoaFwdDigi");
-  tree->SetBranchAddress("KoaFwdDigi",&FwdDigis);
+  tree->SetBranchAddress(brName_fwd, &FwdDigis);
 
   // histograms definition
-  Int_t nbin_amp=2000;
-  Double_t low_amp=500, high_amp=2500;
+  Int_t nbin_amp=2500;
+  Double_t low_amp=0, high_amp=2500;
 
   Int_t nbin_time = 10000;
   Double_t low_time = 0, high_time = 2000;
@@ -124,6 +125,7 @@ void checkFwdDigi(const char* filename, const char* treename, bool isSimulation 
 }
 
 void checkFwdDigiWithTimeCut(const char* filename, const char* treename,
+                             const char* brName_fwd = "KoaFwdDigi",
                              int fwd1_low=915, int fwd1_high = 930,
                              int fwd2_low=915, int fwd2_high = 930,
                              double window_low = -10, double window_high = 10)
@@ -138,14 +140,14 @@ void checkFwdDigiWithTimeCut(const char* filename, const char* treename,
   TFile* f = new TFile(filename);
   TTree* tree = (TTree*)f->Get(treename);
   TClonesArray* FwdDigis = new TClonesArray("KoaFwdDigi");
-  tree->SetBranchAddress("KoaFwdDigi",&FwdDigis);
+  tree->SetBranchAddress(brName_fwd, &FwdDigis);
 
   // time-cut object
   KoaFwdTimeCut time_cut(fwd1_low, fwd1_high, fwd2_low, fwd2_high, window_low, window_high);
 
   // histograms definition
-  Int_t nbin_amp=2000;
-  Double_t low_amp=500, high_amp=2500;
+  Int_t nbin_amp=2500;
+  Double_t low_amp=0, high_amp=2500;
 
   Int_t nbin_time = 10000;
   Double_t low_time = 0, high_time = 2000;
@@ -225,6 +227,7 @@ void checkFwdDigiWithTimeCut(const char* filename, const char* treename,
 }
 
 void checkFwdDigiWithAmplitudeCut(const char* filename, const char* treename,
+                                  const char* brName_fwd = "KoaFwdDigi",
                                   int fwd1_low=790, int fwd1_high = 1050,
                                   int fwd2_low=780, int fwd2_high = 1030)
 {
@@ -238,14 +241,14 @@ void checkFwdDigiWithAmplitudeCut(const char* filename, const char* treename,
   TFile* f = new TFile(filename);
   TTree* tree = (TTree*)f->Get(treename);
   TClonesArray* FwdDigis = new TClonesArray("KoaFwdDigi");
-  tree->SetBranchAddress("KoaFwdDigi",&FwdDigis);
+  tree->SetBranchAddress(brName_fwd, &FwdDigis);
 
   // time-cut object
   KoaFwdAmpCut amp_cut(fwd1_low, fwd1_high, fwd2_low, fwd2_high);
 
   // histograms definition
-  Int_t nbin_amp=2000;
-  Double_t low_amp=500, high_amp=2500;
+  Int_t nbin_amp=2500;
+  Double_t low_amp=0, high_amp=2500;
 
   Int_t nbin_time = 10000;
   Double_t low_time = 0, high_time = 2000;

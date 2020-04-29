@@ -1,6 +1,6 @@
-#include "checkDigiTof.C"
+#include "checkRecDigiEnergy.C"
 
-void checkDigiTof_batch(const char* suffix, const char* indir)
+void checkRecDigiEnergy_batch(const char* suffix, const char* indir)
 {
   TString filelist [] ={
     "P_2.6_2019_Aug_30_22_22_25" ,
@@ -25,10 +25,11 @@ void checkDigiTof_batch(const char* suffix, const char* indir)
   for (int i=0;i<16;i++) {
     infile = indir + filelist[i] + suffix + ".root";
 
-    checkDigiTof(infile.Data(),
-                 "KoalaCalibEvent",
-                 false
-                 );
+    checkRecDigiEnergy(infile.Data(),
+                       "KoalaCalibEvent",
+                       false,
+                       true
+                       );
   }
 
   return;
