@@ -5,10 +5,11 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#ifndef KOAFWD_DIGITIZATIONPAR_H
-#define KOAFWD_DIGITIZATIONPAR_H
+#ifndef KOA_REC_TIMEWALKPAR_H
+#define KOA_REC_TIMEWALKPAR_H
 
 #include "FairParGenericSet.h"          // for FairParGenericSet
+#include "FairLogger.h"
 
 #include "Rtypes.h"                     // for ClassDef
 
@@ -16,33 +17,33 @@
 
 class FairParamList;
 
-class KoaFwdDigitizationPar : public FairParGenericSet
+class KoaRecTimeWalkPar : public FairParGenericSet
 {
   public:
 
-    KoaFwdDigitizationPar(const char* name="KoaFwdDigitizationPar",
-                                const char* title="Fwd Digitization Parameters",
+    KoaRecTimeWalkPar(const char* name="KoaRecTimeWalkPar",
+                                const char* title="Time-walk parameters for recoil detector",
                                 const char* context="TestDefaultContext");
-    ~KoaFwdDigitizationPar(void);
+    ~KoaRecTimeWalkPar(void);
     void clear(void);
     void putParams(FairParamList*);
     Bool_t getParams(FairParamList*);
 
-    Double_t GetTimeSigma() {return fTimeSigma;}
-    Double_t GetEnergySigma() {return fEnergySigma;}
-    Double_t GetEnergyNoise() {return fEnergyNoise;}
-    Double_t GetEnergyNoiseSigma() {return fEnergyNoiseSigma;}
+    Double_t GetThreshold() {return fThreshold;}
+    Double_t GetWidth() {return fWidth;}
+
+  void  printParams() {
+    LOG(info) << "Threshold: " << fThreshold << ", Half-Width: " << fWidth;
+  }
 
   private:
-  Double_t fTimeSigma; // in ns
-  Double_t fEnergySigma; // in keV
-  Double_t fEnergyNoise; //in keV
-  Double_t fEnergyNoiseSigma; // in keV
+    Double_t fThreshold; // Threshold for LED, in keV
+    Double_t fWidth; // Half-width of Shaper output, in ns
 
-    KoaFwdDigitizationPar(const KoaFwdDigitizationPar&);
-    KoaFwdDigitizationPar& operator=(const KoaFwdDigitizationPar&);
+    KoaRecTimeWalkPar(const KoaRecTimeWalkPar&);
+    KoaRecTimeWalkPar& operator=(const KoaRecTimeWalkPar&);
 
-    ClassDef(KoaFwdDigitizationPar,1)
+    ClassDef(KoaRecTimeWalkPar,1)
 };
 
 #endif

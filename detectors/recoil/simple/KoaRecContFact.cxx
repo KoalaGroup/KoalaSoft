@@ -12,6 +12,8 @@
 #include "KoaRecNoisePar.h"
 #include "KoaRecFanoPar.h"
 #include "KoaRecChargeCollectionPar.h"
+#include "KoaRecTimeWalkPar.h"
+#include "KoaRecTimeJitterPar.h"
 
 #include "FairRuntimeDb.h"
 
@@ -76,6 +78,22 @@ void KoaRecContFact::setAllContainers()
   p->addContext("TestNonDefaultContext");
 
   containers->Add(p);
+
+  //
+  p = new FairContainer("KoaRecTimeWalkPar",
+                        "Time-walk parameters for recoil detector",
+                        "TestDefaultContext");
+  p->addContext("TestNonDefaultContext");
+
+  containers->Add(p);
+
+  //
+  p = new FairContainer("KoaRecTimeJitterPar",
+                        "Time-jitter parameters for recoil detector",
+                        "TestDefaultContext");
+  p->addContext("TestNonDefaultContext");
+
+  containers->Add(p);
 }
 
 FairParSet* KoaRecContFact::createContainer(FairContainer* c)
@@ -106,6 +124,14 @@ FairParSet* KoaRecContFact::createContainer(FairContainer* c)
   else if(strcmp(name,"KoaRecChargeCollectionPar")==0){
     p=new KoaRecChargeCollectionPar(c->getConcatName().Data(),
                                     c->GetTitle(), c->getContext());
+  }
+  else if(strcmp(name,"KoaRecTimeWalkPar")==0){
+    p=new KoaRecTimeWalkPar(c->getConcatName().Data(),
+                            c->GetTitle(), c->getContext());
+  }
+  else if(strcmp(name,"KoaRecTimeJitterPar")==0){
+    p=new KoaRecTimeJitterPar(c->getConcatName().Data(),
+                              c->GetTitle(), c->getContext());
   }
 
   return p;

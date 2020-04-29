@@ -35,6 +35,10 @@ KoaRecAddFano.cxx
 KoaRecFanoPar.cxx
 KoaRecChargeCollection.cxx
 KoaRecChargeCollectionPar.cxx
+KoaRecAddTimeWalk.cxx
+KoaRecTimeWalkPar.cxx
+KoaRecAddTimeJitter.cxx
+KoaRecTimeJitterPar.cxx
 KoaRecCluster.cxx
 )
 

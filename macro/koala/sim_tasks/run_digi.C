@@ -78,10 +78,25 @@ void run_digi(const char* data, const char* para)
   // noise addition
   KoaRecAddNoise* recAddNoise = new KoaRecAddNoise();
   recAddNoise->SetInputDigiName("RecDigi_ChargeCollection");
-  recAddNoise->SetOutputDigiName("KoaRecDigi");
+  recAddNoise->SetOutputDigiName("RecDigi_AddNoise");
   recAddNoise->SaveOutputDigi(true);
   fRun->AddTask(recAddNoise);
 
+  // add time-walk
+  KoaRecAddTimeWalk* recAddTimeWalk = new KoaRecAddTimeWalk();
+  recAddTimeWalk->SetInputDigiName("RecDigi_AddNoise");
+  recAddTimeWalk->SetOutputDigiName("RecDigi_AddTimeWalk");
+  recAddTimeWalk->SaveOutputDigi(true);
+  fRun->AddTask(recAddTimeWalk);
+
+  // add time-jitter
+  KoaRecAddTimeJitter* recAddTimeJitter = new KoaRecAddTimeJitter();
+  recAddTimeJitter->SetInputDigiName("RecDigi_AddTimeWalk");
+  recAddTimeJitter->SetOutputDigiName("KoaRecDigi");
+  recAddTimeJitter->SaveOutputDigi(true);
+  fRun->AddTask(recAddTimeJitter);
+
+  // fwd digitization
   KoaFwdDigitization* fwdDigiTask = new KoaFwdDigitization();
   fRun->AddTask(fwdDigiTask);
 

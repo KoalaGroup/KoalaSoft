@@ -26,6 +26,10 @@
 #pragma link C++ class KoaRecFanoPar+;
 #pragma link C++ class KoaRecChargeCollection+;
 #pragma link C++ class KoaRecChargeCollectionPar+;
+#pragma link C++ class KoaRecAddTimeWalk+;
+#pragma link C++ class KoaRecTimeWalkPar+;
+#pragma link C++ class KoaRecAddTimeJitter++;
+#pragma link C++ class KoaRecTimeJitterPar++;
 #pragma link C++ class KoaRecCluster+;
 
 #endif

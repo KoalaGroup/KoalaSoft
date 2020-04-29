@@ -5,38 +5,25 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *  
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-#ifndef KOAFWDDIGITIZATION_H
-#define KOAFWDDIGITIZATION_H
+#ifndef KOA_REC_ADDTIMEWALK_H
+#define KOA_REC_ADDTIMEWALK_H
 
 #include "FairTask.h"
-#include "TRandom3.h"
 #include <map>
 
 class TClonesArray;
-class KoaMapEncoder;
-class KoaFwdPoint;
-class KoaFwdDigitizationPar;
+class KoaRecDigi;
+class KoaRecTimeWalkPar;
 
-struct KoaFwdStrip{
-  Double_t fTimestamp;
-  Double_t fCharge;
-};
-
-using KoaFwdStrips = std::map<Int_t, KoaFwdStrip>;
-
-class KoaFwdDigitization : public FairTask
+class KoaRecAddTimeWalk : public FairTask
 {
   public:
 
     /** Default constructor **/
-    KoaFwdDigitization();
-
-    /** Constructor with parameters (Optional) **/
-    //  KoaFwdDigitization(Int_t verbose);
-
+    KoaRecAddTimeWalk();
 
     /** Destructor **/
-    ~KoaFwdDigitization();
+    ~KoaRecAddTimeWalk();
 
 
     /** Initiliazation of task at the beginning of a run **/
@@ -44,7 +31,6 @@ class KoaFwdDigitization : public FairTask
 
     /** ReInitiliazation of task when the runID changes **/
     virtual InitStatus ReInit();
-
 
     /** Executed for each event. **/
     virtual void Exec(Option_t* opt);
@@ -58,34 +44,42 @@ class KoaFwdDigitization : public FairTask
     /** Reset eventwise counters **/
     void Reset();
 
- private:
-    void FillFiredStrip(KoaFwdPoint* McPoint);
-    void SmearDigis();
-    void AddDigis();
+ public:
+  void SetInputDigiName(const char* name) {
+    fInputName = name;
+  }
+  void SetOutputDigiName(const char* name) {
+    fOutputName = name;
+  }
+  void SaveOutputDigi(bool flag = true) {
+    fSaveOutput = flag;
+  }
 
-  private:
-    /** MapEncoder **/
-    KoaMapEncoder* fMapEncoder;
+ private:
+    void AddTimeWalk();
+
+ private:
+    // Input digit branch name
+    std::string fInputName;
+  // Output digit branch name
+    std::string fOutputName;
+    // Flag indicate save output branch to file or in memory
+    bool fSaveOutput;
 
     /** Input array from previous already existing data level **/
-    TClonesArray* fPoints;
-
+    TClonesArray* fInputDigis;
     /** Output array to  new data level**/
-    TClonesArray* fDigis;
-    KoaFwdStrips  fFiredStrips;
+    TClonesArray* fOutputDigis;
 
-    /** parameters used for time & energy smearing **/
-  TRandom3 fRndEngine;
-    KoaFwdDigitizationPar* fDigitizationPar;
-    Double_t fTimeSigma;
-    Double_t fEnergySigma;
-    Double_t fEnergyNoise;
-    Double_t fEnergyNoiseSigma;
+    // Noise parameter
+  KoaRecTimeWalkPar* fTimeWalkPar;
+  Double_t fThreshold;
+  Double_t fWidth;
 
-    KoaFwdDigitization(const KoaFwdDigitization&);
-    KoaFwdDigitization operator=(const KoaFwdDigitization&);
+    KoaRecAddTimeWalk(const KoaRecAddTimeWalk&);
+    KoaRecAddTimeWalk operator=(const KoaRecAddTimeWalk&);
 
-    ClassDef(KoaFwdDigitization,1);
+    ClassDef(KoaRecAddTimeWalk,1);
 };
 
 #endif
