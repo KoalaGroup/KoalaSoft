@@ -20,6 +20,7 @@ void KoaEventAssembler::Init()
     auto module_buffer = bufferManager->GetBuffer(module_info.name);
     fModuleBuffer.emplace(module_id, module_buffer);
   }
+  fModuleNr = fModuleBuffer.size();
 
   // 3. Init koala event buffer
   auto koabufferManager = KoaEventBufferManager::Instance();
@@ -28,8 +29,8 @@ void KoaEventAssembler::Init()
 
 void KoaEventAssembler::Assemble()
 {
-  
-  while ( IsFull() ) {
+  while ( NextEvent() ) {
+    // pop out modules and assemble
     auto koala_cur = fKoalaBuffer->PrepareNewItem();
     for ( auto module : fModuleBuffer ) {
       koala_cur->fData.modules.emplace(module.first, module.second->PopTopItem());

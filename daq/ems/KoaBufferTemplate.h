@@ -274,7 +274,7 @@ public:
   // It works as an iterator, which is useful for sweep through the buffer list
   const ItemType* NextItem() {
     const ItemType* item = nullptr;
-    if ( !fCurrent ) {
+    if ( fCurrent ) {
       item = fCurrent;
       fCurrent = fCurrent->fNext;
     }

@@ -28,7 +28,8 @@
 #pragma link C++ class KoaRawEventAnalyzer+;
 #pragma link C++ class KoaEventAnalyzer+;
 #pragma link C++ class KoaEmsEventAnalyzer+;
-#pragma link C++ class KoaEventAssembler;
+#pragma link C++ class KoaEventAssembler+;
+#pragma link C++ class KoaEventLgtAsm+;
 #pragma link C++ class KoaRawEventTransform+;
 
 #endif

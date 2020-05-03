@@ -50,6 +50,7 @@ set(HEADERS
   KoaEventAnalyzer.h
   KoaEmsEventAnalyzer.h
   KoaEventAssembler.h
+  KoaEventLgtAsm.h
   KoaRawEventTransform.h
   )
 
@@ -67,6 +68,7 @@ KoaMxdc32Unpack.cxx
 KoaEventAnalyzer.cxx
 KoaEmsEventAnalyzer.cxx
 KoaEventAssembler.cxx
+KoaEventLgtAsm.cxx
 KoaRawEventTransform.cxx
 )
 
