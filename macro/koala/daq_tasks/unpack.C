@@ -66,7 +66,8 @@ void unpack(const char* data)
     fFileSource->AddUnpacker(100, timeUnpack);
 
     // Config assembler
-    KoaEventAssembler *assembler = new KoaEventAssembler();
+    // KoaEventAssembler *assembler = new KoaEventAssembler(); // simplest
+    KoaEventLgtAsm *assembler = new KoaEventLgtAsm(); // Tobias's method
     // assembler->SetQdcTimeDiff(3);
     // assembler->SetMaxTimeDiff(4);
     fFileSource->SetAssembler(assembler);

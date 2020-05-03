@@ -7,6 +7,7 @@ bool KoaEventLgtAsm::NextEvent()
     CollectTS();
 
     // 2. get the list of min timestamps
+    fMinTSs.clear();
     auto tmin = fTSs.begin()->second;
     for( auto item : fTSs ) {
       auto t = item.second;
@@ -36,7 +37,6 @@ bool KoaEventLgtAsm::NextEvent()
         auto item = buffer->PopTopItem();
         item->Recycle();
       }
-      fMinTSs.clear();
     }
   }
 
