@@ -1,4 +1,4 @@
-Name        Id          mean        sigma       
+Name        Id          Mean        Sigma       
 Si1_1       0           1529.81     0.515817    
 Si1_2       1           1526.71     0.460227    
 Si1_3       2           1526.06     0.493638    

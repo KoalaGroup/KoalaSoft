@@ -1,6 +1,14 @@
 #ifndef KOA_TEXTUTILITY_H
 #define KOA_TEXTUTILITY_H
 
+#include "TSystem.h"
+#include "KoaMapEncoder.h"
+#include <vector>
+#include <list>
+#include <map>
+#include <string>
+#include <fstream>
+
 /*
  * Text I/O utility for fitting parameters of recoil detector
  * ValueContainer is the basic unit for storing a list of parameters, with the encoded id as key
