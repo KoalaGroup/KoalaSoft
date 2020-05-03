@@ -41,13 +41,14 @@ void checkRecDigiTime(const char* filename,  const char* treename,
 
   auto h1map_time = bookH1dByRecTdcChannelId("time","Timestamp",nbinx,xlow,xhigh);
   auto h1map_time_cut = bookH1dByRecTdcChannelId("time_cut","Timestamp (Coincidence Cut)",nbinx,xlow,xhigh, kBlue);
+  auto h2map_EnergyVsTime = bookH2dByRecTdcChannelId("energy_vs_time", "Energy VS Time (no cut);Energy(MeV);Timestamp(ns)", 90, 0 , 9, 5000, 800 ,1800);
+  auto h2map_EnergyVsTime_cut = bookH2dByRecTdcChannelId("energy_vs_time_cut", "Energy VS Time (no cut);Energy(MeV);Timestamp(ns)", 90, 0 ,9, 5000, 800 ,1800);
 
   // cut object
   KoaFwdTimeCut time_cut(fwd1_tlow, fwd1_thigh, fwd2_tlow, fwd2_thigh, window_tlow, window_thigh);
   KoaFwdAmpCut amp_cut(fwd1_alow, fwd1_ahigh, fwd2_alow, fwd2_ahigh);
 
-  std::vector<RegionType> cut_condition = {RegionType::FwdTimeMain, RegionType::FwdTimeBand1, RegionType::FwdTimeBand2,
-                                           RegionType::FwdTimeBand3, RegionType::FwdAmpMain};
+  std::vector<RegionType> cut_condition = {RegionType::FwdTimeMain, RegionType::FwdTimeBand1, RegionType::FwdTimeBand2, RegionType::FwdTimeBand3, RegionType::FwdAmpMain, RegionType::FwdAmpLow1, RegionType::FwdAmpLow2, RegionType::FwdAmpLow};
 
   auto IfCut = [&] (RegionType  region) -> bool
                {
@@ -105,8 +106,10 @@ void checkRecDigiTime(const char* filename,  const char* treename,
       if ( h1map_time.find(id) != h1map_time.end()
            && rec_timestamp > 0 ) {
         h1map_time[id].Fill(rec_timestamp);
+        h2map_EnergyVsTime[id].Fill(rec_charge, rec_timestamp);
         if ( passed ) {
           h1map_time_cut[id].Fill(rec_timestamp);
+          h2map_EnergyVsTime_cut[id].Fill(rec_charge, rec_timestamp);
         }
 
         multiHits[det_id]++;
@@ -148,6 +151,8 @@ void checkRecDigiTime(const char* filename,  const char* treename,
   writeHistos(hdir, h1map_time_cut);
   writeHistos(hdir, h1map_multiHit);
   writeHistos(hdir, h1map_multiHit_cut);
+  writeHistos(hdir, h2map_EnergyVsTime);
+  writeHistos(hdir, h2map_EnergyVsTime_cut);
   hdir->WriteTObject(&h1_multiHit, "", "Overwrite");
   hdir->WriteTObject(&h1_multiHit_cut, "", "Overwrite");
 
