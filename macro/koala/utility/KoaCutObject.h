@@ -243,6 +243,35 @@ Histo2D bookH2dByRegionType(const char *hName, const char *hTitle,
   return h2book;
 }
 
+///////////////// book event list based on cut conditon ///////////////////////////////////////////////////////////
+std::map<int, TEventList> bookEListByRegionType( bool IsAmpCut =  true)
+{
+   RegionType begin, end;
+   if ( !IsAmpCut ) {
+     begin = RegionType::FwdTimeMain;
+     end   = RegionType::FwdTimeEnd;
+   }
+   else {
+     begin = RegionType::FwdAmpMain;
+     end   = RegionType::FwdAmpEnd;
+   }
+
+   //
+   std::map<int, TEventList> elists;
+
+   for(auto e = begin; e != end; ++e) {
+     auto insert = elists.emplace(std::piecewise_construct,
+                                  std::forward_as_tuple(static_cast<std::underlying_type<RegionType>::type>(e)),
+                                  std::forward_as_tuple(Form("elist_%s", getRegionName(e).data()),
+                                                        Form("Entry List : %s", getRegionTitle(e).data())
+                                                        )
+                                  );
+     insert.first->second.SetDirectory(0);
+   }
+
+   return elists;
+ }
+
 ///////////////// Predefined Cut Objects, used for cut region identification and store the cut conditions //////////////
 
 ////////////////////////////////////////////////////////////////////////////////

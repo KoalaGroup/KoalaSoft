@@ -22,6 +22,14 @@ std::string getCutListName(const char* name)
   return std::string(name);
 }
 
+// write a map of elists to a directory
+template<typename T>
+void writeElists(TDirectory* eDir, T &eLists, const char* option = "Overwrite")
+{
+  for ( const auto& list : eLists ) {
+    eDir->WriteTObject(&list.second, "", option);
+  }
+}
 };
 
 #endif

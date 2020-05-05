@@ -116,6 +116,7 @@ void unpack(const char* data)
 
   // KoaEmsConfig is owned and managed by user himself
   delete emsConfig;
+  delete fRun;
 
   cout << endl << endl;
 
