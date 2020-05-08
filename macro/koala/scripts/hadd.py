@@ -10,18 +10,25 @@ haddbin = 'hadd'
 # arguments definitions
 parser = argparse.ArgumentParser()
 parser.add_argument("infile",help="the file list to be processed")
+parser.add_argument("outfile",help="the output summed root file name")
 parser.add_argument("-d","--directory",help="directory where files are located")
+parser.add_argument("-s","--suffix",help="common suffix of the file")
 
 args = parser.parse_args()
 file_list = args.infile
+outfile = args.outfile
 
-out_dir = './'
+in_dir = './'
 if(args.directory):
     in_dir = args.directory
 in_dir = os.path.expanduser(in_dir)
 
-list_decoded = batch.get_list(file_list, '_result.root', in_dir)
-command = [haddbin, os.path.join(in_dir, "P_2.6_result.root")]
+suffix = '_result.root'
+if(args.suffix):
+    suffix = args.suffix
+
+list_decoded = batch.get_list(file_list, suffix, in_dir)
+command = [haddbin, os.path.join(in_dir, outfile)]
 for fin in list_decoded:
     command.append(fin)
 

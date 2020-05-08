@@ -3,8 +3,28 @@
 
 using namespace KoaUtility;
 
-void filterOnFwd(const char* filename,  const char* treename = "koalasim",
-                 const char* brName_rec = "KoaRecDigi", const char* brName_fwd = "KoaFwdDigi",
+/*
+ | Summary:
+ | -------
+ | Categorize events into different event lists based on fwd infos and save into file for later usage.
+ | A special list called "elist_fwdhit" is also generated to contain events which have fwd hit.
+ | In the same time, compute the hit timestamp of the forward detector into a new tree.
+ | Two output file will be generated:
+ | 1) "xxxxx_EntryList.root" : the file storing the entry lists like 'fwd/elist_fwdhit' ...
+ | 2) "xxxxx_FwdHit.root"    : the file storing the fwd hit timestamp
+ |
+ | Arguments:
+ | ---------
+ | *) filename : input root file name, should be the raw digi files after unpacking
+ | *) treeName   : input tree name
+ | *) brName_fwd : name the fwd digi branch
+ | *) fwd1_tlow, fwd1_thigh, fwd2_tlow, fwd2_thigh, window_tlow, window_thigh: fwd time cut condition
+ | *) fwd1_alow, fwd1_ahigh, fwd2_alow, fwd2_ahigh : fwd amplitude cut condition
+ |
+ */
+void filterOnFwd(const char* filename,
+                 const char* treename = "koalasim",
+                 const char* brName_fwd = "KoaFwdDigi",
                  int fwd1_tlow=915, int fwd1_thigh = 930,
                  int fwd2_tlow=915, int fwd2_thigh = 930,
                  double window_tlow = -10, double window_thigh = 10,
@@ -16,10 +36,19 @@ void filterOnFwd(const char* filename,  const char* treename = "koalasim",
   TStopwatch timer;
 
   // input
-  TFile* f = new TFile(filename,"update");
+  TFile* f = new TFile(filename);
   TTree* tree = (TTree*)f->Get(treename);
   TClonesArray* FwdDigis = new TClonesArray("KoaFwdDigi");
   tree->SetBranchAddress(brName_fwd, &FwdDigis);
+
+  // fwdhit time tree and out file
+  TString outFwdHitFileName(filename);
+  outFwdHitFileName.ReplaceAll(".root","_FwdHit.root");
+  TFile *foutFwdHit = new TFile(outFwdHitFileName.Data(),"update");
+
+  float fwdhit_timestamp;
+  TTree* treeHitTime = new TTree("fwdhit_time","Timestamp of forward hit");
+  treeHitTime->Branch("fwdhit_time", &fwdhit_timestamp);
 
   // entry list definition
   auto amp_elists = bookEListByRegionType(true);
@@ -75,6 +104,27 @@ void filterOnFwd(const char* filename,  const char* treename = "koalasim",
     auto time_id = static_cast<int>(time_cut.GetType(fwd_time[index0],fwd_time[index1]));
     time_elists[time_id].Enter(entry);
 
+    // calculate fwd hit time
+    switch (static_cast<RegionType>(time_id)) {
+      case RegionType::FwdTimeBand3:
+      case RegionType::FwdTimeMain: {
+        fwdhit_timestamp = (fwd_time[index0] + fwd_time[index1])/2.;
+        break;
+      }
+      case RegionType::FwdTimeBand1: {
+        fwdhit_timestamp = fwd_time[index0];
+        break;
+      }
+      case RegionType::FwdTimeBand2: {
+        fwdhit_timestamp = fwd_time[index1];
+        break;
+      }
+      default:
+        fwdhit_timestamp = -10;
+        break;
+    }
+    treeHitTime->Fill();
+
     // clear up
     fwd_time.clear();
     fwd_amp.clear();
@@ -102,8 +152,13 @@ void filterOnFwd(const char* filename,  const char* treename = "koalasim",
   writeElists(edir,time_elists,"Overwrite");
   edir->WriteTObject(&fwdhit_elist, "", "Overwrite");
 
+  // save the fwdhit time tree
+  foutFwdHit->WriteTObject(treeHitTime, "", "Overwrite");
+
+  //
   delete f;
   delete fout;
+  delete foutFwdHit;
 
   // timer stat
   timer.Stop();

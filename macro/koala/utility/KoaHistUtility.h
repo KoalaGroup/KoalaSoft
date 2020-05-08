@@ -154,7 +154,7 @@ Histo2D bookH2dByChannelId(const char *hName, const char *hTitle, Int_t nXbin,
 
 Histo2D bookH2dByRecTdcChannelId(const char *hName, const char *hTitle, Int_t nXbin,
                                  Double_t xLow, Double_t xHigh, Int_t nYbin,
-                                 Double_t yLow, Double_t yHigh, Bool_t IsRec = true) {
+                                 Double_t yLow, Double_t yHigh) {
   Histo2D h2book;
   KoaMapEncoder *encoder = KoaMapEncoder::Instance();
   IndexContainer ChIDs = encoder->GetRecTdcChIDs();
