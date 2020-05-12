@@ -6,6 +6,7 @@ import subprocess
 import batch
 
 haddbin = 'hadd'
+command = [haddbin, '-O', '-j', '4', '-f']
 
 # arguments definitions
 parser = argparse.ArgumentParser()
@@ -28,7 +29,8 @@ if(args.suffix):
     suffix = args.suffix
 
 list_decoded = batch.get_list(file_list, suffix, in_dir)
-command = [haddbin, os.path.join(in_dir, outfile)]
+command.append(os.path.join(in_dir, outfile))
+#command = [haddbin, os.path.join(in_dir, outfile)]
 for fin in list_decoded:
     command.append(fin)
 

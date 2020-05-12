@@ -16,5 +16,6 @@
 #pragma link C++ class KoaRecTimeShiftCorrect+;
 #pragma link C++ class KoaRecRearRecon+;
 #pragma link C++ class KoaFwdRecon++;
+#pragma link C++ class KoaRecClusterCollect++;
 
 #endif

@@ -35,6 +35,7 @@ set(HEADERS
   KoaRecTimeShiftCorrect.h
   KoaRecRearRecon.h
   KoaFwdRecon.h
+  KoaRecClusterCollect.h
   )
 
 set(SRCS
@@ -43,6 +44,7 @@ set(SRCS
   KoaRecTimeShiftCorrect.cxx
   KoaRecRearRecon.cxx
   KoaFwdRecon.cxx
+  KoaRecClusterCollect.cxx
 )
 
 Set(LINKDEF KoaReconLinkDef.h)

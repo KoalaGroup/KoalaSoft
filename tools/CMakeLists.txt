@@ -1,5 +1,6 @@
 # Create a library called "libKoaTools"
 
+############### include and link directories ######################
 set(INCLUDE_DIRECTORIES
 #put here all directories where header files are located
 ${BASE_INCLUDE_DIRECTORIES}
@@ -16,6 +17,7 @@ ${FAIRROOT_LIBRARY_DIR}
 
 link_directories( ${LINK_DIRECTORIES})
 
+############### library ######################
 set(SRCS
 #Put here your sourcefiles
 KoaGeoHandler.cxx
@@ -33,3 +35,18 @@ Set(DEPENDENCIES
 )
 
 GENERATE_LIBRARY()
+
+############### executables ######################
+set(SRCS
+  KoaMacroExecutor.cxx
+  )
+
+set(DEPENDENCIES
+  Base
+  Core
+  FairLogger::FairLogger
+  )
+
+set(EXE_NAME koa_execute)
+
+GENERATE_EXECUTABLE()

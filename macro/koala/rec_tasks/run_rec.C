@@ -6,6 +6,8 @@
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
 void run_rec(const char* data,
+             const char* out_directory = "./",
+             const char* suffix = "_calib.root",
              const char* ped_file = "adc_pedestal_20190902_003449.txt",
              const char* adcpara_file = "adc_calib_energy.txt",
              const char* tdcpara_file = "tdc_calib_shift.txt"
@@ -21,14 +23,16 @@ void run_rec(const char* data,
 
   // Input file (MC events)
   TString inFile(data);
+  TString baseName = gSystem->BaseName(inFile.Data());
 
   // Parameter file
   TString paraFile(data);
-  paraFile.ReplaceAll(".root","_param.root");
+  paraFile.ReplaceAll(".root", "_param.root");
 
   // Output file
-  TString outFile(data);
-  outFile.ReplaceAll(".root","_calib.root");
+  TString outDir = gSystem->ExpandPathName(out_directory);
+  TString outFile = gSystem->ConcatFileName(outDir.Data(), baseName.Data());
+  outFile.ReplaceAll(".root", suffix);
 
 
   // -----   Timer   --------------------------------------------------------
@@ -60,7 +64,7 @@ void run_rec(const char* data,
   noiseFilter->SetOutputDigiName("RecDigi_NoiseFilter");
   // noiseFilter->SaveOutputDigi(true);
   noiseFilter->SetPedestalFile(pedestal_file.Data());
-  // noiseFilter->SetThreshold(5);
+  noiseFilter->SetThreshold(7); // 5*sigma may not be sufficient
   fRun->AddTask(noiseFilter);
 
   // 2. reconstructed recoil front strip energy to keV
@@ -76,7 +80,7 @@ void run_rec(const char* data,
   // 3. correct recoil front channels' time offset
   KoaRecTimeShiftCorrect* timeshiftCorrect = new KoaRecTimeShiftCorrect();
   timeshiftCorrect->SetInputDigiName("RecDigi_Energy");
-  timeshiftCorrect->SetOutputDigiName("KoaRecDigi");
+  timeshiftCorrect->SetOutputDigiName("KoaRecCalib");
   timeshiftCorrect->SaveOutputDigi(true);
   timeshiftCorrect->SetTdcParaFile(tdcparaFile.Data());
   fRun->AddTask(timeshiftCorrect);
@@ -90,7 +94,14 @@ void run_rec(const char* data,
   // rearRecon->SetOutputDigiName("KoaRecRearDigi");
   fRun->AddTask(rearRecon);
 
-  // 6. dumy fwd reconstruction, just copy the raw digis
+  // 6. clustering
+  KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
+  clusterCollect->SetInputDigiName("KoaRecCalib");
+  clusterCollect->SetOutputDigiName("KoaRecCluster");
+  clusterCollect->SaveOutputDigi(true);
+  fRun->AddTask(clusterCollect);
+
+  // 7. dumy fwd reconstruction, just copy the raw digis
   KoaFwdRecon* fwdRecon = new KoaFwdRecon();
   // fwdRecon->SetInputDigiName("KoaFwdDigi");
   // fwdRecon->SetOutputDigiName("KoaFwdDigi");
