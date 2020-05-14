@@ -148,6 +148,39 @@ namespace KoaUtility
       void writeGraphs(TDirectory *gDir, std::map<Int_t,T> &graphs, const char* option = "Overwrite") {
     return writeGraphsImpl(gDir, graphs, option, std::is_pointer<T>());
   }
+
+// print graphs to pdf file
+template <typename T>
+void printGraphsImp(std::map<Int_t,T> &graphs, const char* filename, std::true_type) {
+  auto c = new TCanvas();
+  c->Print(Form("%s[",filename));
+  for (auto& graph : graphs) {
+    graph.second->Draw("AP");
+    c->Print(Form("%s",filename));
+  }
+  c->Print(Form("%s]",filename));
+  delete c;
+  return;
+}
+
+template <typename T>
+void printGraphsImp(std::map<Int_t,T> &graphs, const char* filename, std::false_type) {
+  auto c = new TCanvas();
+  c->Print(Form("%s[",filename));
+  for (auto& graph : graphs) {
+    graph.second.Draw("AP");
+    c->Print(Form("%s",filename));
+  }
+  c->Print(Form("%s]",filename));
+  delete c;
+  return;
+}
+
+template <typename T>
+void printGraphs(std::map<Int_t,T> &graphs, const char* filename) {
+  return printGraphsImp(graphs,filename, std::is_pointer<T>());
+}
+
 };
 
 #endif

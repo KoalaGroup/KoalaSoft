@@ -12,7 +12,7 @@
  | *) outDir : directory for the output root file
  */
 
-void fill(const char* inFileName, const char* outDir)
+void fillHistogram(const char* inFileName, const char* outDir)
 {
   TString outFileName = gSystem->BaseName(inFileName);
   outFileName = gSystem->ConcatFileName(outDir, outFileName.Data());

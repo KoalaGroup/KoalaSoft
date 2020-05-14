@@ -4,7 +4,7 @@
 using namespace KoaUtility;
 
 template<typename ...Ts>
-void graph(const char* outFileName, const char* paraFileName, Ts... args)
+void fillGraph(const char* outFileName, const char* paraFileName, Ts... args)
 {
   // timer start
   TStopwatch timer;

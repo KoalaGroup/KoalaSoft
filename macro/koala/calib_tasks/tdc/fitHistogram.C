@@ -2,7 +2,7 @@
 
 using namespace KoaUtility;
 
-void fit(const char* inFileName, const char* outDir)
+void fitHistogram(const char* inFileName, const char* outDir)
 {
   inFileName = gSystem->ExpandPathName(inFileName);
   auto fin = TFile::Open(inFileName, "update");

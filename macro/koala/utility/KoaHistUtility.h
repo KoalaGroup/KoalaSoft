@@ -511,7 +511,6 @@ bool fitHisto(TH1* h1, int colorLine=kRed)
   int status = h1->Fit("gaus", "Q0","", mean-7*sigma, mean+7*sigma);
 
   TF1* f1 = h1->GetFunction("gaus");
-  std::cout << status<< " " << h1->GetName() << std::endl;
   f1->SetLineColor(colorLine);
   f1->ResetBit(1<<9);
 
@@ -537,6 +536,7 @@ void printH1Ds(HistoPtr1D& hMap, const char* filename)
     c->Print(Form("%s",filename));
   }
   c->Print(Form("%s]",filename));
+  delete c;
 }
 
 void printH2Ds(HistoPtr2D& hMap, const char* filename)
@@ -548,6 +548,7 @@ void printH2Ds(HistoPtr2D& hMap, const char* filename)
     c->Print(Form("%s",filename));
   }
   c->Print(Form("%s]",filename));
+  delete c;
 }
 
 };  // namespace KoaUtility
