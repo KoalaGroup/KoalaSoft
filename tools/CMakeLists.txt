@@ -18,6 +18,14 @@ ${FAIRROOT_LIBRARY_DIR}
 link_directories( ${LINK_DIRECTORIES})
 
 ############### library ######################
+set(HEADERS
+  KoaGeoHandler.h
+  KoaMapHandler.h
+  KoaMapEncoder.h
+  KoaElasticCalculator.h
+  KoaTextUtility.h
+  )
+
 set(SRCS
 #Put here your sourcefiles
 KoaGeoHandler.cxx

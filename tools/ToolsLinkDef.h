@@ -16,4 +16,9 @@
 #pragma link C++ class KoaGeoHandler+;
 #pragma link C++ class KoaElasticCalculator+;
 
+#pragma link C++ namespace KoaUtility;
+#pragma link C++ defined_in namespace KoaUtility;
+#pragma link C++ nestedclass;
+#pragma link C++ nestedtypedef;
+
 #endif

@@ -8,6 +8,8 @@
 #include <map>
 #include <string>
 #include <fstream>
+#include <iostream>
+#include <sstream>
 
 /*
  * Text I/O utility for fitting parameters of recoil detector
@@ -18,8 +20,8 @@
  * using namespace KoaUtility;
  * ParameterList fitParameters;
  * // 2. add parameter value container to this list
- * auto fitMean = addValueContainer(fitParameters, "Mean");
- * auto fitSigma = addValueContainer(fitParameters, "Sigma");
+ * auto& fitMean = addValueContainer(fitParameters, "Mean");
+ * auto& fitSigma = addValueContainer(fitParameters, "Sigma");
  * // 3. fill in the values
  * ....
  * // 4. print out values to text file

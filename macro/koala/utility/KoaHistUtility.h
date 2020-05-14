@@ -92,6 +92,8 @@ Histo1D bookH1dByDetectorId(const char *hName, const char *hTitle, Int_t nBin,
         std::forward_as_tuple(Form("h1_%s_%s", volName.Data(), hName),
                               Form("%s : %s", volName.Data(), hTitle), nBin,
                               xLow, xHigh));
+    h1book[detector].SetLineColor(colorLine);
+    h1book[detector].SetDirectory(0);
   }
 
   return h1book;
@@ -117,6 +119,8 @@ Histo1D bookH1dByRecDetectorId(const char *hName, const char *hTitle,
         std::forward_as_tuple(Form("h1_%s_%s", volName.Data(), hName),
                               Form("%s : %s", volName.Data(), hTitle), chNumber,
                               0.5, chNumber + 0.5));
+    h1book[detector].SetLineColor(colorLine);
+    h1book[detector].SetDirectory(0);
   }
 
   return h1book;
@@ -201,6 +205,7 @@ Histo2D bookH2dByDetectorId(const char *hName, const char *hTitle, Int_t nXbin,
         std::forward_as_tuple(Form("h2_%s_%s", volName.Data(), hName),
                               Form("%s : %s", volName.Data(), hTitle), nXbin,
                               xLow, xHigh, nYbin, yLow, yHigh));
+    h2book[detector].SetDirectory(0);
   }
 
   return h2book;
@@ -228,6 +233,7 @@ Histo2D bookH2dByRecDetectorId(const char *hName, const char *hTitle,
         std::forward_as_tuple(Form("h2_%s_%s", volName.Data(), hName),
                               Form("%s : %s", volName.Data(), hTitle), chNumber,
                               0.5, chNumber + 0.5, nYbin, yLow, yHigh));
+    h2book[detector].SetDirectory(0);
   }
 
   return h2book;
@@ -240,12 +246,24 @@ Histo2D bookH2dByRecDetectorId(const char *hName, const char *hTitle,
 // 2. "Overwrite" : delete object with same name and then write to the file, cycle number is 1
 // 3. "WriteDelete" : write to the file first and then delete the original, cycle number is increased by 1
 template <typename T>
-void writeHistos(TDirectory *hDir, T &histos, const char* option = "Overwrite") {
-  for (const auto &hist : histos) {
+void writeHistosImpl(TDirectory *hDir, std::map<Int_t,T> &histos, const char* option, std::true_type) {
+  for (auto hist : histos) {
+    hDir->WriteTObject(hist.second, "", option);
+  }
+  return;
+}
+
+template <typename T>
+void writeHistosImpl(TDirectory *hDir, std::map<Int_t,T> &histos, const char* option, std::false_type) {
+  for (auto& hist : histos) {
     hDir->WriteTObject(&hist.second, "", option);
   }
-
   return;
+}
+
+template <typename T>
+void writeHistos(TDirectory *hDir, std::map<Int_t,T> &histos, const char* option = "Overwrite") {
+  return writeHistosImpl(hDir, histos, option, std::is_pointer<T>());
 }
 
 template <typename T>
@@ -482,6 +500,52 @@ void shiftHisto(TH1* h, int shift)
         h->SetBinContent(i, 0);
     }
   }
+}
+
+/////////////////////// Fit histograms ///////////////////////
+bool fitHisto(TH1* h1, int colorLine=kRed)
+{
+  auto mean = h1->GetMean();
+  auto sigma = h1->GetRMS();
+  int status = h1->Fit("gaus", "Q0","", mean-7*sigma, mean+7*sigma);
+
+  TF1* f1 = h1->GetFunction("gaus");
+  f1->SetLineColor(colorLine);
+  f1->ResetBit(1<<9);
+
+  return status == 0 ? true : false;
+}
+
+void fitHistos(HistoPtr1D& hMap, int colorLine = kRed)
+{
+  for(auto h1 : hMap) {
+    if(!fitHisto(h1.second, colorLine)) {
+      std::cerr << "Fit failed: " << h1.second->GetName() << std::endl;
+    }
+  }
+}
+
+// /////////////////////// Print histograms ///////////////////////
+void printH1Ds(HistoPtr1D& hMap, const char* filename)
+{
+  auto c = new TCanvas();
+  c->Print(Form("%s[",filename));
+  for(auto h1 : hMap) {
+    h1.second->Draw();
+    c->Print(Form("%s",filename));
+  }
+  c->Print(Form("%s]",filename));
+}
+
+void printH2Ds(HistoPtr2D& hMap, const char* filename)
+{
+  auto c = new TCanvas();
+  c->Print(Form("%s[",filename));
+  for(auto h1 : hMap) {
+    h1.second->Draw();
+    c->Print(Form("%s",filename));
+  }
+  c->Print(Form("%s]",filename));
 }
 
 };  // namespace KoaUtility
