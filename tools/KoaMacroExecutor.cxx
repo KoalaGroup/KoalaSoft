@@ -21,6 +21,13 @@ int main(int argc, char *argv[])
     Usage(argv[0]);
   }
 
+  // Add include path
+  TString configm(gSystem->Getenv("VMCWORKDIR"));
+  gROOT->ProcessLine(Form(".include %s/macro/koala/utility", configm.Data()));
+  gROOT->ProcessLine(Form(".include %s/macro/koala", configm.Data()));
+  // gSystem->AddIncludePath(Form(".include %s/macro/koala/utility", configm.Data()));
+  // gSystem->AddIncludePath(Form(".include %s/macro/koala", configm.Data()));
+
   // get macro file path
   TString macro(argv[1]);
   gSystem->ExpandPathName(macro);

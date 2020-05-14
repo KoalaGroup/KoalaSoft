@@ -40,6 +40,8 @@ Set(DEPENDENCIES
   Base
   Geom
   Core
+  Physics
+  Hist
 )
 
 GENERATE_LIBRARY()
