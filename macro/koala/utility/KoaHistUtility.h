@@ -507,9 +507,11 @@ bool fitHisto(TH1* h1, int colorLine=kRed)
 {
   auto mean = h1->GetMean();
   auto sigma = h1->GetRMS();
+  h1->SetAxisRange(mean-10*sigma, mean+10*sigma);
   int status = h1->Fit("gaus", "Q0","", mean-7*sigma, mean+7*sigma);
 
   TF1* f1 = h1->GetFunction("gaus");
+  std::cout << status<< " " << h1->GetName() << std::endl;
   f1->SetLineColor(colorLine);
   f1->ResetBit(1<<9);
 

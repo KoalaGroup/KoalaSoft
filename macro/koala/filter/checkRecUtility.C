@@ -134,7 +134,7 @@ void checkRecAmplitude_Imp(const char* inFileName, const char* outFileName,
 
   TDirectory* hdir = nullptr;
   hdir = getDirectory(fout, hDirName.Data());
-  writeHistos(hdir, h1map);
+  writeHistos<TH1D>(hdir, h1map);
 
   // clear up
   delete fin;
@@ -261,7 +261,7 @@ void checkRecTime_Imp(const char* inFileName, const char* outFileName,
 
   TDirectory* hdir = nullptr;
   hdir = getDirectory(fout, hDirName.Data());
-  writeHistos(hdir, h1map);
+  writeHistos<TH1D>(hdir, h1map);
 
   // clear up
   delete fin;
@@ -413,7 +413,7 @@ void checkAmpVsTof_Imp(const char* inFileName, const char* fwdhitFileName, const
 
   TDirectory* hdir = nullptr;
   hdir = getDirectory(fout, hDirName.Data());
-  writeHistos(hdir, h2map);
+  writeHistos<TH2D>(hdir, h2map);
 
   // clear up
   delete fin;
@@ -539,6 +539,10 @@ void checkAmpVsTime_Imp(const char* inFileName, const char* outFileName,
       // rec timestamp
       auto rec_timestamp = digi->GetTimeStamp();
 
+      // fill
+      if ( rec_timestamp < 0 )
+        continue;
+
       h2map[id].Fill(rec_charge, rec_timestamp);
     }
   }
@@ -552,7 +556,7 @@ void checkAmpVsTime_Imp(const char* inFileName, const char* outFileName,
 
   TDirectory* hdir = nullptr;
   hdir = getDirectory(fout, hDirName.Data());
-  writeHistos(hdir, h2map);
+  writeHistos<TH2D>(hdir, h2map);
 
   // clear up
   delete fin;

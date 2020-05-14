@@ -9,7 +9,7 @@ void fit(const char* inFileName, const char* outDir)
 
   // amplitude
   auto hDirIn = getDirectory(fin, "rec_adc");
-  auto h1map_amp = getHistosByChannelId<TH1D>(hDirIn, "adc", true);
+  auto h1map_amp = getHistosByRecTdcChannelId<TH1D>(hDirIn, "adc");
 
   // fitting
   fitHistos(h1map_amp);
