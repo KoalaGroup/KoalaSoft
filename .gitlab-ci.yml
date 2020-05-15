@@ -1,0 +1,17 @@
+build:
+  variables:
+    FAIRSOFT_VERSION: jun19
+    FAIRROOT_VERSION: v18.2.0
+  tags:
+    - jun19
+    - v18.2.0
+  stage: build
+  script:
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make -j4
+  rules:
+    - if: '$CI_PROJECT_PATH == "KoalaGroup/KoalaSoft" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev"'
+      when: always
+    - when: never
