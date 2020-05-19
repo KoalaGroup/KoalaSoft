@@ -163,11 +163,32 @@ Unset(Boost_INCLUDE_DIR CACHE)
 Unset(Boost_LIBRARY_DIRS CACHE)
 
 find_package2(PUBLIC Boost
-  VERSION 1.67 ${FairMQ_Boost_VERSION}
-  COMPONENTS thread system timer program_options random filesystem chrono exception regex serialization log log_setup atomic date_time signals ${FairMQ_Boost_COMPONENTS}
+  VERSION ${FairMQ_Boost_VERSION}
+  COMPONENTS 
+    thread 
+    system 
+    timer 
+    program_options 
+    random 
+    filesystem 
+    chrono 
+    exception 
+    regex 
+    serialization 
+    log 
+    log_setup 
+    atomic 
+    date_time 
+    signals
+    unit_test_framework
+    ${FairMQ_Boost_COMPONENTS}
 )
 
+# globally add dynamic link flag for boost unit test
+add_definitions(-DBOOST_TEST_DYN_LINK=1)
+
 If (Boost_FOUND)
+  message("Boost found ${Boost_VERSION}")
   Set(Boost_Avail 1)
 Else (Boost_FOUND)
   Set(Boost_Avail 0)
