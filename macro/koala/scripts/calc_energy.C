@@ -1,44 +1,64 @@
 #include "KoaHistUtility.h"
-#include "calc_energy_imp.C"
+#include "KoaGeometryUtility.h"
+// #include "calc_energy_imp.C"
 
 using namespace KoaUtility;
 
 void calc_energy(const char* infile,
-                 Double_t mom = 2.6, Double_t distance = 90.4,
-                 Double_t zoffset = 0, const char* geoFile="../calib_para/geo_standard.root")
+                 Double_t mom = 2.6, Double_t distance = 90.432,
+                 Double_t zoffset = 0, const char* geoFile="../calib_para/geo_standard.root", bool useFwd = true)
 
 {
   TStopwatch timer;
 
-  // geomanager
-  TFile* fgeo=new TFile(geoFile);
-  TGeoManager* geoMan=(TGeoManager*)fgeo->Get("FAIRGeom");
-  
-  KoaGeoHandler* geoHandler = new KoaGeoHandler(kFALSE);
   //
+  auto calculator = new KoaElasticCalculator(mom);
+  // calculator->SetRecDistance(distance);
+
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-  auto RecChIds = encoder->GetRecChIDs();
+
+  //
   std::map<Int_t, double> CalculatedEnergies;
-  std::map<Int_t, double> Positions;
-  
-  Int_t ch_id, det_id;
-  Double_t center, low, high;
-  Double_t global_pos[3] = {0};
-  Double_t local_pos[3] = {0};
-  Double_t energy;
-  for( auto& id : RecChIds ) {
-    ch_id = encoder->DecodeChannelID(id, det_id);
+  auto Positions = getStripGlobalPosition(geoFile);
+  auto Alphas = getStripAlphas(geoFile);
 
-    center = geoHandler->RecDetChToPosition(id, low, high);
-    local_pos[2] = center;
-    geoHandler->LocalToGlobal(local_pos, global_pos,det_id);
+  for(auto item: Positions ){
+    auto id = item.first;
+    auto pos = item.second;
+    if(pos>0){
+      auto energy = calculator->GetEnergyByAlpha(Alphas[id]);
 
-    Positions.emplace(id, 10*global_pos[2]+zoffset);
-
-    //
-    energy = GetRecTByRecHitPosition(mom, Positions[id], distance);
-    CalculatedEnergies.emplace(id, energy);
+      CalculatedEnergies.emplace(id, energy);
+    }
   }
+  // KoaMapEncoder* encoder = KoaMapEncoder::Instance();
+  // auto RecChIds = encoder->GetRecChIDs();
+  // Int_t ch_id, det_id;
+  // Double_t center, low, high;
+  // Double_t global_pos[3] = {0};
+  // Double_t local_pos[3] = {0};
+  // Double_t energy;
+
+  // for( auto& id : RecChIds ) {
+  //   ch_id = encoder->DecodeChannelID(id, det_id);
+
+  //   center = geoHandler->RecDetChToPosition(id, low, high);
+  //   local_pos[2] = center;
+  //   geoHandler->LocalToGlobal(local_pos, global_pos,det_id);
+
+  //   Positions.emplace(id, 10*global_pos[2]+zoffset);
+
+  //   //
+  //   if(Positions[id]>0
+  //      && Alphas[id]>0
+  //      ) {
+  //     // energy = GetRecTByRecHitPosition(mom, Positions[id], distance);
+  //     // energy = calculator->GetEnergyByRecZ(Positions[id]);
+  //     energy = calculator->GetEnergyByAlpha(Alphas[id]);
+
+  //     CalculatedEnergies.emplace(id, energy);
+  //   }
+  // }
 
   ////////////////////////////////////////
   TString infile_name = gSystem->ExpandPathName(infile);
@@ -49,19 +69,24 @@ void calc_energy(const char* infile,
   // readHist
   auto readHist = [&] (Int_t sepid)
     {
-
       //
       auto hdir_energy = getDirectory(filein, "rec_energy");
       auto hist_energy = getHistosByChannelId<TH1D>(hdir_energy, "energy");
 
       auto hdir_energy_cut = getDirectory(filein, "rec_energy_fwdhit_TimeValid");
       auto hist_energy_cut = getHistosByChannelId<TH1D>(hdir_energy_cut, "energy_fwdhit_TimeValid");
+
       //
       std::vector<Int_t> ChIDs = encoder->GetRecChIDs();
 
       for ( auto& ChID : ChIDs ) {
-        if (ChID < sepid){
-          h1s_ptr.emplace(ChID, hist_energy_cut[ChID]);
+        if ( useFwd ) {
+          if (ChID < sepid){
+            h1s_ptr.emplace(ChID, hist_energy_cut[ChID]);
+          }
+          else{
+            h1s_ptr.emplace(ChID, hist_energy[ChID]);
+          }
         }
         else{
           h1s_ptr.emplace(ChID, hist_energy[ChID]);
@@ -178,13 +203,13 @@ void calc_energy(const char* infile,
     auto& value = energy.second;
     if(Positions[id]>0 &&
        id > ip_id &&
-       id != encoder->EncodeChannelID(2,28) &&
-       id != encoder->EncodeChannelID(2,29) &&
-       id != encoder->EncodeChannelID(2,30) &&
-       id != encoder->EncodeChannelID(2,31) &&
-       id != encoder->EncodeChannelID(3,29) &&
-       id != encoder->EncodeChannelID(3,30) &&
-       id != encoder->EncodeChannelID(3,31) &&
+       // id != encoder->EncodeChannelID(2,28) &&
+       // id != encoder->EncodeChannelID(2,29) &&
+       // id != encoder->EncodeChannelID(2,30) &&
+       // id != encoder->EncodeChannelID(2,31) &&
+       // id != encoder->EncodeChannelID(3,29) &&
+       // id != encoder->EncodeChannelID(3,30) &&
+       // id != encoder->EncodeChannelID(3,31) &&
        FittedEnergies[id] !=0 &&
        std::abs(FittedEnergies[id]-CalculatedEnergies[id]) < 1){
       graph_calibrated->SetPoint(index, Positions[id], FittedEnergies[id]);
@@ -227,7 +252,7 @@ void calc_energy(const char* infile,
   ftxt << "# calculated energy: name id position(mm) calculated_energy(MeV) peak_energy fit_energy" << std::endl;
   for ( auto& result : CalculatedEnergies ) {
     auto& id = result.first;
-    energy = result.second;
+    auto energy = result.second;
 
     if(id <= ip_id) continue;
 
@@ -247,8 +272,8 @@ void calc_energy(const char* infile,
   ftxt.close();
 
   //
-  delete fgeo;
   delete filein;
+  delete calculator;
 
   //
   timer.Stop();
