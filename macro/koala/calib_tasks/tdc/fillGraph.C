@@ -10,8 +10,8 @@ void fillGraph(const char* outFileName, const char* paraFileName, Ts... args)
   TStopwatch timer;
 
   // book graphs
-  auto gmap_timewalk = bookGraphByRecTdcChannelId("timewalk","Time Walk");
-  auto gmap_timeshift = bookGraphByRecTdcChannelId("timeshift","Time Shift");
+  auto gmap_timewalk = bookGraphByRecTdcChannelId("timewalk","Time Walk", kBlack, 20);
+  auto gmap_timeshift = bookGraphByRecTdcChannelId("timeshift","Time Shift", kBlue, 20);
 
   //
   std::vector<std::string> txtFiles = {paraFileName, args...};

@@ -36,6 +36,7 @@ namespace KoaUtility
       graphs[ChID].SetTitle(Form("%s_%d: %s", volName.Data(), ch + 1, gTitle));
       graphs[ChID].SetMarkerColor(markerColor);
       graphs[ChID].SetMarkerStyle(markerStyle);
+      graphs[ChID].SetMarkerSize(1.2);
     }
 
     return graphs;
@@ -64,6 +65,7 @@ namespace KoaUtility
       graphs[ChID].SetTitle(Form("%s_%d: %s", volName.Data(), ch + 1, gTitle));
       graphs[ChID].SetMarkerColor(markerColor);
       graphs[ChID].SetMarkerStyle(markerStyle);
+      graphs[ChID].SetMarkerSize(1.2);
     }
 
     return graphs;

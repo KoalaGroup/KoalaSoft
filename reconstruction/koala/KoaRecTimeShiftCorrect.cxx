@@ -12,6 +12,7 @@
 #include "FairLogger.h"
 #include "KoaRecDigi.h"
 #include "KoaRecTimeShiftCorrect.h"
+#include <iterator>
 
 // ---- Default constructor -------------------------------------------
 KoaRecTimeShiftCorrect::KoaRecTimeShiftCorrect()
@@ -63,9 +64,9 @@ InitStatus KoaRecTimeShiftCorrect::Init()
   if (fTdcParaFile.empty()) LOG(fatal) << "No TDC parameters found";
   auto params = readParameterList<double>( fTdcParaFile);
 
-  auto it = findValueContainer(params, "Mean");
+  auto it = findValueContainer(params, fTdcParaName);
   if ( it == params.end()) {
-    LOG(error) << "No \'Mean\' parameter found in the TDC parameter file";
+    LOG(error) << "No parameter found in the TDC parameter file: " << fTdcParaName;
     return kERROR;
   }
   fMean = it->second;
@@ -132,9 +133,10 @@ void KoaRecTimeShiftCorrect::Reset()
 }
 
 // Calculate the time shift between channels using first as a reference
-void KoaRecTimeShiftCorrect::CalcTimeShift()
+void KoaRecTimeShiftCorrect::CalcTimeShift(int ref_ch)
 {
-  auto tdc_ref = fMean.begin()->second;
+  auto it = std::next(fMean.begin(), ref_ch);
+  auto tdc_ref = it->second;
   for ( auto& ch : fMean ) {
     auto& id = ch.first;
     auto& mean = ch.second;

@@ -59,8 +59,12 @@ public:
     fTdcParaFile = name;
   }
 
+  void SetTdcParaName(const char* name) {
+    fTdcParaName = name;
+  }
+
 private:
-  void CalcTimeShift();
+  void CalcTimeShift(int ref_ch = 1);
 
 private:
   // Input digit branch name
@@ -77,6 +81,7 @@ private:
 
   // Noise parameter
   std::string fTdcParaFile = "";
+  std::string fTdcParaName = "Mean";
   ValueContainer<double> fMean;
   ValueContainer<double> fTimeShift;
 

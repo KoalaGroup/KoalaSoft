@@ -34,7 +34,9 @@
   // for interpreter macro loading, the two methods have same effect
   // gInterpreter->AddIncludePath("./utility");
   gROOT->ProcessLine(Form(".include %s/macro/koala/utility", configm.Data()));
+  gROOT->ProcessLine(Form(".include %s/macro/koala", configm.Data()));
 
   // for ACLiC include path
   gSystem->AddIncludePath(Form(".include %s/macro/koala/utility", configm.Data()));
+  gSystem->AddIncludePath(Form(".include %s/macro/koala", configm.Data()));
 }
