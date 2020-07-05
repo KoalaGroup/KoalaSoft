@@ -6,7 +6,9 @@ using namespace KoaUtility;
 
 void calc_energy(const char* infile,
                  Double_t mom = 2.6, Double_t distance = 90.432,
-                 Double_t zoffset = 0, const char* geoFile="../calib_para/geo_standard.root", bool useFwd = true)
+                 const char* geoFile="../calib_para/geo_standard.root",
+                 bool useAlpha = false,
+                 bool isBeamTest = true, Double_t pedestal = 100) // pedestal in sim digi task in keV
 
 {
   TStopwatch timer;
@@ -19,8 +21,12 @@ void calc_energy(const char* infile,
 
   //
   std::map<Int_t, double> CalculatedEnergies;
-  auto Positions = getStripGlobalPosition(geoFile);
-  auto Alphas = getStripAlphas(geoFile);
+
+  double zoffset[4] = {0.18, 0.13, 0.12, 0.12}; // in cm
+  // double zoffset[4] = {0.}; // in cm
+  double yoffset[4] = {0, 0, 0, 0}; // in cm
+  auto Positions = getStripGlobalPosition(geoFile, zoffset);
+  auto Alphas = getStripAlphas(geoFile, yoffset, zoffset);
 
   for(auto item: Positions ){
     auto id = item.first;
@@ -33,8 +39,8 @@ void calc_energy(const char* infile,
   }
   // KoaMapEncoder* encoder = KoaMapEncoder::Instance();
   // auto RecChIds = encoder->GetRecChIDs();
-  // Int_t ch_id, det_id;
-  // Double_t center, low, high;
+  Int_t ch_id, det_id;
+  Double_t center, low, high;
   // Double_t global_pos[3] = {0};
   // Double_t local_pos[3] = {0};
   // Double_t energy;
@@ -66,21 +72,35 @@ void calc_energy(const char* infile,
 
   HistoPtr1D h1s_ptr;
 
+  TString hdir_name("rec_energy");
+  TString hname_suffix("energy");
+  // TString hdir_name("rec_cluster_energy");
+  // TString hname_suffix("cluster_energy");
+  // TString hdir_name("rec_cluster_energy_FirstHit");
+  // TString hname_suffix("cluster_energy_firstHit");
+
+  TString hdir_cut_name("rec_energy_fwdhit_TimeValid");
+  TString hname_cut_suffix("energy_fwdhit_TimeValid");
+  // TString hdir_cut_name("rec_cluster_energy_fwdhit_TimeValid");
+  // TString hname_cut_suffix("cluster_energy_fwdhit_TimeValid");
+  // TString hdir_cut_name("rec_cluster_energy_fwdhit_TimeValid_FirstHit");
+  // TString hname_cut_suffix("cluster_energy_fwdhit_TimeValid_firstHit");
+
   // readHist
   auto readHist = [&] (Int_t sepid)
     {
       //
-      auto hdir_energy = getDirectory(filein, "rec_energy");
-      auto hist_energy = getHistosByChannelId<TH1D>(hdir_energy, "energy");
+      auto hdir_energy = getDirectory(filein, hdir_name.Data());
+      auto hist_energy = getHistosByChannelId<TH1D>(hdir_energy, hname_suffix.Data());
 
-      auto hdir_energy_cut = getDirectory(filein, "rec_energy_fwdhit_TimeValid");
-      auto hist_energy_cut = getHistosByChannelId<TH1D>(hdir_energy_cut, "energy_fwdhit_TimeValid");
+      auto hdir_energy_cut = getDirectory(filein, hdir_cut_name.Data());
+      auto hist_energy_cut = getHistosByChannelId<TH1D>(hdir_energy_cut, hname_cut_suffix.Data());
 
       //
       std::vector<Int_t> ChIDs = encoder->GetRecChIDs();
 
       for ( auto& ChID : ChIDs ) {
-        if ( useFwd ) {
+        if ( isBeamTest ) {
           if (ChID < sepid){
             h1s_ptr.emplace(ChID, hist_energy_cut[ChID]);
           }
@@ -143,7 +163,12 @@ void calc_energy(const char* infile,
           }
           auto result = h1->Fit("gaus", "qs+", "", xpeaks[0]-sigma, xpeaks[0]+sigma);
           double mean = result->Parameter(1);
-          FittedEnergies.emplace(id, mean);
+          if (isBeamTest) {
+            FittedEnergies.emplace(id, mean);
+          }
+          else{
+            FittedEnergies.emplace(id, mean-pedestal/1000.);
+          }
         }
         else{
           PeakEnergies.emplace(id, 0);
@@ -156,7 +181,8 @@ void calc_energy(const char* infile,
   //////////////////
   using Graphs = std::map<Int_t, TGraph>;
   Graphs graphs;
-  Int_t ip_id = encoder->EncodeChannelID(0,21);
+  // Int_t ip_id = encoder->EncodeChannelID(0,11);
+  Int_t ip_id = encoder->EncodeChannelID(0,16);
 
   TGraph* graph_calculated = new TGraph();
   graph_calculated->SetName("graph_calculated");
@@ -203,27 +229,36 @@ void calc_energy(const char* infile,
     auto& value = energy.second;
     if(Positions[id]>0 &&
        id > ip_id &&
-       // id != encoder->EncodeChannelID(2,28) &&
-       // id != encoder->EncodeChannelID(2,29) &&
-       // id != encoder->EncodeChannelID(2,30) &&
-       // id != encoder->EncodeChannelID(2,31) &&
-       // id != encoder->EncodeChannelID(3,29) &&
-       // id != encoder->EncodeChannelID(3,30) &&
-       // id != encoder->EncodeChannelID(3,31) &&
+       id != encoder->EncodeChannelID(2,28) &&
+       id != encoder->EncodeChannelID(2,29) &&
+       id != encoder->EncodeChannelID(2,30) &&
+       id != encoder->EncodeChannelID(2,31) &&
+       id != encoder->EncodeChannelID(3,29) &&
+       id != encoder->EncodeChannelID(3,30) &&
+       id != encoder->EncodeChannelID(3,31) &&
        FittedEnergies[id] !=0 &&
        std::abs(FittedEnergies[id]-CalculatedEnergies[id]) < 1){
-      graph_calibrated->SetPoint(index, Positions[id], FittedEnergies[id]);
-      graph_calculated->SetPoint(index, Positions[id], value);
-      graph_diff->SetPoint(index, Positions[id], (FittedEnergies[id]-value)/value);
-      graph_diff_value->SetPoint(index, Positions[id], (FittedEnergies[id]-value));
-      graph_diff_search->SetPoint(index, Positions[id], (PeakEnergies[id]-value)/value);
-      graph_diff_value_search->SetPoint(index, Positions[id], (PeakEnergies[id]-value));
+      double xpos;
+      if(!useAlpha) {
+        xpos = Positions[id];
+      }
+      else{
+        xpos = Alphas[id];
+      }
+      graph_calibrated->SetPoint(index, xpos, FittedEnergies[id]);
+      graph_calculated->SetPoint(index, xpos, value);
+      graph_diff->SetPoint(index, xpos, (FittedEnergies[id]-value)/value);
+      graph_diff_value->SetPoint(index, xpos, (FittedEnergies[id]-value));
+      graph_diff_search->SetPoint(index, xpos, (PeakEnergies[id]-value)/value);
+      graph_diff_value_search->SetPoint(index, xpos, (PeakEnergies[id]-value));
       index++;
     }
   }
 
   // output
-  auto hDirOut = getDirectory(filein, "rec_energy_fitted");
+  TString outdir_name = hdir_name;
+  outdir_name.Append("_fitted");
+  auto hDirOut = getDirectory(filein, outdir_name.Data());
   writeHistos<TH1D*>(hDirOut, h1s_ptr);
   hDirOut->WriteTObject( graph_calibrated, "", "WriteDelete");
   hDirOut->WriteTObject( graph_calculated, "", "WriteDelete");
@@ -249,7 +284,7 @@ void calc_energy(const char* infile,
     return false;
   }
 
-  ftxt << "# calculated energy: name id position(mm) calculated_energy(MeV) peak_energy fit_energy" << std::endl;
+  ftxt << "# calculated energy: name id position(mm) alpha(degree) calculated_energy(MeV) peak_energy fit_energy" << std::endl;
   for ( auto& result : CalculatedEnergies ) {
     auto& id = result.first;
     auto energy = result.second;
@@ -265,6 +300,7 @@ void calc_energy(const char* infile,
     ftxt << std::setw(10) << std::left << volName
          << std::setw(10) << std::left << id
          << std::setw(10) << std::left << Positions[id]
+         << std::setw(10) << std::left << Alphas[id]
          << std::setw(10) << std::left << CalculatedEnergies[id]
          << std::setw(10) << std::left << PeakEnergies[id]
          << std::setw(10) << std::left << FittedEnergies[id] << std::endl;

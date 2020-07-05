@@ -70,7 +70,7 @@ void run_digi(const char* data, const char* para)
 
   // charge collection
   KoaRecChargeCollection* recChargeCollection = new KoaRecChargeCollection();
-  recChargeCollection->SetInputDigiName("RecDigi_ChargeDivision");
+  recChargeCollection->SetInputDigiName("RecDigi_AddFano");
   recChargeCollection->SetOutputDigiName("RecDigi_ChargeCollection");
   recChargeCollection->SaveOutputDigi(true);
   fRun->AddTask(recChargeCollection);

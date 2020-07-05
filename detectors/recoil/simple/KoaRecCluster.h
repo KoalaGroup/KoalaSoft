@@ -48,8 +48,11 @@ public:
   Double_t EnergyTotal() const; // in keV
   Double_t PositionTotal() const; // in cm
   Double_t TimeTotal() const;
+
   Int_t ChIdTotal() const; 
   Int_t GetMaximaChId() const;
+  Int_t GetFirstChId() const;
+  Int_t GetFirstChIdAboveThresh() const;
 
 	// digis above threshold
   Double_t Maxima() const;

@@ -119,6 +119,24 @@ Int_t KoaRecCluster::GetMaximaChId() const
   return fIds[index];
 }
 
+Int_t KoaRecCluster::GetFirstChId() const
+{
+  auto result = std::min_element(fIds,fIds+fNrOfDigis);
+  return *result;
+}
+
+Int_t KoaRecCluster::GetFirstChIdAboveThresh() const
+{
+  int min_id = fIds[0];
+  for( auto index=0; index<fNrOfDigis; index++) {
+    if(fEnergies[index] > fThreshold) {
+      if(fIds[index] < min_id)
+        min_id = fIds[index];
+    }
+  }
+  return min_id;
+}
+
 Double_t KoaRecCluster::Maxima() const
 {
   Double_t max=-1;
