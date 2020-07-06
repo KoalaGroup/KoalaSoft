@@ -12,7 +12,8 @@ namespace KoaUtility
     return geoHandler;
   }
 
-  std::map<int, double> getStripGlobalPosition(const char* geoFile)
+  // zoffset in cm
+  std::map<int, double> getStripGlobalPosition(const char* geoFile, double* zoffset)
   {
     auto geoHandler = getGeometryHandler(geoFile);
 
@@ -32,7 +33,7 @@ namespace KoaUtility
 
       local_pos[2] = pos_center;
       geoHandler->LocalToGlobal(local_pos, global_pos, det_id);
-      positions.emplace(id, global_pos[2]);
+      positions.emplace(id, global_pos[2]+zoffset[det_id]);
     }
 
     delete geoHandler;
@@ -50,7 +51,8 @@ namespace KoaUtility
     return rec_distance;
   }
 
-  std::map<int, double> getStripAlphas(const char* geoFile)
+  // yoffset, zoffset in cm
+  std::map<int, double> getStripAlphas(const char* geoFile, double* yoffset, double* zoffset)
   {
     auto geoHandler = getGeometryHandler(geoFile);
 
@@ -60,6 +62,7 @@ namespace KoaUtility
     Double_t pos_low, pos_high, pos_center;
     Double_t global_pos[3] = {0};
     Double_t local_pos[3] = {0};
+    Double_t sensor_thickness[4] = {0.1/2, 0.1/2, 0.5/2, 1.1/2}; // half thickness in cm
 
     std::map<int, double> alphas;
     Int_t ch_id, det_id;
@@ -70,9 +73,12 @@ namespace KoaUtility
 
       pos_center = geoHandler->RecDetChToPosition(id, pos_low, pos_high);
 
+      local_pos[0] = -sensor_thickness[det_id];
       local_pos[2] = pos_center;
       geoHandler->LocalToGlobal(local_pos, global_pos, det_id);
 
+      global_pos[2] += zoffset[det_id];
+      global_pos[1] += yoffset[det_id];
       TVector3 vec(global_pos);
       alphas.emplace(id, 90 - vec.Theta()/pi*180);
     }

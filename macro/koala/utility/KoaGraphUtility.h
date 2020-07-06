@@ -8,7 +8,7 @@ namespace KoaUtility
 
   // book graphs by channel id
   Graphs bookGraphByChannelId(const char *gName, const char *gTitle,
-                              int markerColor=kBlack, int markerStyle=105,
+                              int markerColor=kBlack, int markerStyle=8,
                               bool IsRec = true
                               )
   {
@@ -44,7 +44,7 @@ namespace KoaUtility
 
   // book graphs by rec channels with tdc connection
   Graphs bookGraphByRecTdcChannelId(const char *gName, const char *gTitle,
-                                    int markerColor=kBlack, int markerStyle=105
+                                    int markerColor=kBlack, int markerStyle=8
                                     )
   {
     Graphs graphs;
@@ -66,6 +66,40 @@ namespace KoaUtility
       graphs[ChID].SetMarkerColor(markerColor);
       graphs[ChID].SetMarkerStyle(markerStyle);
       graphs[ChID].SetMarkerSize(1.2);
+    }
+
+    return graphs;
+  }
+
+  // book graphs by sensor id
+  GraphPtrs bookGraphByRecDetectorId(const char *gName, const char *gTitle,
+                                  int markerStyle=8, double markerSize=1
+                                  )
+  {
+    GraphPtrs graphs;
+
+    KoaMapEncoder *encoder = KoaMapEncoder::Instance();
+    std::vector<int> ChIDs = encoder->GetRecTdcChIDs();
+
+    Int_t DetectorIdRange[2];
+    encoder->GetRecDetIDRange(DetectorIdRange[0], DetectorIdRange[1]);
+
+    // loop
+    Int_t markerColor[4] = {kBlack, kBlue, kRed, kMagenta};
+    for (auto detector :
+             ROOT::TSeqI(DetectorIdRange[0], DetectorIdRange[1] + 1)) {
+      TString volName = encoder->DetectorIDToVolName(detector);
+      volName.ReplaceAll("Sensor", "");
+
+      graphs.emplace(std::piecewise_construct,
+                     std::forward_as_tuple(detector),
+                     std::forward_as_tuple(new TGraph()));
+
+      graphs[detector]->SetName(Form("gr_%s_%s", volName.Data(), gName));
+      graphs[detector]->SetTitle(Form("%s: %s", volName.Data(), gTitle));
+      graphs[detector]->SetMarkerColor(markerColor[detector-DetectorIdRange[0]]);
+      graphs[detector]->SetMarkerStyle(markerStyle);
+      graphs[detector]->SetMarkerSize(markerSize);
     }
 
     return graphs;

@@ -1,6 +1,6 @@
 #include "KoaHistUtility.h"
 #include "KoaGeometryUtility.h"
-// #include "calc_energy_imp.C"
+#include "KoaGraphUtility.h"
 
 using namespace KoaUtility;
 
@@ -22,8 +22,8 @@ void calc_energy(const char* infile,
   //
   std::map<Int_t, double> CalculatedEnergies;
 
-  double zoffset[4] = {0.18, 0.13, 0.12, 0.12}; // in cm
-  // double zoffset[4] = {0.}; // in cm
+  // double zoffset[4] = {0.18, 0.13, 0.12, 0.12}; // in cm
+  double zoffset[4] = {0.}; // in cm
   double yoffset[4] = {0, 0, 0, 0}; // in cm
   auto Positions = getStripGlobalPosition(geoFile, zoffset);
   auto Alphas = getStripAlphas(geoFile, yoffset, zoffset);
@@ -72,19 +72,23 @@ void calc_energy(const char* infile,
 
   HistoPtr1D h1s_ptr;
 
-  TString hdir_name("rec_energy");
-  TString hname_suffix("energy");
+  // TString hdir_name("rec_energy");
+  // TString hname_suffix("energy");
   // TString hdir_name("rec_cluster_energy");
   // TString hname_suffix("cluster_energy");
   // TString hdir_name("rec_cluster_energy_FirstHit");
   // TString hname_suffix("cluster_energy_firstHit");
+  // TString hdir_name("rec_cluster_energy_elastic_FirstHit");
+  // TString hname_suffix("cluster_energy_elastic_firstHit");
+  TString hdir_name("elastic_events");
+  TString hname_suffix("cluster_energy_elastic");
 
-  TString hdir_cut_name("rec_energy_fwdhit_TimeValid");
-  TString hname_cut_suffix("energy_fwdhit_TimeValid");
+  // TString hdir_cut_name("rec_energy_fwdhit_TimeValid");
+  // TString hname_cut_suffix("energy_fwdhit_TimeValid");
   // TString hdir_cut_name("rec_cluster_energy_fwdhit_TimeValid");
   // TString hname_cut_suffix("cluster_energy_fwdhit_TimeValid");
-  // TString hdir_cut_name("rec_cluster_energy_fwdhit_TimeValid_FirstHit");
-  // TString hname_cut_suffix("cluster_energy_fwdhit_TimeValid_firstHit");
+  TString hdir_cut_name("rec_cluster_energy_fwdhit_TimeValid_FirstHit");
+  TString hname_cut_suffix("cluster_energy_fwdhit_TimeValid_firstHit");
 
   // readHist
   auto readHist = [&] (Int_t sepid)
@@ -127,14 +131,23 @@ void calc_energy(const char* infile,
     {
       // config the search paramters
       Int_t search_maxpeaks=2;
+
       Double_t search_rangelow, search_rangehigh;
       Double_t search_threshold;
+
       Int_t rebin_id = encoder->EncodeChannelID(2,0);
 
-  // loop through all hists
+      // fit window in sigma
+      double fit_window[4]={1,2,3,2};
+
+      // loop through all hists
       for ( auto& hist : h1s_ptr ) {
         auto id = hist.first;
         auto h1 = hist.second;
+        Int_t det_id, ch_id;
+        ch_id = encoder->DecodeChannelID(id, det_id);
+
+        //
         TSpectrum s(search_maxpeaks);
         Int_t npeaks;
         if(id<rangeid){
@@ -161,7 +174,7 @@ void calc_energy(const char* infile,
           if(h1->GetRMS()>0.2){
             sigma = h1->GetRMS()/2.;
           }
-          auto result = h1->Fit("gaus", "qs+", "", xpeaks[0]-sigma, xpeaks[0]+sigma);
+          auto result = h1->Fit("gaus", "qs+", "", xpeaks[0]-fit_window[det_id]*sigma, xpeaks[0]+fit_window[det_id]*sigma);
           double mean = result->Parameter(1);
           if (isBeamTest) {
             FittedEnergies.emplace(id, mean);
@@ -179,8 +192,8 @@ void calc_energy(const char* infile,
   searchPeaks();
 
   //////////////////
-  using Graphs = std::map<Int_t, TGraph>;
-  Graphs graphs;
+
+  // IP id config
   // Int_t ip_id = encoder->EncodeChannelID(0,11);
   Int_t ip_id = encoder->EncodeChannelID(0,16);
 
@@ -203,41 +216,70 @@ void calc_energy(const char* infile,
   mg->Add(graph_calculated, "P");
   mg->Add(graph_calibrated, "P");
 
-  TGraph* graph_diff = new TGraph();
-  graph_diff->SetName("graph_diff");
-  graph_diff->SetMarkerStyle(20);
-  graph_diff->SetMarkerSize(0.6);
+  //
+  TMultiGraph* mg_diff = new TMultiGraph();
+  mg_diff->SetName("mg_diff");
+  mg_diff->SetTitle("Fitted Energy Relative Variance");
+  auto graphs_diff = bookGraphByRecDetectorId("diff","Fitted Energy Relative Variance",8);
+  for(auto& graph: graphs_diff) {
+    mg_diff->Add(graph.second);
+  }
 
-  TGraph* graph_diff_value = new TGraph();
-  graph_diff_value->SetName("graph_diff_value");
-  graph_diff_value->SetMarkerStyle(20);
-  graph_diff_value->SetMarkerSize(0.6);
+  TMultiGraph* mg_diff_value = new TMultiGraph();
+  mg_diff_value->SetName("mg_diff_value");
+  mg_diff_value->SetTitle("Fitted Energy Absolute Variance");
+  auto graphs_diff_value = bookGraphByRecDetectorId("diff_value","Fitted Energy Absolute Variance",8);
+  for(auto& graph: graphs_diff_value) {
+    mg_diff_value->Add(graph.second);
+  }
 
-  TGraph* graph_diff_search = new TGraph();
-  graph_diff_search->SetName("graph_diff_search");
-  graph_diff_search->SetMarkerStyle(20);
-  graph_diff_search->SetMarkerSize(0.6);
+  TMultiGraph* mg_diff_search = new TMultiGraph();
+  mg_diff_search->SetName("mg_diff_search");
+  mg_diff_search->SetTitle("Searched Energy Relative Variance");
+  auto graphs_diff_search = bookGraphByRecDetectorId("diff_search","Searched Energy Relative Variance",8);
+  for(auto& graph: graphs_diff_search) {
+    mg_diff_search->Add(graph.second);
+  }
 
-  TGraph* graph_diff_value_search = new TGraph();
-  graph_diff_value_search->SetName("graph_diff_value_search");
-  graph_diff_value_search->SetMarkerStyle(20);
-  graph_diff_value_search->SetMarkerSize(0.6);
+  TMultiGraph* mg_diff_value_search = new TMultiGraph();
+  mg_diff_value_search->SetName("mg_diff_value_search");
+  mg_diff_value_search->SetTitle("Searched Energy Absolute Variance");
+  auto graphs_diff_value_search = bookGraphByRecDetectorId("diff_value_search","Searched Energy Absolute Variance",8);
+  for(auto& graph: graphs_diff_value_search) {
+    mg_diff_value_search->Add(graph.second);
+  }
 
-  Int_t index =0 ;
+  Int_t index[4] = {0} ;
+  Int_t global_index = 0;
   for( auto& energy : CalculatedEnergies ) {
     auto& id = energy.first;
     auto& value = energy.second;
+
+    Int_t det_id, ch_id;
+    ch_id = encoder->DecodeChannelID(id, det_id);
+
     if(Positions[id]>0 &&
        id > ip_id &&
+       id != encoder->EncodeChannelID(0,47) &&
+       id != encoder->EncodeChannelID(1,0) &&
+       id != encoder->EncodeChannelID(1,63) &&
+       id != encoder->EncodeChannelID(2,0) &&
+       id != encoder->EncodeChannelID(2,31) &&
+       id != encoder->EncodeChannelID(3,0) &&
+       id != encoder->EncodeChannelID(3,31) &&
        id != encoder->EncodeChannelID(2,28) &&
        id != encoder->EncodeChannelID(2,29) &&
        id != encoder->EncodeChannelID(2,30) &&
        id != encoder->EncodeChannelID(2,31) &&
+       id != encoder->EncodeChannelID(3,22) &&
+       id != encoder->EncodeChannelID(3,28) &&
        id != encoder->EncodeChannelID(3,29) &&
        id != encoder->EncodeChannelID(3,30) &&
        id != encoder->EncodeChannelID(3,31) &&
        FittedEnergies[id] !=0 &&
-       std::abs(FittedEnergies[id]-CalculatedEnergies[id]) < 1){
+       std::abs(FittedEnergies[id]-CalculatedEnergies[id]) < 1)
+    {
+
       double xpos;
       if(!useAlpha) {
         xpos = Positions[id];
@@ -245,13 +287,18 @@ void calc_energy(const char* infile,
       else{
         xpos = Alphas[id];
       }
-      graph_calibrated->SetPoint(index, xpos, FittedEnergies[id]);
-      graph_calculated->SetPoint(index, xpos, value);
-      graph_diff->SetPoint(index, xpos, (FittedEnergies[id]-value)/value);
-      graph_diff_value->SetPoint(index, xpos, (FittedEnergies[id]-value));
-      graph_diff_search->SetPoint(index, xpos, (PeakEnergies[id]-value)/value);
-      graph_diff_value_search->SetPoint(index, xpos, (PeakEnergies[id]-value));
-      index++;
+
+      graph_calibrated->SetPoint(global_index, xpos, FittedEnergies[id]);
+      graph_calculated->SetPoint(global_index, xpos, value);
+
+      graphs_diff[det_id]->SetPoint(index[det_id], xpos, (FittedEnergies[id]-value)/value);
+      graphs_diff_value[det_id]->SetPoint(index[det_id], xpos, (FittedEnergies[id]-value));
+      graphs_diff_search[det_id]->SetPoint(index[det_id], xpos, (PeakEnergies[id]-value)/value);
+      graphs_diff_value_search[det_id]->SetPoint(index[det_id], xpos, (PeakEnergies[id]-value));
+
+      //
+      index[det_id]++;
+      global_index++;
     }
   }
 
@@ -260,13 +307,22 @@ void calc_energy(const char* infile,
   outdir_name.Append("_fitted");
   auto hDirOut = getDirectory(filein, outdir_name.Data());
   writeHistos<TH1D*>(hDirOut, h1s_ptr);
+
   hDirOut->WriteTObject( graph_calibrated, "", "WriteDelete");
   hDirOut->WriteTObject( graph_calculated, "", "WriteDelete");
   hDirOut->WriteTObject( mg, "", "WriteDelete");
-  hDirOut->WriteTObject( graph_diff, "", "WriteDelete");
-  hDirOut->WriteTObject( graph_diff_value, "", "WriteDelete");
-  hDirOut->WriteTObject( graph_diff_search, "", "WriteDelete");
-  hDirOut->WriteTObject( graph_diff_value_search, "", "WriteDelete");
+
+  hDirOut->WriteTObject( mg_diff, "", "WriteDelete");
+  writeGraphs<TGraph*>(hDirOut, graphs_diff,"WriteDelete");
+
+  hDirOut->WriteTObject( mg_diff_value, "", "WriteDelete");
+  writeGraphs<TGraph*>(hDirOut, graphs_diff_value, "WriteDelete");
+
+  hDirOut->WriteTObject( mg_diff_search, "", "WriteDelete");
+  writeGraphs<TGraph*>(hDirOut, graphs_diff_search,"WriteDelete");
+
+  hDirOut->WriteTObject( mg_diff_value_search, "", "WriteDelete");
+  writeGraphs<TGraph*>(hDirOut, graphs_diff_value_search, "WriteDelete");
 
   TString outfile_pdf(infile_name);
   outfile_pdf.ReplaceAll(".root",".pdf");
