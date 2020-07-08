@@ -13,7 +13,10 @@
 #include "KoaGeoHandler.h"
 #include "KoaMapEncoder.h"
 #include "KoaRecPoint.h"
+#include "KoaTextUtility.h"
 // #include "FairEvtFilterParams.h"
+
+using namespace KoaUtility;
 
 // ---- Default constructor -------------------------------------------
 KoaAnaSolidAngle::KoaAnaSolidAngle()
@@ -92,7 +95,6 @@ InitStatus KoaAnaSolidAngle::Init()
   // Do whatever else is needed at the initilization stage
   // Create histograms to be filled
   // initialize variables
-  fOutputFile.open(fFileName.Data(),std::fstream::out);
 
   fNrHit.clear();
 
@@ -160,39 +162,8 @@ void KoaAnaSolidAngle::Finish()
 {
   LOG(debug) << "Finish of KoaAnaSolidAngle";
 
-  KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-  Int_t detID, chID;
-  for(auto& ch: fNrHit){
-    chID = encoder->DecodeChannelID(ch.first, detID);
-    switch(detID){
-    case 0:
-      {
-        fSi1NrHit[chID] = ch.second;
-        break;
-      }
-    case 1:
-      {
-        fSi2NrHit[chID] = ch.second;
-        break;
-      }
-    case 2:
-      {
-        fGe1NrHit[chID] = ch.second;
-        break;
-      }
-    case 3:
-      {
-        fGe2NrHit[chID] = ch.second;
-        break;
-      }
-    default:
-      break;
-    }
-  }
-
   //
   Write();
-  fOutputFile.close();
 }
 
 // ---- SetOutFileName --------------------------------------------------------
@@ -205,38 +176,23 @@ void KoaAnaSolidAngle::SetOutFileName(const char* filename)
 void KoaAnaSolidAngle::Write()
 {
   const Double_t pi=TMath::Pi();
-  Int_t ch_id=0;
 
-  fOutputFile << "Si1 (solid angle of each channel):" << std::endl;
-  for(Long_t nr : fSi1NrHit){
-    ch_id++;
-    fOutputFile << ch_id << ", " <<  4*pi*nr/fMCEntryNo \
-                << ", " << nr << ", " << fMCEntryNo << std::endl;
+  //
+  ParameterList<double> CountsParameter;
+  auto& output_solidAngle = addValueContainer(CountsParameter, "SolidAngle");
+  auto& output_hitNr = addValueContainer(CountsParameter, "HitNr");
+  auto& output_Events = addValueContainer(CountsParameter, "TotalEvents");
+
+  for(auto& ch: fNrHit){
+    auto id = ch.first;
+    auto hits = ch.second;
+    output_Events.emplace(id, fMCEntryNo);
+    output_hitNr.emplace(id, hits);
+    output_solidAngle.emplace(id, 4*pi*hits/fMCEntryNo);
   }
 
-  fOutputFile << "Si2 (solid angle of each channel):" << std::endl;
-  ch_id=0;
-  for(Long_t nr : fSi2NrHit){
-    ch_id++;
-    fOutputFile << ch_id << ", " << 4*pi*nr/fMCEntryNo \
-                << ", " << nr << ", " << fMCEntryNo << std::endl;
-  }
 
-  fOutputFile << "Ge1 (solid angle of each channel):" << std::endl;
-  ch_id=0;
-  for(Long_t nr : fGe1NrHit){
-    ch_id++;
-    fOutputFile << ch_id << ", " << 4*pi*nr/fMCEntryNo \
-                << ", " << nr << ", " << fMCEntryNo << std::endl;
-  }
-
-  fOutputFile << "Ge2 (solid angle of each channel):" << std::endl;
-  ch_id=0;
-  for(Long_t nr : fGe2NrHit){
-    ch_id++;
-    fOutputFile << ch_id << ", " << 4*pi*nr/fMCEntryNo \
-                << ", " << nr << ", " << fMCEntryNo << std::endl;
-  }
+  printValueList<double>(CountsParameter, fFileName.Data());
 }
 
 void KoaAnaSolidAngle::SetMCEntryNo(Long_t entryNr)

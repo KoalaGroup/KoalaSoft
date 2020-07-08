@@ -107,7 +107,7 @@ void calc_energy(const char* infile,
   auto searchPeaks = [&] ()
     {
       // config the search paramters
-      Int_t search_maxpeaks=2;
+      Int_t search_maxpeaks=1;
       auto rangeid = encoder->EncodeChannelID(1, 20);
 
       Double_t search_rangelow, search_rangehigh;
@@ -124,19 +124,25 @@ void calc_energy(const char* infile,
         auto h1 = hist.second;
         Int_t det_id, ch_id;
         ch_id = encoder->DecodeChannelID(id, det_id);
+        auto cal_e = CalculatedEnergies[id];
 
         //
         TSpectrum s(search_maxpeaks);
         Int_t npeaks;
-        if(id<rangeid){
-          h1->GetXaxis()->SetRangeUser(0.1, 4);
+        // if(id<rangeid){
+        if(cal_e < 1){
+          h1->GetXaxis()->SetRangeUser(0.15, 2.5);
+          npeaks = s.Search(h1, 0.1, "", 0.5);
+        }
+        else if (cal_e < 3) {
+          h1->GetXaxis()->SetRangeUser(0.5, 4);
           npeaks = s.Search(h1, 0.1, "", 0.5);
         }
         else{
           if(id>=rebin_id){
             h1->Rebin(4);
           }
-          if((CalculatedEnergies[id]-4) < 1)
+          if((cal_e-4) < 1)
             h1->GetXaxis()->SetRangeUser(1, CalculatedEnergies[id]+5);
           else
             h1->GetXaxis()->SetRangeUser(CalculatedEnergies[id]-5, CalculatedEnergies[id]+5);
