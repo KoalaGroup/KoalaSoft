@@ -5,13 +5,13 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_rec(const char* data,
-             const char* out_directory = "./",
-             const char* suffix = "_calib.root",
-             const char* ped_file = "adc_pedestal_20190902_003449.txt",
-             const char* adcpara_file = "adc_calib_energy.txt",
-             const char* tdcpara_file = "tdc_calib_shift.txt"
-             )
+void run_rec_clusterfilter(const char* data,
+                           const char* out_directory = "./",
+                           const char* suffix = "_calib.root",
+                           const char* ped_file = "adc_pedestal_20190902_003449.txt",
+                           const char* adcpara_file = "adc_calib_energy.txt",
+                           const char* tdcpara_file = "tdc_calib_shift.txt"
+                           )
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -64,26 +64,24 @@ void run_rec(const char* data,
   noiseFilter->SetOutputDigiName("RecDigi_NoiseFilter");
   // noiseFilter->SaveOutputDigi(true);
   noiseFilter->SetPedestalFile(pedestal_file.Data());
-  noiseFilter->SetThreshold(2); // 5*sigma may not be sufficient
+  noiseFilter->SetThreshold(2);
   fRun->AddTask(noiseFilter);
+
+  KoaRecClusterSeedFilter* seedFilter = new KoaRecClusterSeedFilter();
+  seedFilter->SetInputDigiName("RecDigi_NoiseFilter");
+  seedFilter->SetOutputDigiName("RecDigi_ClusterSeedFilter");
+  seedFilter->SetPedestalFile(pedestal_file.Data());
+  seedFilter->SetThreshold(3);
+  fRun->AddTask(seedFilter);
 
   // 2. correct recoil front channels' time offset
   KoaRecTimeShiftCorrect* timeshiftCorrect = new KoaRecTimeShiftCorrect();
-  timeshiftCorrect->SetInputDigiName("RecDigi_NoiseFilter");
+  timeshiftCorrect->SetInputDigiName("RecDigi_ClusterSeedFilter");
   timeshiftCorrect->SetOutputDigiName("RecDigi_TimeShift");
   // timeshiftCorrect->SaveOutputDigi(true);
   timeshiftCorrect->SetTdcParaFile(tdcparaFile.Data());
   timeshiftCorrect->SetTdcParaName("Mean");
   fRun->AddTask(timeshiftCorrect);
-
-  // // 3. correct time walk of recoil front channels
-  // KoaRecTimeWalkCorrect* timewalkCorrect = new KoaRecTimeWalkCorrect();
-  // timewalkCorrect->SetInputDigiName("RecDigi_TimeShift");
-  // timewalkCorrect->SetOutputDigiName("RecDigi_TimeWalk");
-  // // timewalkCorrect->SaveOutputDigi(true);
-  // timewalkCorrect->SetTdcParaFile(tdcparaFile.Data());
-  // timewalkCorrect->SetTdcParaName("p0");
-  // fRun->AddTask(timewalkCorrect);
 
   // 4. reconstructed recoil front strip energy to keV
   //    and filter out digis with energy below threshold
@@ -104,9 +102,18 @@ void run_rec(const char* data,
   // 6. clustering
   KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
   clusterCollect->SetInputDigiName("KoaRecCalib");
-  clusterCollect->SetOutputDigiName("KoaRecCluster");
-  clusterCollect->SaveOutputDigi(true);
+  clusterCollect->SetOutputClusterName("KoaRecCluster_All");
+  // clusterCollect->SaveOutputCluster(true);
   fRun->AddTask(clusterCollect);
+
+  KoaRecClusterThresholdFilter* clusterThresholdFilter = new KoaRecClusterThresholdFilter();
+  clusterThresholdFilter->SetInputClusterName("KoaRecCluster_All");
+  clusterThresholdFilter->SetOutputClusterName("KoaRecCluster");
+  clusterThresholdFilter->SaveOutputCluster(kTRUE);
+  clusterThresholdFilter->SetAdcParaFile(adcparaFile.Data());
+  clusterThresholdFilter->SetPedestalFile(pedestal_file.Data());
+  clusterThresholdFilter->SetThreshold(5);
+  fRun->AddTask(clusterThresholdFilter);
 
   // 7. dumy fwd reconstruction, just copy the raw digis
   KoaFwdRecon* fwdRecon = new KoaFwdRecon();

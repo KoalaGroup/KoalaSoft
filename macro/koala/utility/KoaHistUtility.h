@@ -283,11 +283,11 @@ std::map<Int_t, T*> getHistosByChannelId(TDirectory *hDir, const char* hName, bo
 
   // checking TH1 or TH2
   std::string hPrefix;
-  if ( std::is_base_of<TH1,T>::value) {
-    hPrefix = "h1";
-  }
-  else if( std::is_base_of<TH2,T>::value) {
+  if ( std::is_base_of<TH2,T>::value) {
     hPrefix = "h2";
+  }
+  else if( std::is_base_of<TH1,T>::value) {
+    hPrefix = "h1";
   }
   else {
     std::cerr << "getHistosByChannelId: only TH1 and TH2 are supported\n";
@@ -321,11 +321,11 @@ std::map<Int_t, T*> getHistosByRecTdcChannelId(TDirectory *hDir, const char* hNa
 
   // checking TH1 or TH2
   std::string hPrefix;
-  if ( std::is_base_of<TH1,T>::value) {
-    hPrefix = "h1";
-  }
-  else if( std::is_base_of<TH2,T>::value) {
+  if ( std::is_base_of<TH2,T>::value) {
     hPrefix = "h2";
+  }
+  else if( std::is_base_of<TH1,T>::value) {
+    hPrefix = "h1";
   }
   else {
     std::cerr << "getHistosByRecTdcChannelId: only TH1 and TH2 are supported\n";
@@ -366,11 +366,11 @@ std::map<Int_t, T*> getHistosByDetectorId(TDirectory *hDir, const char* hName, b
 
   // checking TH1 or TH2
   std::string hPrefix;
-  if ( std::is_base_of<TH1,T>::value) {
-    hPrefix = "h1";
-  }
-  else if( std::is_base_of<TH2,T>::value) {
+  if ( std::is_base_of<TH2,T>::value) {
     hPrefix = "h2";
+  }
+  else if( std::is_base_of<TH1,T>::value) {
+    hPrefix = "h1";
   }
   else {
     std::cerr << "getHistosByDetectorId: only TH1 and TH2 are supported\n";

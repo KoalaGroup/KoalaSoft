@@ -239,7 +239,7 @@ bool KoaRecCluster::isInCluster(KoaRecDigi* theDigi) const
 void KoaRecCluster::AddDigi(KoaRecDigi* theDigi)
 {
   if (fNrOfDigis == 32 ) {
-    LOG(WARNING) << "Too much digits in one cluster, ignore this cluster in later analysis!";
+    // LOG(WARNING) << "Too much digits in one cluster, ignore this cluster in later analysis!";
   }
 
   fIds[fNrOfDigis] = theDigi->GetDetID();

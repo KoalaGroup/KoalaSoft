@@ -33,18 +33,24 @@ set(HEADERS
   KoaRecNoiseFilter.h
   KoaRecEnergyRecon.h
   KoaRecTimeShiftCorrect.h
+  KoaRecTimeWalkCorrect.h
   KoaRecRearRecon.h
   KoaFwdRecon.h
   KoaRecClusterCollect.h
+  KoaRecClusterSeedFilter.h
+  KoaRecClusterThresholdFilter.h
   )
 
 set(SRCS
   KoaRecNoiseFilter.cxx
   KoaRecEnergyRecon.cxx
   KoaRecTimeShiftCorrect.cxx
+  KoaRecTimeWalkCorrect.cxx
   KoaRecRearRecon.cxx
   KoaFwdRecon.cxx
   KoaRecClusterCollect.cxx
+  KoaRecClusterSeedFilter.cxx
+  KoaRecClusterThresholdFilter.cxx
 )
 
 Set(LINKDEF KoaReconLinkDef.h)

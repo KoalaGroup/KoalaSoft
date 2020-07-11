@@ -5,7 +5,7 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_rec_timeshift(const char* data, const char* tdcpara_file = "tdc_calib.txt")
+void run_rec_timewalk(const char* data, const char* tdcpara_file = "tdc_calib.txt")
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -49,14 +49,14 @@ void run_rec_timeshift(const char* data, const char* tdcpara_file = "tdc_calib.t
   // rtdb->setOutput(parInput1);
 
   //
-  KoaRecTimeShiftCorrect* timeshiftCorrect = new KoaRecTimeShiftCorrect();
-  timeshiftCorrect->SetInputDigiName("KoaRecDigi");
-  timeshiftCorrect->SetOutputDigiName("RecDigi_TimeShift");
-  timeshiftCorrect->SaveOutputDigi(true);
-  timeshiftCorrect->SetTdcParaFile(tdcparaFile.Data());
-  timeshiftCorrect->SetTdcParaName("p1");
+  KoaRecTimeWalkCorrect* timewalkCorrect = new KoaRecTimeWalkCorrect();
+  timewalkCorrect->SetInputDigiName("KoaRecDigi");
+  timewalkCorrect->SetOutputDigiName("RecDigi_TimeWalk");
+  timewalkCorrect->SaveOutputDigi(true);
+  timewalkCorrect->SetTdcParaFile(tdcparaFile.Data());
+  timewalkCorrect->SetTdcParaName("p0");
 
-  fRun->AddTask(timeshiftCorrect);
+  fRun->AddTask(timewalkCorrect);
 
   fRun->Init();
 

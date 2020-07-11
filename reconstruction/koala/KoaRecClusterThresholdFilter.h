@@ -1,22 +1,24 @@
-#ifndef KOARECCLUSTERCOLLECT_H
-#define KOARECCLUSTERCOLLECT_H
+#ifndef KOAREC_CLUSTERTHRESHOLDFILTER_H
+#define KOAREC_CLUSTERTHRESHOLDFILTER_H
 
 #include "FairTask.h"
+#include "KoaTextUtility.h"
 #include <string>
 
 class TClonesArray;
-class KoaMapEncoder;
 
-/* Clustering of Recoil strip digis
+using namespace KoaUtility;
+
+/* Filter out clusters which have energy below threshold
  */
-class KoaRecClusterCollect : public FairTask
+class KoaRecClusterThresholdFilter : public FairTask
 {
 public:
   /** Default constructor **/
-  KoaRecClusterCollect();
+  KoaRecClusterThresholdFilter();
 
   /** Destructor **/
-  ~KoaRecClusterCollect();
+  ~KoaRecClusterThresholdFilter();
 
 
   /** Initiliazation of task at the beginning of a run **/
@@ -38,7 +40,7 @@ public:
   void Reset();
 
 public:
-  void SetInputDigiName(const char* name) {
+  void SetInputClusterName(const char* name) {
     fInputName = name;
   }
   void SetOutputClusterName(const char* name) {
@@ -46,6 +48,16 @@ public:
   }
   void SaveOutputCluster(bool flag = true) {
     fSaveOutput = flag;
+  }
+  void SetPedestalFile(const char* name) {
+    fPedestalFileName = name;
+  }
+  void SetAdcParaFile(const char* name) {
+    fAdcParaFile = name;
+  }
+  // set threshold in pedestal sigma
+  void SetThreshold(double thresh) {
+    fThresh = thresh;
   }
 
 private:
@@ -57,17 +69,23 @@ private:
   bool fSaveOutput = true;
 
   /** Input array from previous already existing data level **/
-  TClonesArray* fInputDigis = nullptr;
+  TClonesArray* fInputClusters = nullptr;
   /** Output array to  new data level**/
   TClonesArray* fOutputClusters = nullptr;
 
-  // Map Encoder
-  KoaMapEncoder *fEncoder;
+  // Noise parameter in ADC
+  std::string fPedestalFileName = "";
 
-  KoaRecClusterCollect(const KoaRecClusterCollect&);
-  KoaRecClusterCollect operator=(const KoaRecClusterCollect&);
+  // adc->E parameter
+  std::string fAdcParaFile = "";
 
-  ClassDef(KoaRecClusterCollect,1);
+  ValueContainer<double> fNoiseThresh;
+  double fThresh = 5.;
+
+  KoaRecClusterThresholdFilter(const KoaRecClusterThresholdFilter&);
+  KoaRecClusterThresholdFilter operator=(const KoaRecClusterThresholdFilter&);
+
+  ClassDef(KoaRecClusterThresholdFilter,1);
 };
 
 #endif

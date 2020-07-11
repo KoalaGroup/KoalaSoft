@@ -11,41 +11,37 @@
 #include "FairRuntimeDb.h"
 #include "FairLogger.h"
 #include "KoaRecDigi.h"
-#include "KoaRecCluster.h"
-#include "KoaRecClusterCollect.h"
-#include "KoaMapEncoder.h"
+#include "KoaRecTimeWalkCorrect.h"
 
 // ---- Default constructor -------------------------------------------
-KoaRecClusterCollect::KoaRecClusterCollect()
-    :FairTask("KoaRecClusterCollect")
+KoaRecTimeWalkCorrect::KoaRecTimeWalkCorrect()
+    :FairTask("KoaRecTimeWalkCorrect")
 {
-  LOG(debug) << "Defaul Constructor of KoaRecClusterCollect";
-
-  fEncoder = KoaMapEncoder::Instance();
+  LOG(debug) << "Defaul Constructor of KoaRecTimeWalkCorrect";
 }
 
 // ---- Destructor ----------------------------------------------------
-KoaRecClusterCollect::~KoaRecClusterCollect()
+KoaRecTimeWalkCorrect::~KoaRecTimeWalkCorrect()
 {
-  LOG(debug) << "Destructor of KoaRecClusterCollect";
+  LOG(debug) << "Destructor of KoaRecTimeWalkCorrect";
 
-  if ( fOutputClusters ) {
-    fOutputClusters->Delete();
-    delete fOutputClusters;
+  if ( fOutputDigis ) {
+    fOutputDigis->Delete();
+    delete fOutputDigis;
   }
 }
 
 // ----  Initialisation  ----------------------------------------------
-void KoaRecClusterCollect::SetParContainers()
+void KoaRecTimeWalkCorrect::SetParContainers()
 {
-  LOG(debug) << "SetParContainers of KoaRecClusterCollect";
+  LOG(debug) << "SetParContainers of KoaRecTimeWalkCorrect";
   // Load all necessary parameter containers from the runtime data base
 }
 
 // ---- Init ----------------------------------------------------------
-InitStatus KoaRecClusterCollect::Init()
+InitStatus KoaRecTimeWalkCorrect::Init()
 {
-  LOG(debug) << "Initilization of KoaRecClusterCollect";
+  LOG(debug) << "Initilization of KoaRecTimeWalkCorrect";
 
   // Get a handle from the IO manager
   FairRootManager* ioman = FairRootManager::Instance();
@@ -60,24 +56,32 @@ InitStatus KoaRecClusterCollect::Init()
 
   // Create the TClonesArray for the output data and register it in the IO manager
   if (fOutputName.empty()) LOG(fatal) << "No output branch name set";
-  fOutputClusters = new TClonesArray("KoaRecCluster", 32);
-  ioman->Register(fOutputName.data(),"KoaRec",fOutputClusters,fSaveOutput);
+  fOutputDigis = new TClonesArray("KoaRecDigi", 200);
+  ioman->Register(fOutputName.data(),"KoaRec",fOutputDigis,fSaveOutput);
 
   // Do whatever else is needed at the initilization stage
+  if (fTdcParaFile.empty()) LOG(fatal) << "No TDC parameters found";
+  auto params = readParameterList<double>( fTdcParaFile);
+
+  auto it = findValueContainer(params, fTdcParaName);
+  if ( it == params.end()) {
+    LOG(error) << "No parameter found in the TDC parameter file: " << fTdcParaName;
+    return kERROR;
+  }
+  fP0 = it->second;
 
   // test
-  // LOG(info) << "check ADC parameters";
-  // printValueContainer(fP0,"Adc P0 Parameters:");
-  // printValueContainer(fP1,"Adc P1 Parameters:");
+  // LOG(info) << "check TDC parameters";
+  // printValueContainer(fTimeShift,"Tdc Time Shift Parameters:");
   // printValueList(params,"test.txt");
 
   return kSUCCESS;
 }
 
 // ---- ReInit  -------------------------------------------------------
-InitStatus KoaRecClusterCollect::ReInit()
+InitStatus KoaRecTimeWalkCorrect::ReInit()
 {
-  LOG(debug) << "Initilization of KoaRecClusterCollect";
+  LOG(debug) << "Initilization of KoaRecTimeWalkCorrect";
 
   //
   Reset();
@@ -86,48 +90,44 @@ InitStatus KoaRecClusterCollect::ReInit()
 }
 
 // ---- Exec ----------------------------------------------------------
-void KoaRecClusterCollect::Exec(Option_t* /*option*/)
+void KoaRecTimeWalkCorrect::Exec(Option_t* /*option*/)
 {
-  LOG(debug) << "Exec of KoaRecClusterCollect";
+  LOG(debug) << "Exec of KoaRecTimeWalkCorrect";
 
   Reset();
 
-  // collect adjacent strips into a cluster
+  // calibration of energy and get rid of low energy hits
   Int_t couter=0;
-  Int_t det_id, ch_id, id;
-  KoaRecCluster* curCluster = nullptr;
-
   Int_t fNrDigits = fInputDigis->GetEntriesFast();
-  if ( fNrDigits > 0 ) {
-    auto* theDigi = static_cast<KoaRecDigi*>(fInputDigis->At(0));
-    ch_id = fEncoder->DecodeChannelID(theDigi->GetDetID(), det_id);
-    curCluster = new ((*fOutputClusters)[couter++]) KoaRecCluster(det_id);
-    curCluster->AddDigi(theDigi);
-
-    for ( int index=1; index<fNrDigits; ++index) {
-      theDigi = static_cast<KoaRecDigi*>(fInputDigis->At(index));
-      if( !curCluster->isInCluster(theDigi) ) {
-        ch_id = fEncoder->DecodeChannelID(theDigi->GetDetID(), det_id);
-        curCluster = new ((*fOutputClusters)[couter++]) KoaRecCluster(det_id);
-      }
-      curCluster->AddDigi(theDigi);
+  for(Int_t iNrDigit =0; iNrDigit<fNrDigits; iNrDigit++){
+    KoaRecDigi* curDigi = (KoaRecDigi*)fInputDigis->At(iNrDigit);
+    auto id = curDigi->GetDetID();
+    auto charge = curDigi->GetCharge();
+    auto timestamp = curDigi->GetTimeStamp();
+    if ( timestamp > 0 ) {
+      timestamp -= fP0[id]/charge;
     }
+
+    KoaRecDigi* outDigi = new ((*fOutputDigis)[couter++]) KoaRecDigi();
+    outDigi->SetDetectorID(id);
+    outDigi->SetTimeStamp(timestamp);
+    outDigi->SetCharge(charge);
   }
 }
 
 // ---- Finish --------------------------------------------------------
-void KoaRecClusterCollect::Finish()
+void KoaRecTimeWalkCorrect::Finish()
 {
-  LOG(debug) << "Finish of KoaRecClusterCollect";
+  LOG(debug) << "Finish of KoaRecTimeWalkCorrect";
 
 }
 
 // ---- Reset --------------------------------------------------------
-void KoaRecClusterCollect::Reset()
+void KoaRecTimeWalkCorrect::Reset()
 {
-  LOG(debug) << "Reset of KoaRecClusterCollect";
+  LOG(debug) << "Reset of KoaRecTimeWalkCorrect";
 
-  fOutputClusters->Clear();
+  fOutputDigis->Clear();
 }
 
-ClassImp(KoaRecClusterCollect)
+ClassImp(KoaRecTimeWalkCorrect)

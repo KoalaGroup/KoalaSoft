@@ -5,13 +5,13 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_rec(const char* data,
-             const char* out_directory = "./",
-             const char* suffix = "_calib.root",
-             const char* ped_file = "adc_pedestal_20190902_003449.txt",
-             const char* adcpara_file = "adc_calib_energy.txt",
-             const char* tdcpara_file = "tdc_calib_shift.txt"
-             )
+void run_rec_timewalk(const char* data,
+                      const char* out_directory = "./",
+                      const char* suffix = "_calib.root",
+                      const char* ped_file = "adc_pedestal_20190902_003449.txt",
+                      const char* adcpara_file = "adc_calib_energy.txt",
+                      const char* tdcpara_file = "tdc_calib.txt"
+                      )
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -73,22 +73,22 @@ void run_rec(const char* data,
   timeshiftCorrect->SetOutputDigiName("RecDigi_TimeShift");
   // timeshiftCorrect->SaveOutputDigi(true);
   timeshiftCorrect->SetTdcParaFile(tdcparaFile.Data());
-  timeshiftCorrect->SetTdcParaName("Mean");
+  timeshiftCorrect->SetTdcParaName("p1");
   fRun->AddTask(timeshiftCorrect);
 
-  // // 3. correct time walk of recoil front channels
-  // KoaRecTimeWalkCorrect* timewalkCorrect = new KoaRecTimeWalkCorrect();
-  // timewalkCorrect->SetInputDigiName("RecDigi_TimeShift");
-  // timewalkCorrect->SetOutputDigiName("RecDigi_TimeWalk");
-  // // timewalkCorrect->SaveOutputDigi(true);
-  // timewalkCorrect->SetTdcParaFile(tdcparaFile.Data());
-  // timewalkCorrect->SetTdcParaName("p0");
-  // fRun->AddTask(timewalkCorrect);
+  // 3. correct time walk of recoil front channels
+  KoaRecTimeWalkCorrect* timewalkCorrect = new KoaRecTimeWalkCorrect();
+  timewalkCorrect->SetInputDigiName("RecDigi_TimeShift");
+  timewalkCorrect->SetOutputDigiName("RecDigi_TimeWalk");
+  // timewalkCorrect->SaveOutputDigi(true);
+  timewalkCorrect->SetTdcParaFile(tdcparaFile.Data());
+  timewalkCorrect->SetTdcParaName("p0");
+  fRun->AddTask(timewalkCorrect);
 
   // 4. reconstructed recoil front strip energy to keV
   //    and filter out digis with energy below threshold
   KoaRecEnergyRecon* energyRecon = new KoaRecEnergyRecon();
-  energyRecon->SetInputDigiName("RecDigi_TimeShift");
+  energyRecon->SetInputDigiName("RecDigi_TimeWalk");
   energyRecon->SetOutputDigiName("KoaRecCalib");
   energyRecon->SaveOutputDigi(true);
   energyRecon->SetAdcParaFile(adcparaFile.Data());

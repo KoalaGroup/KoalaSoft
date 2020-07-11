@@ -14,8 +14,11 @@
 #pragma link C++ class KoaRecNoiseFilter+;
 #pragma link C++ class KoaRecEnergyRecon+;
 #pragma link C++ class KoaRecTimeShiftCorrect+;
+#pragma link C++ class KoaRecTimeWalkCorrect+;
 #pragma link C++ class KoaRecRearRecon+;
 #pragma link C++ class KoaFwdRecon++;
 #pragma link C++ class KoaRecClusterCollect++;
+#pragma link C++ class KoaRecClusterSeedFilter++;
+#pragma link C++ class KoaRecClusterThresholdFilter++;
 
 #endif

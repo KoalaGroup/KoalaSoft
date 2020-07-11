@@ -5,7 +5,7 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_rec_timeshift(const char* data, const char* tdcpara_file = "tdc_calib.txt")
+void run_rec_cluster(const char* data, const char* suffix)
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -20,11 +20,11 @@ void run_rec_timeshift(const char* data, const char* tdcpara_file = "tdc_calib.t
 
   // Parameter file
   TString paraFile(data);
-  paraFile.ReplaceAll(".root","_param.root");
+  paraFile.ReplaceAll(suffix,"param");
 
   // Output file
   TString outFile(data);
-  outFile.ReplaceAll(".root","_calib_timeshift.root");
+  outFile.ReplaceAll("calib","cluster");
 
 
   // -----   Timer   --------------------------------------------------------
@@ -34,7 +34,6 @@ void run_rec_timeshift(const char* data, const char* tdcpara_file = "tdc_calib.t
   TString dir = getenv("VMCWORKDIR");
 
   TString param_dir = dir+"/parameters/";
-  TString tdcparaFile = param_dir + tdcpara_file;
 
   // -----   Run   --------------------------------------------------------
   FairRunAna *fRun= new FairRunAna();
@@ -49,14 +48,12 @@ void run_rec_timeshift(const char* data, const char* tdcpara_file = "tdc_calib.t
   // rtdb->setOutput(parInput1);
 
   //
-  KoaRecTimeShiftCorrect* timeshiftCorrect = new KoaRecTimeShiftCorrect();
-  timeshiftCorrect->SetInputDigiName("KoaRecDigi");
-  timeshiftCorrect->SetOutputDigiName("RecDigi_TimeShift");
-  timeshiftCorrect->SaveOutputDigi(true);
-  timeshiftCorrect->SetTdcParaFile(tdcparaFile.Data());
-  timeshiftCorrect->SetTdcParaName("p1");
+  KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
+  clusterCollect->SetInputDigiName("KoaRecDigi");
+  clusterCollect->SetOutputDigiName("KoaRecCluster");
+  clusterCollect->SaveOutputDigi(true);
 
-  fRun->AddTask(timeshiftCorrect);
+  fRun->AddTask(clusterCollect);
 
   fRun->Init();
 
@@ -67,7 +64,7 @@ void run_rec_timeshift(const char* data, const char* tdcpara_file = "tdc_calib.t
   rtdb->print();
 
   // -----   Finish   -------------------------------------------------------
-  delete fRun;
+  // delete fRun;
 
   cout << endl << endl;
 

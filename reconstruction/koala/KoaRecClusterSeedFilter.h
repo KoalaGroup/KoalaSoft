@@ -1,5 +1,5 @@
-#ifndef KOARECTIMEWALKCORRECT_H
-#define KOARECTIMEWALKCORRECT_H
+#ifndef KOAREC_CLUSTERSEEDFILTER_H
+#define KOAREC_CLUSTERSEEDFILTER_H
 
 #include "FairTask.h"
 #include "KoaTextUtility.h"
@@ -8,22 +8,28 @@
 
 class TClonesArray;
 class KoaRecDigi;
+class KoaMapEncoder;
 
 using namespace KoaUtility;
 
-/* Correct the time walk effect based on ADC value
+/* Collect digis into cluster first.
+ * Then, filter out clusters in which the max-energy digi is smaller than threshold
+ * The digis in the the remaining clusters are pushed into the output TClonesArray
+ * for usage in later tasks.
  *
  * Input parameters:
- * 1. TDC time walk parameter file
+ * 1. Pedestal parameter file
+ * 2. Threshold: fThresh*PedSigma + PedMean
  */
-class KoaRecTimeWalkCorrect : public FairTask
+
+class KoaRecClusterSeedFilter : public FairTask
 {
 public:
   /** Default constructor **/
-  KoaRecTimeWalkCorrect();
+  KoaRecClusterSeedFilter();
 
   /** Destructor **/
-  ~KoaRecTimeWalkCorrect();
+  ~KoaRecClusterSeedFilter();
 
 
   /** Initiliazation of task at the beginning of a run **/
@@ -55,12 +61,11 @@ public:
     fSaveOutput = flag;
   }
 
-  void SetTdcParaFile(const char* name) {
-    fTdcParaFile = name;
+  void SetPedestalFile(const char* name) {
+    fPedestalFileName = name;
   }
-
-  void SetTdcParaName(const char* name) {
-    fTdcParaName = name;
+  void SetThreshold(double thresh) {
+    fThresh = thresh;
   }
 
 private:
@@ -77,16 +82,18 @@ private:
   TClonesArray* fOutputDigis = nullptr;
 
   // Noise parameter
-  std::string fTdcParaFile = "";
-  std::string fTdcParaName = "p0";
-  ValueContainer<double> fP0;
+  std::string fPedestalFileName = "";
+  double fThresh = 3.;
+  ValueContainer<double> fPedThresh;
 
-  KoaRecTimeWalkCorrect(const KoaRecTimeWalkCorrect&);
-  KoaRecTimeWalkCorrect operator=(const KoaRecTimeWalkCorrect&);
+  // Map Encoder
+  KoaMapEncoder *fEncoder;
 
-  ClassDef(KoaRecTimeWalkCorrect,1);
+  KoaRecClusterSeedFilter(const KoaRecClusterSeedFilter&);
+  KoaRecClusterSeedFilter operator=(const KoaRecClusterSeedFilter&);
+
+  ClassDef(KoaRecClusterSeedFilter,1);
 };
-
 
 
 #endif
