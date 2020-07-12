@@ -17,8 +17,8 @@ void fit_tof(const char* infile,
 
   //
   double zoffset[4] = {zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2}; // in cm
-  auto distances = getStripDistances(geoFile,loffset,zoffset); // flight distance of recoil particle
-  auto positions = getStripGlobalPosition(geoFile,zoffset); // strip position along z-axis
+  auto distances = getChannelDistances(geoFile,loffset,zoffset); // flight distance of recoil particle
+  auto positions = getChannelGlobalPosition(geoFile,zoffset); // strip position along z-axis
 
   //
   TString infile_name = gSystem->ExpandPathName(infile);

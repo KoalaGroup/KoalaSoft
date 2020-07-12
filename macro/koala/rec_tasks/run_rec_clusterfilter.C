@@ -103,7 +103,7 @@ void run_rec_clusterfilter(const char* data,
   KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
   clusterCollect->SetInputDigiName("KoaRecCalib");
   clusterCollect->SetOutputClusterName("KoaRecCluster_All");
-  // clusterCollect->SaveOutputCluster(true);
+  clusterCollect->SaveOutputCluster(true);
   fRun->AddTask(clusterCollect);
 
   KoaRecClusterThresholdFilter* clusterThresholdFilter = new KoaRecClusterThresholdFilter();

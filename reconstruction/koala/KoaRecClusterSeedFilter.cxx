@@ -33,6 +33,10 @@ KoaRecClusterSeedFilter::~KoaRecClusterSeedFilter()
     fOutputDigis->Delete();
     delete fOutputDigis;
   }
+  if ( fClusters ) {
+    fClusters->Delete();
+    delete fClusters;
+  }
 }
 
 // ----  Initialisation  ----------------------------------------------
@@ -62,6 +66,8 @@ InitStatus KoaRecClusterSeedFilter::Init()
   if (fOutputName.empty()) LOG(fatal) << "No output branch name set";
   fOutputDigis = new TClonesArray("KoaRecDigi", 200);
   ioman->Register(fOutputName.data(),"KoaRec",fOutputDigis,fSaveOutput);
+
+  fClusters = new TClonesArray("KoaRecCluster", 32);
 
   // Do whatever else is needed at the initilization stage
   if (fPedestalFileName.empty()) LOG(fatal) << "No pedestal parameters found";
@@ -110,33 +116,32 @@ void KoaRecClusterSeedFilter::Exec(Option_t* /*option*/)
 
   Reset();
 
+  // collect ajacent strips into a cluster
   Int_t det_id, ch_id, id;
   Int_t couter=0;
   Int_t fNrDigits = fInputDigis->GetEntriesFast();
   KoaRecCluster* curCluster = nullptr;
-  auto clusters = new TClonesArray("KoaRecCluster", 32);
-
-  // collect ajacent strips into a cluster
   if ( fNrDigits > 0 ) {
     auto* theDigi = static_cast<KoaRecDigi*>(fInputDigis->At(0));
     ch_id = fEncoder->DecodeChannelID(theDigi->GetDetID(), det_id);
-    curCluster = new ((*clusters)[couter++]) KoaRecCluster(det_id);
+    curCluster = new ((*fClusters)[couter++]) KoaRecCluster(det_id);
     curCluster->AddDigi(theDigi);
 
     for ( int index=1; index<fNrDigits; ++index) {
       theDigi = static_cast<KoaRecDigi*>(fInputDigis->At(index));
       if( !curCluster->isInCluster(theDigi) ) {
         ch_id = fEncoder->DecodeChannelID(theDigi->GetDetID(), det_id);
-        curCluster = new ((*clusters)[couter++]) KoaRecCluster(det_id);
+        curCluster = new ((*fClusters)[couter++]) KoaRecCluster(det_id);
       }
       curCluster->AddDigi(theDigi);
     }
   }
 
   // filter out clusters without seed and fill in the output digis collection
-  Int_t fNrClusters = clusters->GetEntriesFast();
+  couter = 0;
+  Int_t fNrClusters = fClusters->GetEntriesFast();
   for(Int_t iNrCluster =0; iNrCluster<fNrClusters; iNrCluster++){
-    curCluster = (KoaRecCluster*)clusters->At(iNrCluster);
+    curCluster = (KoaRecCluster*)fClusters->At(iNrCluster);
 
     fNrDigits = curCluster->NumberOfDigis();
     auto id_ptr = curCluster->GetIds();
@@ -156,13 +161,15 @@ void KoaRecClusterSeedFilter::Exec(Option_t* /*option*/)
     // fill output array
     if (isValid) {
       for(Int_t iNrDigi = 0; iNrDigi < fNrDigits; iNrDigi++) {
-        auto digi = new ((*fOutputDigis)[iNrDigi]) KoaRecDigi();
+        auto digi = new ((*fOutputDigis)[couter++]) KoaRecDigi();
         digi->SetDetectorID(id_ptr[iNrDigi]);
         digi->SetCharge(energy_ptr[iNrDigi]);
         digi->SetTimeStamp(timestamp_ptr[iNrDigi]);
       }
     }
   }
+
+  // clean up
 }
 
 // ---- Finish --------------------------------------------------------
@@ -178,6 +185,7 @@ void KoaRecClusterSeedFilter::Reset()
   LOG(debug) << "Reset of KoaRecClusterSeedFilter";
 
   fOutputDigis->Clear();
+  fClusters->Clear();
 }
 
 ClassImp(KoaRecClusterSeedFilter)

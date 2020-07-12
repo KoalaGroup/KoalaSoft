@@ -104,8 +104,8 @@ void run_rec(const char* data,
   // 6. clustering
   KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
   clusterCollect->SetInputDigiName("KoaRecCalib");
-  clusterCollect->SetOutputDigiName("KoaRecCluster");
-  clusterCollect->SaveOutputDigi(true);
+  clusterCollect->SetOutputClusterName("KoaRecCluster");
+  clusterCollect->SaveOutputCluster(true);
   fRun->AddTask(clusterCollect);
 
   // 7. dumy fwd reconstruction, just copy the raw digis

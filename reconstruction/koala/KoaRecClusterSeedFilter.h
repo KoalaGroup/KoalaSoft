@@ -80,6 +80,8 @@ private:
   TClonesArray* fInputDigis = nullptr;
   /** Output array to  new data level**/
   TClonesArray* fOutputDigis = nullptr;
+  /** Buffer array for intermediate clustesrs **/
+  TClonesArray* fClusters = nullptr;
 
   // Noise parameter
   std::string fPedestalFileName = "";
