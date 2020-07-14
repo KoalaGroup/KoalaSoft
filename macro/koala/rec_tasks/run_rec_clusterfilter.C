@@ -67,6 +67,7 @@ void run_rec_clusterfilter(const char* data,
   noiseFilter->SetThreshold(2);
   fRun->AddTask(noiseFilter);
 
+  // 2. filter out clusters where there is no seed digi, output is array of remaining digis
   KoaRecClusterSeedFilter* seedFilter = new KoaRecClusterSeedFilter();
   seedFilter->SetInputDigiName("RecDigi_NoiseFilter");
   seedFilter->SetOutputDigiName("RecDigi_ClusterSeedFilter");
@@ -74,7 +75,7 @@ void run_rec_clusterfilter(const char* data,
   seedFilter->SetThreshold(3);
   fRun->AddTask(seedFilter);
 
-  // 2. correct recoil front channels' time offset
+  // 3. correct recoil front channels' time offset for digis with valid timestamp
   KoaRecTimeShiftCorrect* timeshiftCorrect = new KoaRecTimeShiftCorrect();
   timeshiftCorrect->SetInputDigiName("RecDigi_ClusterSeedFilter");
   timeshiftCorrect->SetOutputDigiName("RecDigi_TimeShift");
@@ -84,13 +85,13 @@ void run_rec_clusterfilter(const char* data,
   fRun->AddTask(timeshiftCorrect);
 
   // 4. reconstructed recoil front strip energy to keV
-  //    and filter out digis with energy below threshold
+  //    and filter out digis with energy below threshold (optional)
   KoaRecEnergyRecon* energyRecon = new KoaRecEnergyRecon();
   energyRecon->SetInputDigiName("RecDigi_TimeShift");
   energyRecon->SetOutputDigiName("KoaRecCalib");
   energyRecon->SaveOutputDigi(true);
   energyRecon->SetAdcParaFile(adcparaFile.Data());
-  // energyRecon->SetThreshold(5);
+  energyRecon->SetThreshold(0);
   fRun->AddTask(energyRecon);
 
   // 5. dumy recoil rear side reconstruction, just copy the raw digis
@@ -99,13 +100,14 @@ void run_rec_clusterfilter(const char* data,
   // rearRecon->SetOutputDigiName("KoaRecRearDigi");
   fRun->AddTask(rearRecon);
 
-  // 6. clustering
+  // 6. clustering based on adjacency
   KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
   clusterCollect->SetInputDigiName("KoaRecCalib");
   clusterCollect->SetOutputClusterName("KoaRecCluster_All");
   clusterCollect->SaveOutputCluster(true);
   fRun->AddTask(clusterCollect);
 
+  // 7. filter out clusters where the total energy is below noise threshold (combination of composing digis)
   KoaRecClusterThresholdFilter* clusterThresholdFilter = new KoaRecClusterThresholdFilter();
   clusterThresholdFilter->SetInputClusterName("KoaRecCluster_All");
   clusterThresholdFilter->SetOutputClusterName("KoaRecCluster");
@@ -115,7 +117,9 @@ void run_rec_clusterfilter(const char* data,
   clusterThresholdFilter->SetThreshold(5);
   fRun->AddTask(clusterThresholdFilter);
 
-  // 7. dumy fwd reconstruction, just copy the raw digis
+  // 8. filter out clusters with number of digis larger than a threshold
+
+  // 8. dumy fwd reconstruction, just copy the raw digis
   KoaFwdRecon* fwdRecon = new KoaFwdRecon();
   // fwdRecon->SetInputDigiName("KoaFwdDigi");
   // fwdRecon->SetOutputDigiName("KoaFwdDigi");

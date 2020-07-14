@@ -527,7 +527,8 @@ void fitHistos(HistoPtr1D& hMap, int colorLine = kRed)
 }
 
 // /////////////////////// Print histograms ///////////////////////
-void printH1Ds(HistoPtr1D& hMap, const char* filename)
+template <typename T>
+void printH1DsImp(std::map<Int_t, T>& hMap, const char* filename, std::true_type)
 {
   auto c = new TCanvas();
   c->Print(Form("%s[",filename));
@@ -537,6 +538,25 @@ void printH1Ds(HistoPtr1D& hMap, const char* filename)
   }
   c->Print(Form("%s]",filename));
   delete c;
+}
+
+template <typename T>
+void printH1DsImp(std::map<Int_t, T>& hMap, const char* filename, std::false_type)
+{
+  auto c = new TCanvas();
+  c->Print(Form("%s[",filename));
+  for(auto h1 : hMap) {
+    h1.second.Draw();
+    c->Print(Form("%s",filename));
+  }
+  c->Print(Form("%s]",filename));
+  delete c;
+}
+
+template <typename T>
+void printH1Ds(std::map<Int_t, T>& hMap, const char* filename)
+{
+  printH1DsImp(hMap, filename, std::is_pointer<T>());
 }
 
 void printH2Ds(HistoPtr2D& hMap, const char* filename)

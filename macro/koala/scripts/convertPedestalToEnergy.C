@@ -23,9 +23,10 @@ void convertPedestalToEnergy(const char* pedestal_file,
   //
   ParameterList<double> OutParameters;
   auto& output_mean = KoaUtility::addValueContainer(OutParameters, "Mean(keV)");
-  auto& output_sigma = KoaUtility::addValueContainer(OutParameters, "Sigma");
-  auto& output_3sigma = KoaUtility::addValueContainer(OutParameters, "3Sigma");
-  auto& output_5sigma = KoaUtility::addValueContainer(OutParameters, "5Sigma");
+  auto& output_sigma = KoaUtility::addValueContainer(OutParameters, "Sigma(keV)");
+  auto& output_2sigma = KoaUtility::addValueContainer(OutParameters, "Mean+2Sigma");
+  auto& output_3sigma = KoaUtility::addValueContainer(OutParameters, "Mean+3Sigma");
+  auto& output_5sigma = KoaUtility::addValueContainer(OutParameters, "Mean+5Sigma");
 
   for(auto item: pedAdc_means)
   {
@@ -39,8 +40,9 @@ void convertPedestalToEnergy(const char* pedestal_file,
     auto e_noise = p1*adc_sigma;
     output_mean.emplace(id, e_mean);
     output_sigma.emplace(id, e_noise);
-    output_3sigma.emplace(id, 3*e_noise);
-    output_5sigma.emplace(id, 5*e_noise);
+    output_2sigma.emplace(id, e_mean+2*e_noise);
+    output_3sigma.emplace(id, e_mean+3*e_noise);
+    output_5sigma.emplace(id, e_mean+5*e_noise);
   }
 
   //
