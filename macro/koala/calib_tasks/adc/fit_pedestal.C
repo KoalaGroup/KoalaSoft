@@ -3,8 +3,8 @@
 using namespace KoaUtility;
 
 void fit_pedestal(const char* infile,
-                  const char* dirname = "Rec_Adc",
-                  const char* suffix = "Amp",
+                  const char* dirname = "rec_adc",
+                  const char* suffix = "adc",
                   const char* outfile = "pedestal_fitresult.txt",
                   const char* seedfile = "adc_pedestal_20190902_003449.txt"
                   )
@@ -14,7 +14,7 @@ void fit_pedestal(const char* infile,
   auto filein = TFile::Open(infile_name, "Update");
 
   auto hdir = getDirectory(filein, dirname);
-  auto h1s_ptr = getHistosByRecTdcChannelId<TH1D>(hdir, suffix);
+  auto h1s_ptr = getHistosByChannelId<TH1D>(hdir, suffix, true);
 
   // read pedestal seed parameters
   TString vmc_dir = getenv("VMCWORKDIR");
