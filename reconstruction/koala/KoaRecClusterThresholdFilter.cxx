@@ -118,6 +118,7 @@ void KoaRecClusterThresholdFilter::Exec(Option_t* /*option*/)
   for(Int_t iNrCluster =0; iNrCluster<fNrClusters; iNrCluster++){
     auto curCluster = (KoaRecCluster*)fInputClusters->At(iNrCluster);
 
+    auto det_id = curCluster->GetDetId();
     auto fNrDigits = curCluster->NumberOfDigis();
     auto id_ptr = curCluster->GetIds();
     auto energy_ptr = curCluster->GetEnergies();
@@ -136,7 +137,7 @@ void KoaRecClusterThresholdFilter::Exec(Option_t* /*option*/)
     }
 
     // fill in output array
-    auto out_cluster = new ((*fOutputClusters)[index++]) KoaRecCluster();
+    auto out_cluster = new ((*fOutputClusters)[index++]) KoaRecCluster(det_id);
     for(Int_t iNrDigi = 0; iNrDigi < fNrDigits; iNrDigi++){
       auto digi = new KoaRecDigi();
       digi->SetDetectorID(id_ptr[iNrDigi]);

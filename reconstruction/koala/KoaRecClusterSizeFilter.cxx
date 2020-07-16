@@ -115,11 +115,12 @@ void KoaRecClusterSizeFilter::Exec(Option_t* /*option*/)
     }
 
     // fill in output array
+    auto det_id = curCluster->GetDetId();
     auto id_ptr = curCluster->GetIds();
     auto energy_ptr = curCluster->GetEnergies();
     auto timestamp_ptr = curCluster->GetTimestamps();
 
-    auto out_cluster = new ((*fOutputClusters)[index++]) KoaRecCluster();
+    auto out_cluster = new ((*fOutputClusters)[index++]) KoaRecCluster(det_id);
     for(Int_t iNrDigi = 0; iNrDigi < fNrDigits; iNrDigi++){
       auto digi = new KoaRecDigi();
       digi->SetDetectorID(id_ptr[iNrDigi]);

@@ -39,6 +39,7 @@ set(HEADERS
   KoaRecClusterCollect.h
   KoaRecClusterSeedFilter.h
   KoaRecClusterThresholdFilter.h
+  KoaRecClusterSizeFilter.h
   )
 
 set(SRCS
@@ -51,6 +52,7 @@ set(SRCS
   KoaRecClusterCollect.cxx
   KoaRecClusterSeedFilter.cxx
   KoaRecClusterThresholdFilter.cxx
+  KoaRecClusterSizeFilter.cxx
 )
 
 Set(LINKDEF KoaReconLinkDef.h)
