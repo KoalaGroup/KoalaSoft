@@ -60,3 +60,5 @@ html/
 all_*.par
 macro/koala/*.root
 macro/koala/*.par
+
+__pycache__

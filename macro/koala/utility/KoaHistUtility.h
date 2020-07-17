@@ -528,12 +528,19 @@ void fitHistos(HistoPtr1D& hMap, int colorLine = kRed)
 
 // /////////////////////// Print histograms ///////////////////////
 template <typename T>
-void printH1DsImp(std::map<Int_t, T>& hMap, const char* filename, std::true_type)
+void printHistosImp(std::map<Int_t, T>& hMap, const char* filename,
+                    const char* option,
+                    bool isLogy, bool isLogx, bool isLogz, std::true_type)
 {
   auto c = new TCanvas();
+
+  if(isLogx) c->SetLogx();
+  if(isLogy) c->SetLogy();
+  if(isLogz) c->SetLogz();
+
   c->Print(Form("%s[",filename));
   for(auto h1 : hMap) {
-    h1.second->Draw();
+    h1.second->Draw(option);
     c->Print(Form("%s",filename));
   }
   c->Print(Form("%s]",filename));
@@ -541,12 +548,19 @@ void printH1DsImp(std::map<Int_t, T>& hMap, const char* filename, std::true_type
 }
 
 template <typename T>
-void printH1DsImp(std::map<Int_t, T>& hMap, const char* filename, std::false_type)
+void printHistosImp(std::map<Int_t, T>& hMap, const char* filename,
+                    const char* option,
+                    bool isLogy, bool isLogx , bool isLogz, std::false_type)
 {
   auto c = new TCanvas();
+
+  if(isLogx) c->SetLogx();
+  if(isLogy) c->SetLogy();
+  if(isLogz) c->SetLogz();
+
   c->Print(Form("%s[",filename));
   for(auto h1 : hMap) {
-    h1.second.Draw();
+    h1.second.Draw(option);
     c->Print(Form("%s",filename));
   }
   c->Print(Form("%s]",filename));
@@ -554,20 +568,28 @@ void printH1DsImp(std::map<Int_t, T>& hMap, const char* filename, std::false_typ
 }
 
 template <typename T>
-void printH1Ds(std::map<Int_t, T>& hMap, const char* filename)
+void printHistos(std::map<Int_t, T>& hMap, const char* filename,
+                 const char* option = "",
+                 bool isLogy = false, bool isLogx = false, bool isLogz = false)
 {
-  printH1DsImp(hMap, filename, std::is_pointer<T>());
+  printHistosImp(hMap, filename, option, isLogy, isLogx, isLogz, std::is_pointer<T>());
 }
 
-void printH2Ds(HistoPtr2D& hMap, const char* filename)
+void printHist(TH1* hist, const char* filename,
+               const char* option = "",
+               bool isLogy = false, bool isLogx = false, bool isLogz = false)
 {
   auto c = new TCanvas();
+
+  if(isLogx) c->SetLogx();
+  if(isLogy) c->SetLogy();
+  if(isLogz) c->SetLogz();
+
   c->Print(Form("%s[",filename));
-  for(auto h1 : hMap) {
-    h1.second->Draw();
-    c->Print(Form("%s",filename));
-  }
+  hist->Draw(option);
+  c->Print(Form("%s",filename));
   c->Print(Form("%s]",filename));
+
   delete c;
 }
 
