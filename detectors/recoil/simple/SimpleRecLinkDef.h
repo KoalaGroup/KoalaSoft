@@ -31,5 +31,6 @@
 #pragma link C++ class KoaRecAddTimeJitter++;
 #pragma link C++ class KoaRecTimeJitterPar++;
 #pragma link C++ class KoaRecCluster+;
+#pragma link C++ class KoaRecNoiseGenerator+;
 
 #endif

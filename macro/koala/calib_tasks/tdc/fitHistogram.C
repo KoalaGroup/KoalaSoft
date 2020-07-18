@@ -69,8 +69,8 @@ void fitHistogram(const char* inFileName, const char* outDir)
   printValueList<double>(timeParameters, timeTxtFile.Data());
 
   // print histograms to pdf file
-  printH1Ds(h1map_amp, ampPdfFile.Data());
-  printH1Ds(h1map_time, timePdfFile.Data());
+  printHistos(h1map_amp, ampPdfFile.Data());
+  printHistos(h1map_time, timePdfFile.Data());
 
   // save histograms to root file
   auto hDirOut = getDirectory(fin, "rec_adc_fit");

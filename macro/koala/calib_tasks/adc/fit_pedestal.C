@@ -57,6 +57,8 @@ void fit_pedestal(const char* infile,
                      auto result = h1->Fit("gaus", "qs", "", low, high);
                      double fit_mean = result->Parameter(1);
                      double fit_sigma = result->Parameter(2);
+                     auto ffit = h1->GetFunction("gaus");
+                     ffit->SetRange(fit_mean - 5*fit_sigma, fit_mean + 5*fit_sigma);
 
                      output_means.emplace(id, fit_mean);
                      output_sigmas.emplace(id, fit_sigma);
@@ -75,7 +77,7 @@ void fit_pedestal(const char* infile,
   //
   TString outfile_pdf(outfile);
   outfile_pdf.ReplaceAll(".txt",".pdf");
-  printH1Ds(h1s_ptr, outfile_pdf.Data());
+  printHistos(h1s_ptr, outfile_pdf.Data(), true);
 
   //
   printValueList<double>(OutputParameters, outfile);

@@ -40,6 +40,7 @@ KoaRecTimeWalkPar.cxx
 KoaRecAddTimeJitter.cxx
 KoaRecTimeJitterPar.cxx
 KoaRecCluster.cxx
+KoaRecNoiseGenerator.cxx
 )
 
 Set(LINKDEF SimpleRecLinkDef.h)
