@@ -13,6 +13,7 @@
 #include "KoaRecDigi.h"
 #include "KoaRecAddNoise.h"
 #include "KoaRecNoisePar.h"
+#include "KoaMapEncoder.h"
 #include "TRandom3.h"
 
 // ---- Default constructor -------------------------------------------
@@ -20,11 +21,10 @@ KoaRecAddNoise::KoaRecAddNoise()
     :FairTask("KoaRecAddNoise"),
      fSaveOutput(true),
      fNoisePar(nullptr),
-     fNoiseMean(0),
-     fNoiseSigma(0),
      fRndEngine(0)
 {
   LOG(debug) << "Defaul Constructor of KoaRecAddNoise";
+  fEncoder = KoaMapEncoder::Instance();
 }
 
 // ---- Destructor ----------------------------------------------------
@@ -46,8 +46,10 @@ void KoaRecAddNoise::SetParContainers()
   FairRunAna* ana = FairRunAna::Instance();
   FairRuntimeDb* rtdb=ana->GetRuntimeDb();
 
-  fNoisePar = static_cast<KoaRecNoisePar*>(rtdb->getContainer("KoaRecNoisePar"));
-  fNoisePar->printParams();
+  if (fPedestalFileName.empty()){
+    LOG(info) << "Default pedestal noise parameters are used";
+    fNoisePar = static_cast<KoaRecNoisePar*>(rtdb->getContainer("KoaRecNoisePar"));
+  }
 }
 
 // ---- Init ----------------------------------------------------------
@@ -68,15 +70,80 @@ InitStatus KoaRecAddNoise::Init()
 
   // Create the TClonesArray for the output data and register it in the IO manager
   if (fOutputName.empty()) LOG(fatal) << "No output branch name set";
-  fOutputDigis = new TClonesArray("KoaRecDigi", 200);
+  fOutputDigis = new TClonesArray("KoaRecDigi", 300);
   ioman->Register(fOutputName.data(),"KoaRec",fOutputDigis,fSaveOutput);
 
-  // Do whatever else is needed at the initilization stage
-  // Create histograms to be filled
-  // initialize variables
-  fNoiseMean = fNoisePar->GetMean();
-  fNoiseSigma = fNoisePar->GetSigma();
-  fNoisePar->printParams();
+  // initialize pedestal noise parameters
+
+  // 1. read ADC calibration paramters
+  if (fAdcParaFile.empty()) LOG(fatal) << "No ADC parameters found";
+  auto adc_params = readParameterList<double>( fAdcParaFile);
+
+  auto it = findValueContainer(adc_params, "AdcToE_p0");
+  if ( it == adc_params.end()) {
+    LOG(error) << "No \'AdcToE_p0\' parameter found in the ADC parameter file";
+    return kERROR;
+  }
+  fP0 = it->second;
+
+  it = findValueContainer(adc_params, "AdcToE_p1");
+  if ( it == adc_params.end()) {
+    LOG(error) << "No \'AdcToE_p1\' parameter found in the ADC parameter file";
+    return kERROR;
+  }
+  fP1 = it->second;
+
+  // 2. read pedestal parameters in ADC counts
+  if (fPedestalFileName.empty()) {
+    LOG(info) << "Default pedestal noise parameters are used";
+
+    auto mean = fNoisePar->GetMean();
+    auto sigma = fNoisePar->GetSigma();
+
+    auto ChIDs = fEncoder->GetRecChIDs();
+    for(auto id: ChIDs) {
+      fNoiseMeans.emplace(id, mean);
+      fNoiseSigmas.emplace(id, sigma);
+    }
+  }
+  else {
+    LOG(info) << "Pedestal noise parameters from " << fPedestalFileName << " are used";
+
+    auto params = readParameterList<double>(fPedestalFileName);
+    it = findValueContainer(params, "Mean");
+    if ( it == params.end()) {
+      LOG(error) << "No \'Mean\' parameter found in the pedestal file";
+      return kERROR;
+    }
+    fNoiseMeans = it->second;
+
+    it = findValueContainer(params, "Sigma");
+    if ( it == params.end()) {
+      LOG(error) << "No \'Sigma\' parameter found in the pedestal file";
+      return kERROR;
+    }
+    fNoiseSigmas = it->second;
+  }
+
+  // 3. convert noise paramters from ADC value to Energy (keV)
+  for(auto& item: fNoiseMeans) {
+    auto& id = item.first;
+    auto& mean = item.second;
+
+    auto p0 = fP0[id];
+    auto p1 = fP1[id];
+
+    mean = p0 + p1*mean; // in keV
+    fNoiseSigmas[id] *= p1; // in keV
+  }
+
+  // test
+  // ParameterList<double> timeParameters;
+  // auto& mean_time = addValueContainer(timeParameters, "Mean");
+  // auto& sigma_time = addValueContainer(timeParameters, "Sigma");
+  // mean_time = fNoiseMeans;
+  // sigma_time = fNoiseSigmas;
+  // printValueList(timeParameters,"test.txt");
 
   return kSUCCESS;
 }
@@ -127,6 +194,19 @@ void KoaRecAddNoise::Reset()
 // ---- AddNoise --------------------------------------------------------
 void KoaRecAddNoise::AddNoise()
 {
+  // temp buffer for input digs
+  struct digi_type
+  {
+    double timestamp;
+    double charge;
+
+    digi_type(): timestamp(-1), charge(-1) {}
+    digi_type(double ts, double ch): timestamp(ts), charge(ch) {}
+  };
+
+  std::map<int, digi_type> digi_map;
+
+  //
   Int_t fNrDigits = fInputDigis->GetEntriesFast();
   for(Int_t iNrDigit =0; iNrDigit<fNrDigits; iNrDigit++){
     KoaRecDigi* curDigi = (KoaRecDigi*)fInputDigis->At(iNrDigit);
@@ -134,10 +214,32 @@ void KoaRecAddNoise::AddNoise()
     auto id = curDigi->GetDetID();
     auto charge = curDigi->GetCharge();
 
-    KoaRecDigi* outDigi = new ((*fOutputDigis)[iNrDigit]) KoaRecDigi();
+    digi_map.emplace(std::piecewise_construct,
+                     std::forward_as_tuple(id),
+                     std::forward_as_tuple(ts, charge));
+
+    if (digi_map[id].timestamp != ts || digi_map[id].charge != charge) {
+      LOG(fatal) << "digi_map incorrect";
+    }
+  }
+
+  // Add noises to each channel
+  int counter = 0;
+  for(auto& item: fNoiseMeans){
+    auto id = item.first;
+    auto noise = fRndEngine.Gaus(item.second, fNoiseSigmas[id]);
+
+    KoaRecDigi* outDigi = new ((*fOutputDigis)[counter++]) KoaRecDigi();
     outDigi->SetDetectorID(id);
-    outDigi->SetTimeStamp(ts);
-    outDigi->SetCharge(charge + fRndEngine.Gaus(fNoiseMean, fNoiseSigma));
+
+    if( digi_map.find(id) != digi_map.end() ) {
+      outDigi->SetTimeStamp(digi_map[id].timestamp);
+      outDigi->SetCharge(digi_map[id].charge + noise);
+    }
+    else{
+      outDigi->SetTimeStamp(-1);
+      outDigi->SetCharge(noise);
+    }
   }
 }
 

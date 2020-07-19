@@ -10,11 +10,23 @@
 
 #include "FairTask.h"
 #include "TRandom3.h"
+#include "KoaTextUtility.h"
 #include <map>
 
 class TClonesArray;
 class KoaRecDigi;
 class KoaRecNoisePar;
+class KoaMapEncoder;
+
+using namespace KoaUtility;
+
+/* Add pedestal noise to all digi channels. Noises are equivalent energy (in keV)
+ *
+ * Two alternative input parameter sources:
+ * 1. FairRoot style paramter file. In this case, all channels share the same parameter.
+ * 2. User-provides text parameter file based on KoaTextUtility, where noises in ADC counts
+ *    obtained from beam test are used.
+ */
 
 class KoaRecAddNoise : public FairTask
 {
@@ -55,6 +67,12 @@ class KoaRecAddNoise : public FairTask
   void SaveOutputDigi(bool flag = true) {
     fSaveOutput = flag;
   }
+  void SetPedestalFile(const char* name) {
+    fPedestalFileName = name;
+  }
+  void SetAdcParaFile(const char* name) {
+    fAdcParaFile = name;
+  }
 
  private:
     void AddNoise();
@@ -72,11 +90,22 @@ class KoaRecAddNoise : public FairTask
     /** Output array to  new data level**/
     TClonesArray* fOutputDigis;
 
-    // Noise parameter
-  TRandom3 fRndEngine;
+    // Noise parameter from FairRoot type parameter file, i.e. 'rec.par'
   KoaRecNoisePar* fNoisePar;
-  Double_t fNoiseMean;
-  Double_t fNoiseSigma;
+  // Noise parameter from text file using KoaTextUtility
+  std::string fPedestalFileName = "";
+
+  TRandom3 fRndEngine;
+  ValueContainer<double> fNoiseMeans;
+  ValueContainer<double> fNoiseSigmas;
+
+  // Adc calibrated paramter: from Adc to Energy (keV)
+  std::string fAdcParaFile = "";
+  ValueContainer<double> fP0;
+  ValueContainer<double> fP1;
+
+  // MapEncoder
+  KoaMapEncoder *fEncoder;
 
     KoaRecAddNoise(const KoaRecAddNoise&);
     KoaRecAddNoise operator=(const KoaRecAddNoise&);
