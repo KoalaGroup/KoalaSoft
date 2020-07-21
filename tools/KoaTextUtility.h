@@ -162,7 +162,7 @@ namespace KoaUtility {
     ftxt << std::setw(12) << std::left << "Name" ;
     ftxt << std::setw(12) << std::left << "Id";
     for( auto& parameter : paramList ) {
-      ftxt << std::setw(12) << std::left << parameter.first;
+      ftxt << std::setw(15) << std::left << parameter.first;
     }
     ftxt << std::endl;
 
@@ -179,7 +179,7 @@ namespace KoaUtility {
       //
       for( const auto& parameter : paramList ) {
         const auto& values = parameter.second;
-        ftxt << std::setw(12) << std::left << values.at(ChID);
+        ftxt << std::setw(15) << std::left << values.at(ChID);
       }
       ftxt << std::endl;
     }

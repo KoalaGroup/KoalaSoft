@@ -77,7 +77,7 @@ void fit_pedestal(const char* infile,
   //
   TString outfile_pdf(outfile);
   outfile_pdf.ReplaceAll(".txt",".pdf");
-  printHistos(h1s_ptr, outfile_pdf.Data(), true);
+  printHistos(h1s_ptr, outfile_pdf.Data(), "", true);
 
   //
   printValueList<double>(OutputParameters, outfile);
