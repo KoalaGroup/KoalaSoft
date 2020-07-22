@@ -5,12 +5,13 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_cluster_purification(const char* data,
-                              const char* para,
-                              int threshold = 7,
-                              const char* suffix = "_cluster_purification.root",
-                              const char* ped_file = "adc_pedestal_20190902_003449.txt",
-                              const char* adcpara_file = "adc_calib_energy.txt"
+void run_cluster_purification_MultipleMode(const char* data,
+                                           const char* para,
+                                           int threshold = 7,
+                                           std::string thresh_file = "",
+                                           const char* suffix = "_cluster_purification_multple.root",
+                                           const char* ped_file = "adc_pedestal_20190902_003449.txt",
+                                           const char* adcpara_file = "adc_calib_energy.txt"
                               )
 {
   // ----    Debug option   -------------------------------------------------
@@ -28,10 +29,13 @@ void run_cluster_purification(const char* data,
   TString paraFile(para);
 
   // Output file
+  bool useThreshFile = true;
   TString outFile = inFile;
   outFile.ReplaceAll(".root", suffix);
-  outFile.ReplaceAll(".root", Form("_%dsigma.root", threshold));
-
+  if (thresh_file.empty()) {
+      outFile.ReplaceAll(".root", Form("_%dsigma.root", threshold));
+      useThreshFile = false;
+  }
 
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -59,7 +63,13 @@ void run_cluster_purification(const char* data,
   clusterPurification->SetInputClusterName("KoaRecCluster_ThresholdFilter");
   clusterPurification->SetOutputClusterName("KoaRecCluster_Purification");
   clusterPurification->SaveOutputCluster(kTRUE);
-  clusterPurification->SetNoiseThreshold(threshold);
+
+  clusterPurification->SetMode(ClusterPurificationMode::Multiple);
+  if(useThreshFile)
+    clusterPurification->SetThresholdFile(thresh_file.data());
+  else
+    clusterPurification->SetThreshold(threshold);
+
   clusterPurification->SetPedestalFile(pedestal_file.Data());
   clusterPurification->SetAdcParaFile(adcparaFile.Data());
   fRun->AddTask(clusterPurification);

@@ -5,7 +5,12 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_rec_cluster(const char* data, const char* suffix)
+void run_cluster_purification_PercentageMode(const char* data,
+                                             const char* para,
+                                             double threshold = 0.01,
+                                             std::string thresh_file = "",
+                                             const char* suffix = "_cluster_purification_percentage.root"
+                                             )
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -13,19 +18,22 @@ void run_rec_cluster(const char* data, const char* suffix)
   FairLogger *logger = FairLogger::GetLogger();
   logger->SetLogToScreen(kTRUE);
   // logger->SetLogScreenLevel("DEBUG");
-  logger->SetLogScreenLevel("INFO");
+  logger->SetLogScreenLevel("WARNING");
 
   // Input file (MC events)
   TString inFile(data);
 
   // Parameter file
-  TString paraFile(data);
-  paraFile.ReplaceAll(suffix,"param");
+  TString paraFile(para);
 
   // Output file
-  TString outFile(data);
-  outFile.ReplaceAll("calib","cluster");
-
+  bool useThreshFile = true;
+  TString outFile = inFile;
+  outFile.ReplaceAll(".root", suffix);
+  if (thresh_file.empty()) {
+      outFile.ReplaceAll(".root", Form("_%0.3f.root", threshold));
+      useThreshFile = false;
+  }
 
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -47,13 +55,17 @@ void run_rec_cluster(const char* data, const char* suffix)
   parInput1->open(paraFile.Data());
   // rtdb->setOutput(parInput1);
 
-  //
-  KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
-  clusterCollect->SetInputDigiName("KoaRecDigi");
-  clusterCollect->SetOutputClusterName("KoaRecCluster");
-  clusterCollect->SaveOutputCluster(true);
+  KoaRecClusterPurification* clusterPurification = new KoaRecClusterPurification();
+  clusterPurification->SetInputClusterName("KoaRecCluster_ThresholdFilter");
+  clusterPurification->SetOutputClusterName("KoaRecCluster_Purification");
+  clusterPurification->SaveOutputCluster(kTRUE);
 
-  fRun->AddTask(clusterCollect);
+  clusterPurification->SetMode(ClusterPurificationMode::Percentage);
+  if(useThreshFile)
+    clusterPurification->SetThresholdFile(thresh_file.data());
+  else
+    clusterPurification->SetThreshold(threshold);
+  fRun->AddTask(clusterPurification);
 
   fRun->Init();
 
@@ -64,7 +76,7 @@ void run_rec_cluster(const char* data, const char* suffix)
   rtdb->print();
 
   // -----   Finish   -------------------------------------------------------
-  // delete fRun;
+  delete fRun;
 
   cout << endl << endl;
 

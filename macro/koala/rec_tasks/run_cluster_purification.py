@@ -6,7 +6,7 @@ import subprocess
 import batch
 
 vmc_dir = os.environ['VMCWORKDIR']
-macro = os.path.join(vmc_dir, 'macro/koala/rec_tasks/run_cluster_purification.C')
+macro = os.path.join(vmc_dir, 'macro/koala/rec_tasks/run_cluster_purification_MultipleMode.C')
 exec_bin = os.path.join(vmc_dir,'build/bin/koa_execute')
 
 # arguments definitions
@@ -24,18 +24,34 @@ parser.add_argument("-p", "--para_dir",
 parser.add_argument("-t","--threshold" ,
                     default="7",
                     help="suffix of the output")
+parser.add_argument("--thresh_file" ,
+                    default="",
+                    help="channel-wise threshold setting file")
+parser.add_argument("-m","--mode" ,
+                    default="multiple",
+                    help="mode of threshold setting: multiple, abosulte or percentage")
 
 args = parser.parse_args()
 
 in_dir = os.path.expanduser(args.directory)
 para_dir = os.path.expanduser(args.para_dir)
 
+thresh_file = ""
+if args.thresh_file != "":
+    thresh_file = os.path.expanduser(args.thresh_file)
+
+if args.mode == 'absolute':
+    macro = os.path.join(vmc_dir, 'macro/koala/rec_tasks/run_cluster_purification_AbsoluteMode.C')
+elif args.mode == 'percentage':
+    macro = os.path.join(vmc_dir, 'macro/koala/rec_tasks/run_cluster_purification_PercentageMode.C')
+
 # add rec each file in the list
 list_input = batch.get_list(args.infile, args.suffix, in_dir)
 list_para = batch.get_list(args.infile, "_param.root", para_dir)
 
+# invoking the command
 for fin, fpara in zip(list_input, list_para):
-    command = [exec_bin, macro, fin, fpara, args.threshold]
+    command = [exec_bin, macro, fin, fpara, args.threshold, thresh_file]
     print(command)
     process = subprocess.Popen(command)
     process.wait()

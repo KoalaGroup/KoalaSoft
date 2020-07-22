@@ -5,14 +5,21 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_rec_clusterfilter(const char* data,
-                           const char* para,
-                           const char* suffix = "_calib.root",
-                           const char* ped_file = "adc_pedestal_20190902_003449.txt",
-                           const char* adcpara_file = "adc_calib_energy.txt",
-                           const char* tdcpara_file = "tdc_calib_shift.txt",
-                           const char* clustersize_file = "cluster_size.txt"
-                           )
+
+/*
+ * Clustering of simulation data with a full chain of digitization:
+ * Specifically, electronic noises are added to each channel.
+ * Thus, in this case, a clustering chain from NoiseFilter is needed.
+ * However, the pedestal noise parameter file should be energy-equivalent noise
+ * file. Because it's energy digis, not ADC digits are generated in simulation.
+ */
+
+void run_cluster_simulation(const char* data,
+                            const char* para,
+                            const char* suffix = "_calib.root",
+                            const char* ped_file = "adc_pedestal_20190902_003449_energy.txt",
+                            const char* adcpara_file = "adc_calib_energy.txt"
+                            )
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -42,8 +49,6 @@ void run_rec_clusterfilter(const char* data,
   TString param_dir = dir+"/parameters/";
   TString pedestal_file = param_dir + ped_file;
   TString adcparaFile = param_dir + adcpara_file;
-  TString tdcparaFile = param_dir + tdcpara_file;
-  TString clusterSizeFile = param_dir + clustersize_file;
 
   // -----   Run   --------------------------------------------------------
   FairRunAna *fRun= new FairRunAna();
@@ -57,7 +62,7 @@ void run_rec_clusterfilter(const char* data,
   parInput1->open(paraFile.Data());
   // rtdb->setOutput(parInput1);
 
-  // 1. filter out digis with ADC counts below noise level
+  // 1. filter out digis below noise level
   KoaRecNoiseFilter* noiseFilter = new KoaRecNoiseFilter();
   noiseFilter->SetInputDigiName("KoaRecDigi");
   noiseFilter->SetOutputDigiName("RecDigi_NoiseFilter");
@@ -74,39 +79,14 @@ void run_rec_clusterfilter(const char* data,
   seedFilter->SetThreshold(3);
   fRun->AddTask(seedFilter);
 
-  // 3. correct recoil front channels' time offset for digis with valid timestamp
-  KoaRecTimeShiftCorrect* timeshiftCorrect = new KoaRecTimeShiftCorrect();
-  timeshiftCorrect->SetInputDigiName("RecDigi_ClusterSeedFilter");
-  timeshiftCorrect->SetOutputDigiName("RecDigi_TimeShift");
-  // timeshiftCorrect->SaveOutputDigi(true);
-  timeshiftCorrect->SetTdcParaFile(tdcparaFile.Data());
-  timeshiftCorrect->SetTdcParaName("Mean");
-  fRun->AddTask(timeshiftCorrect);
-
-  // 4. reconstructed recoil front strip energy to keV
-  //    and filter out digis with energy below threshold (optional)
-  KoaRecEnergyRecon* energyRecon = new KoaRecEnergyRecon();
-  energyRecon->SetInputDigiName("RecDigi_TimeShift");
-  energyRecon->SetOutputDigiName("KoaRecCalib");
-  energyRecon->SaveOutputDigi(true);
-  energyRecon->SetAdcParaFile(adcparaFile.Data());
-  energyRecon->SetThreshold(0);
-  fRun->AddTask(energyRecon);
-
-  // 5. dumy recoil rear side reconstruction, just copy the raw digis
-  KoaRecRearRecon* rearRecon = new KoaRecRearRecon();
-  // rearRecon->SetInputDigiName("KoaRecRearDigi");
-  // rearRecon->SetOutputDigiName("KoaRecRearDigi");
-  fRun->AddTask(rearRecon);
-
-  // 6. clustering based on adjacency
+  // 3. clustering based on adjacency
   KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
-  clusterCollect->SetInputDigiName("KoaRecCalib");
+  clusterCollect->SetInputDigiName("RecDigi_ClusterSeedFilter");
   clusterCollect->SetOutputClusterName("KoaRecCluster_SeedFilter");
   clusterCollect->SaveOutputCluster(true);
   fRun->AddTask(clusterCollect);
 
-  // 7. filter out clusters where the total energy is below noise threshold (combination of composing digis)
+  // 4. filter out clusters where the total energy is below noise threshold (combination of composing digis)
   KoaRecClusterThresholdFilter* clusterThresholdFilter = new KoaRecClusterThresholdFilter();
   clusterThresholdFilter->SetInputClusterName("KoaRecCluster_SeedFilter");
   clusterThresholdFilter->SetOutputClusterName("KoaRecCluster_ThresholdFilter");
@@ -115,21 +95,6 @@ void run_rec_clusterfilter(const char* data,
   clusterThresholdFilter->SetPedestalFile(pedestal_file.Data());
   clusterThresholdFilter->SetThreshold(2);
   fRun->AddTask(clusterThresholdFilter);
-
-  // 8. filter out clusters with number of digis larger than a threshold
-  KoaRecClusterSizeFilter* clusterSizeFilter = new KoaRecClusterSizeFilter();
-  clusterSizeFilter->SetInputClusterName("KoaRecCluster_ThresholdFilter");
-  clusterSizeFilter->SetOutputClusterName("KoaRecCluster_SizeFilter");
-  clusterSizeFilter->SaveOutputCluster(kTRUE);
-  clusterSizeFilter->SetSizeParaFile(clusterSizeFile.Data());
-  // clusterSizeFilter->SetSizeParameter(5);
-  fRun->AddTask(clusterSizeFilter);
-
-  // 9. dumy fwd reconstruction, just copy the raw digis
-  KoaFwdRecon* fwdRecon = new KoaFwdRecon();
-  // fwdRecon->SetInputDigiName("KoaFwdDigi");
-  // fwdRecon->SetOutputDigiName("KoaFwdDigi");
-  fRun->AddTask(fwdRecon);
 
   fRun->Init();
 

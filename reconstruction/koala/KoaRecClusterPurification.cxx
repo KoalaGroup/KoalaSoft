@@ -61,53 +61,86 @@ InitStatus KoaRecClusterPurification::Init()
   fOutputClusters = new TClonesArray("KoaRecCluster", 32);
   ioman->Register(fOutputName.data(),"KoaRec",fOutputClusters,fSaveOutput);
 
-  // initialize pedestal noise parameters
+  // initialize threshold parameters
 
-  // 1. read ADC calibration paramters
-  if (fAdcParaFile.empty()) LOG(fatal) << "No ADC parameters found";
-  auto adc_params = readParameterList<double>( fAdcParaFile);
-
-  auto it = findValueContainer(adc_params, "AdcToE_p0");
-  if ( it == adc_params.end()) {
-    LOG(error) << "No \'AdcToE_p0\' parameter found in the ADC parameter file";
-    return kERROR;
+  // 1. get the threshold setting array
+  ValueContainer<double> thresholds;
+  if (fThreshFile.empty()) {
+    auto encoder = KoaMapEncoder::Instance();
+    auto ChIds = encoder->GetRecChIDs();
+    for(auto id: ChIds){
+      thresholds.emplace(id, fThresh);
+    }
   }
-  auto fP0 = it->second;
+  else {
+    LOG(info) << "Threshold setting from " << fThreshFile;
 
-  it = findValueContainer(adc_params, "AdcToE_p1");
-  if ( it == adc_params.end()) {
-    LOG(error) << "No \'AdcToE_p1\' parameter found in the ADC parameter file";
-    return kERROR;
+    auto thresh_params = readParameterList<double>(fThreshFile);
+    auto it = findValueContainer(thresh_params, "Threshold");
+    if ( it == thresh_params.end()) {
+      LOG(error) << "No \'Threshold\' parameter found in the threshold parameter file";
+      return kERROR;
+    }
+    thresholds = it->second;
   }
-  auto fP1 = it->second;
 
-  // 2. read pedestal parameters in ADC counts
-  if (fPedestalFileName.empty()) LOG(fatal) << "No Pedestal noises paramters found";
-  auto noise_params = readParameterList<double>(fPedestalFileName);
-  it = findValueContainer(noise_params, "Mean");
-  if ( it == noise_params.end()) {
-    LOG(error) << "No \'Mean\' parameter found in the pedestal file";
-    return kERROR;
-  }
-  auto fNoiseMeans = it->second;
+  // 2. compute the real noise thresholds
+  auto compute_multiple_thresholds = [&] ()
+                                     {
+                                       // a. read adc calib parameters
+                                       if (fAdcParaFile.empty()) LOG(fatal) << "No ADC parameters found";
+                                       auto adc_params = readParameterList<double>( fAdcParaFile);
 
-  it = findValueContainer(noise_params, "Sigma");
-  if ( it == noise_params.end()) {
-    LOG(error) << "No \'Sigma\' parameter found in the pedestal file";
-    return kERROR;
-  }
-  auto fNoiseSigmas = it->second;
+                                       auto it = findValueContainer(adc_params, "AdcToE_p0");
+                                       if ( it == adc_params.end()) {
+                                         LOG(error) << "No \'AdcToE_p0\' parameter found in the ADC parameter file";
+                                         return kERROR;
+                                       }
+                                       auto fP0 = it->second;
 
-  // 3. convert noise paramters from ADC value to Energy (keV)
-  for(auto& item: fNoiseMeans) {
-    auto& id = item.first;
-    auto& mean = item.second;
-    auto sigma = fNoiseSigmas[id];
+                                       it = findValueContainer(adc_params, "AdcToE_p1");
+                                       if ( it == adc_params.end()) {
+                                         LOG(error) << "No \'AdcToE_p1\' parameter found in the ADC parameter file";
+                                         return kERROR;
+                                       }
+                                       auto fP1 = it->second;
 
-    auto p0 = fP0[id];
-    auto p1 = fP1[id];
+                                       // b. read pedestal parameters in ADC counts
+                                       if (fPedestalFileName.empty()) LOG(fatal) << "No Pedestal noises paramters found";
+                                       auto noise_params = readParameterList<double>(fPedestalFileName);
+                                       it = findValueContainer(noise_params, "Mean");
+                                       if ( it == noise_params.end()) {
+                                         LOG(error) << "No \'Mean\' parameter found in the pedestal file";
+                                         return kERROR;
+                                       }
+                                       auto fNoiseMeans = it->second;
 
-    fNoiseThreshold.emplace(id, p0+p1*(mean+fThresh*sigma)); // in keV
+                                       it = findValueContainer(noise_params, "Sigma");
+                                       if ( it == noise_params.end()) {
+                                         LOG(error) << "No \'Sigma\' parameter found in the pedestal file";
+                                         return kERROR;
+                                       }
+                                       auto fNoiseSigmas = it->second;
+
+                                       // c. convert noise paramters from ADC value to Energy (keV)
+                                       for(auto& item: fNoiseMeans) {
+                                         auto& id = item.first;
+                                         auto& mean = item.second;
+                                         auto sigma = fNoiseSigmas[id];
+                                         auto p0 = fP0[id];
+                                         auto p1 = fP1[id];
+                                         fNoiseThreshold.emplace(id, p0+p1*(mean+thresholds[id]*sigma)); // in keV
+                                       }
+                                     };
+
+  switch (fThreshMode) {
+    case ClusterPurificationMode::Multiple : {
+      compute_multiple_thresholds();
+      break;
+    }
+    default:
+      fNoiseThreshold = thresholds;
+      break;
   }
 
   return kSUCCESS;
@@ -132,6 +165,19 @@ void KoaRecClusterPurification::Exec(Option_t* /*option*/)
   Reset();
 
   // get rid of noise digis at the head and tail of the cluster
+  switch (fThreshMode) {
+    case ClusterPurificationMode::Percentage: {
+      PurifyByRelativeValue();
+      break;
+    }
+    default:
+      PurifyByAbsoluteValue();
+      break;
+  }
+}
+
+void KoaRecClusterPurification::PurifyByAbsoluteValue()
+{
   Int_t index=0;
   Int_t fNrClusters = fInputClusters->GetEntriesFast();
   for(Int_t iNrCluster =0; iNrCluster<fNrClusters; iNrCluster++){
@@ -157,6 +203,51 @@ void KoaRecClusterPurification::Exec(Option_t* /*option*/)
     for( tail = (fNrDigits-1); tail > head; tail-- ){
       if( energy_ptr[tail] > fNoiseThreshold[id_ptr[tail]])
         break;
+    }
+
+    // fill in output array
+    auto det_id = curCluster->GetDetId();
+    auto out_cluster = new ((*fOutputClusters)[index++]) KoaRecCluster(det_id);
+    for(int i=head; i <= tail; i++){
+      auto digi = new KoaRecDigi();
+      digi->SetDetectorID(id_ptr[i]);
+      digi->SetCharge(energy_ptr[i]);
+      digi->SetTimeStamp(timestamp_ptr[i]);
+      out_cluster->AddDigi(digi);
+    }
+  }
+}
+
+void KoaRecClusterPurification::PurifyByRelativeValue()
+{
+  Int_t index=0;
+  Int_t fNrClusters = fInputClusters->GetEntriesFast();
+  for(Int_t iNrCluster =0; iNrCluster<fNrClusters; iNrCluster++){
+    auto curCluster = (KoaRecCluster*)fInputClusters->At(iNrCluster);
+
+    auto fNrDigits = curCluster->NumberOfDigis();
+    auto id_ptr = curCluster->GetIds();
+    auto energy_ptr = curCluster->GetEnergies();
+    auto timestamp_ptr = curCluster->GetTimestamps();
+    auto e_total = curCluster->EnergyTotal();
+
+    //
+    int head;
+    int tail;
+    for( head = 0; head < fNrDigits; head++){
+      if( (energy_ptr[head]/e_total) > fNoiseThreshold[id_ptr[head]] )
+        break;
+      e_total -= energy_ptr[head];
+    }
+
+    if (head == fNrDigits) {
+      continue;
+    }
+
+    for( tail = (fNrDigits-1); tail > head; tail-- ){
+      if( (energy_ptr[tail]/e_total) > fNoiseThreshold[id_ptr[tail]])
+        break;
+      e_total -= energy_ptr[tail];
     }
 
     // fill in output array

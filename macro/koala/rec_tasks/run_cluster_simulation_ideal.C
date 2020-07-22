@@ -5,7 +5,17 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_rec_cluster(const char* data, const char* suffix)
+
+/*
+ * Clustering of simulation data with ideal digitization:
+ * i.e. no noise is added, only channels with real energy depsits are recorded.
+ * Thus, in this case, only clustering based on ajacency is needed.
+ */
+
+void run_cluster_simulation_ideal(const char* data,
+                                  const char* para,
+                                  const char* suffix = "_digi.root"
+                                  )
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -19,12 +29,11 @@ void run_rec_cluster(const char* data, const char* suffix)
   TString inFile(data);
 
   // Parameter file
-  TString paraFile(data);
-  paraFile.ReplaceAll(suffix,"param");
+  TString paraFile(para);
 
   // Output file
-  TString outFile(data);
-  outFile.ReplaceAll("calib","cluster");
+  TString outFile = inFile;
+  outFile.ReplaceAll(suffix, "_idealcluster.root");
 
 
   // -----   Timer   --------------------------------------------------------
@@ -32,8 +41,6 @@ void run_rec_cluster(const char* data, const char* suffix)
 
   // -----   Parameter Directories   --------------------------------------------------------
   TString dir = getenv("VMCWORKDIR");
-
-  TString param_dir = dir+"/parameters/";
 
   // -----   Run   --------------------------------------------------------
   FairRunAna *fRun= new FairRunAna();
@@ -47,12 +54,11 @@ void run_rec_cluster(const char* data, const char* suffix)
   parInput1->open(paraFile.Data());
   // rtdb->setOutput(parInput1);
 
-  //
+  // 3. clustering based on adjacency
   KoaRecClusterCollect* clusterCollect = new KoaRecClusterCollect();
-  clusterCollect->SetInputDigiName("KoaRecDigi");
-  clusterCollect->SetOutputClusterName("KoaRecCluster");
+  clusterCollect->SetInputDigiName("RecDigi_ChargeCollection");
+  clusterCollect->SetOutputClusterName("KoaRecCluster_Ideal");
   clusterCollect->SaveOutputCluster(true);
-
   fRun->AddTask(clusterCollect);
 
   fRun->Init();
@@ -64,7 +70,7 @@ void run_rec_cluster(const char* data, const char* suffix)
   rtdb->print();
 
   // -----   Finish   -------------------------------------------------------
-  // delete fRun;
+  delete fRun;
 
   cout << endl << endl;
 

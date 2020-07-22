@@ -9,6 +9,11 @@ class TClonesArray;
 
 using namespace KoaUtility;
 
+/*
+ * Mode of threshold setting
+ */
+enum class ClusterPurificationMode { Absolute, Percentage, Multiple };
+
 /* Filter out clusters which have energy below threshold
  */
 class KoaRecClusterPurification : public FairTask
@@ -49,15 +54,26 @@ public:
   void SaveOutputCluster(bool flag = true) {
     fSaveOutput = flag;
   }
+
+  void SetMode(ClusterPurificationMode mode) {
+    fThreshMode = mode;
+  }
+  void SetThresholdFile(const char* name) {
+    fThreshFile = name;
+  }
+  void SetThreshold(double size) {
+    fThresh = size;
+  }
   void SetPedestalFile(const char* name) {
     fPedestalFileName = name;
   }
   void SetAdcParaFile(const char* name) {
     fAdcParaFile = name;
   }
-  void SetNoiseThreshold(int size) {
-    fThresh = size;
-  }
+
+ private:
+  void PurifyByAbsoluteValue();
+  void PurifyByRelativeValue();
 
 private:
   // Input digit branch name
@@ -72,14 +88,34 @@ private:
   /** Output array to  new data level**/
   TClonesArray* fOutputClusters = nullptr;
 
-  // Adc calibrated paramter: from Adc to Energy (keV)
-  std::string fAdcParaFile = "";
+  // Flag indicates the meaning of threshold setting:
+  // 1. multiples of noise sigma: Multiple
+  // 2. percentil of cluster total energy: Percentage
+  // 3. absolute value of threshold in energy (keV): Absolute
+  ClusterPurificationMode fThreshMode = ClusterPurificationMode::Multiple;
 
+  // In each case, two kinds configurations are possible:
+  // 1. a global setting for all channels
+  // 2. Channel-wise setting from parameter file
+
+  // Adc calibrated paramter: from Adc to Energy (keV)
   // Noise parameter from text file using KoaTextUtility
+  // These files are needed Multiple mode
+  std::string fAdcParaFile = "";
   std::string fPedestalFileName = "";
 
-  // Pedestal noise threshold
-  int fThresh = 5;
+  // Global setting of threshold:
+  // 1. In Multiple mode, fThresh is the multiple of noise sigma
+  // 2. In Percentage mode, fThresh is the percentage of cluster energy
+  // 3. In Absolute mode, fThresh is the energy equivalent of threshold in keV
+  double fThresh = 5;
+
+  // Parameter file containing one column named 'Threshold',
+  // which is the channel-wise setting of thresholds.
+  // The meaning of the thresholds are the same as global setting scenario.
+  std::string fThreshFile = "";
+
+  // An array of final thresholds to be compared directly with data.
   ValueContainer<double> fNoiseThreshold;
 
   KoaRecClusterPurification(const KoaRecClusterPurification&);
