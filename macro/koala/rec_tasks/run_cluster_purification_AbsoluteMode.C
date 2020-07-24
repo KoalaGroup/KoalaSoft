@@ -42,8 +42,6 @@ void run_cluster_purification_AbsoluteMode(const char* data,
   TString dir = getenv("VMCWORKDIR");
 
   TString param_dir = dir+"/parameters/";
-  TString pedestal_file = param_dir + ped_file;
-  TString adcparaFile = param_dir + adcpara_file;
 
   // -----   Run   --------------------------------------------------------
   FairRunAna *fRun= new FairRunAna();

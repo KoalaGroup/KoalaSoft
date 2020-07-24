@@ -111,8 +111,7 @@ InitStatus KoaRecClusterSeedFilter::Init()
         fSeedThreshold = it->second;
       }
       else {
-        auto encoder = KoaMapEncoder::Instance();
-        auto ChIds = encoder->GetRecChIDs();
+        auto ChIds = fEncoder->GetRecChIDs();
         for(auto id: ChIds){
           fSeedThreshold.emplace(id, fThresh);
         }

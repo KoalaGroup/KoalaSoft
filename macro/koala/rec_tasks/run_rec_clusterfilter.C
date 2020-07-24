@@ -32,7 +32,7 @@ void run_rec_clusterfilter(const char* data,
 
   // Output file
   TString outFile = gSystem->BaseName(inFile);
-  outFile = gSystem->ConcatFileName(outDir, outFile.Data());
+  outFile = gSystem->ConcatFileName(outdir, outFile.Data());
   outFile.ReplaceAll(".root", suffix);
 
 

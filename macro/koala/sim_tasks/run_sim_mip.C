@@ -66,8 +66,12 @@ void run_sim_mip(Int_t nEvents = 100, const char* outdir="./",
 
   KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
+  rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
+  KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
+  fwd_det->SetGeometryFileName("fwd.root");
+  run->AddModule(fwd_det);
  // ------------------------------------------------------------------------
 
   // -----   Create PrimaryGenerator   --------------------------------------

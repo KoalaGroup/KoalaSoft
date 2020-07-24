@@ -5,7 +5,11 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_digi_noise(const char* data, const char* para)
+void run_digi_noise(const char* data,
+                    const char* para,
+                    const char* ped_file = "adc_pedestal_20190902_003449.txt",
+                    const char* adcpara_file = "adc_calib_energy.txt"
+                    )
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -23,7 +27,7 @@ void run_digi_noise(const char* data, const char* para)
 
   // Output file
   TString outFile(data);
-  outFile.ReplaceAll("_division.root","_noise.root");
+  outFile.ReplaceAll(".root","_noise.root");
 
 
   // -----   Timer   --------------------------------------------------------
@@ -31,6 +35,10 @@ void run_digi_noise(const char* data, const char* para)
 
   // -----   Reconstruction run   -------------------------------------------
   TString dir = getenv("VMCWORKDIR");
+
+  TString param_dir = dir+"/parameters/";
+  TString pedestal_file = param_dir + ped_file;
+  TString adcparaFile = param_dir + adcpara_file;
 
   FairRunAna *fRun= new FairRunAna();
   FairFileSource *fFileSource = new FairFileSource(inFile);
@@ -59,10 +67,12 @@ void run_digi_noise(const char* data, const char* para)
 
   //
   KoaRecAddNoise* recAddNoise = new KoaRecAddNoise();
-  recAddNoise->SetInputDigiName("RecDigi_ChargeDivision");
+  recAddNoise->SetInputDigiName("RecDigi_ChargeCollection");
   // recAddNoise->SetInputDigiName("KoaRecDigi");
   recAddNoise->SetOutputDigiName("RecDigi_AddNoise");
   recAddNoise->SaveOutputDigi(true);
+  recAddNoise->SetPedestalFile(pedestal_file.Data());
+  recAddNoise->SetAdcParaFile(adcparaFile.Data());
   fRun->AddTask(recAddNoise);
 
   // KoaFwdDigitization* fwdDigiTask = new KoaFwdDigitization();
