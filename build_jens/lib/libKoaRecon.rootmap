@@ -1,0 +1,11 @@
+[ KoaRecon.so ]
+# List of selected classes
+class KoaFwdRecon
+class KoaRecClusterCollect
+class KoaRecClusterSeedFilter
+class KoaRecClusterThresholdFilter
+class KoaRecEnergyRecon
+class KoaRecNoiseFilter
+class KoaRecRearRecon
+class KoaRecTimeShiftCorrect
+class KoaRecTimeWalkCorrect

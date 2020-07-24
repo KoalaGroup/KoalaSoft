@@ -1,0 +1,11 @@
+[ KoaScintFwd.so ]
+# List of selected classes
+class KoaFwd
+class KoaFwdContFact
+class KoaFwdDigi
+class KoaFwdDigitization
+class KoaFwdDigitizationPar
+class KoaFwdGeo
+class KoaFwdGeoPar
+class KoaFwdMisalignPar
+class KoaFwdPoint

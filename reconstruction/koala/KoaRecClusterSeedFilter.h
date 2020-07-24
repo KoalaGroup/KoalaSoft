@@ -17,10 +17,16 @@ using namespace KoaUtility;
  * The digis in the the remaining clusters are pushed into the output TClonesArray
  * for usage in later tasks.
  *
- * Input parameters:
+ * Input parameters in Pedestal mode:
  * 1. Pedestal parameter file
  * 2. Threshold: fThresh*PedSigma + PedMean
+ *
+ * Or use absolute ADC values in Trigger Mode:
+ * 1. cluster seed threshold file for each channel
+ * 2. Threshold: absolute ADC value for all channels
  */
+
+enum class ClusterSeedMode { Trigger, Pedestal};
 
 class KoaRecClusterSeedFilter : public FairTask
 {
@@ -61,8 +67,14 @@ public:
     fSaveOutput = flag;
   }
 
+  void SetMode(ClusterSeedMode mode) {
+    fThreshMode = mode;
+  }
   void SetPedestalFile(const char* name) {
-    fPedestalFileName = name;
+    fPedestalFile = name;
+  }
+  void SetThresholdFile(const char* name) {
+    fThreshFile = name;
   }
   void SetThreshold(double thresh) {
     fThresh = thresh;
@@ -83,10 +95,24 @@ private:
   /** Buffer array for intermediate clustesrs **/
   TClonesArray* fClusters = nullptr;
 
-  // Noise parameter
-  std::string fPedestalFileName = "";
+  ClusterSeedMode fThreshMode = ClusterSeedMode::Trigger;
+
+  // Threshold parameters//
+
+  // In Pedestal mode:
+  //    fPedestalFile is the parameter file of pedestal fitting
+  //    And together, fThresh is the multiple of pdestal noise sigma
+  // In Trigger mode:
+  //    fThreshFile is the absolute ADC value for each channel, typically from
+  //    trigger threshold setting.
+  //    Or alternative, set a global value for all channels using fThresh
+  std::string fPedestalFile = "";
   double fThresh = 3.;
-  ValueContainer<double> fPedThresh;
+
+  std::string fThreshFile = "";
+
+  // The array of final thresholds to be compared directly with data
+  ValueContainer<double> fSeedThreshold;
 
   // Map Encoder
   KoaMapEncoder *fEncoder;

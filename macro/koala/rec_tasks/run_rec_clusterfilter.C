@@ -7,10 +7,12 @@
  ********************************************************************************/
 void run_rec_clusterfilter(const char* data,
                            const char* para,
-                           const char* suffix = "_calib.root",
+                           const char* outdir,
+                           const char* suffix = "_clusterfilter.root",
                            const char* ped_file = "adc_pedestal_20190902_003449.txt",
                            const char* adcpara_file = "adc_calib_energy.txt",
                            const char* tdcpara_file = "tdc_calib_shift.txt",
+                           const char* seedfile = "cluster_seed_threshold.txt",
                            const char* clustersize_file = "cluster_size.txt"
                            )
 {
@@ -29,8 +31,9 @@ void run_rec_clusterfilter(const char* data,
   TString paraFile(para);
 
   // Output file
-  TString outFile = inFile;
-  outFile.ReplaceAll(suffix, "_cluster.root");
+  TString outFile = gSystem->BaseName(inFile);
+  outFile = gSystem->ConcatFileName(outDir, outFile.Data());
+  outFile.ReplaceAll(".root", suffix);
 
 
   // -----   Timer   --------------------------------------------------------
@@ -44,6 +47,7 @@ void run_rec_clusterfilter(const char* data,
   TString adcparaFile = param_dir + adcpara_file;
   TString tdcparaFile = param_dir + tdcpara_file;
   TString clusterSizeFile = param_dir + clustersize_file;
+  TString seed_file = param_dir + seedfile;
 
   // -----   Run   --------------------------------------------------------
   FairRunAna *fRun= new FairRunAna();
@@ -70,8 +74,12 @@ void run_rec_clusterfilter(const char* data,
   KoaRecClusterSeedFilter* seedFilter = new KoaRecClusterSeedFilter();
   seedFilter->SetInputDigiName("RecDigi_NoiseFilter");
   seedFilter->SetOutputDigiName("RecDigi_ClusterSeedFilter");
-  seedFilter->SetPedestalFile(pedestal_file.Data());
-  seedFilter->SetThreshold(3);
+  // seedFilter->SetMode(ClusterSeedMode::Pedestal);
+  // seedFilter->SetPedestalFile(pedestal_file.Data());
+  // seedFilter->SetThreshold(3);
+  seedFilter->SetMode(ClusterSeedMode::Trigger);
+  seedFilter->SetThresholdFile(seed_file.Data());
+  // seedFilter->SetThreshold(130);
   fRun->AddTask(seedFilter);
 
   // 3. correct recoil front channels' time offset for digis with valid timestamp
@@ -113,7 +121,7 @@ void run_rec_clusterfilter(const char* data,
   clusterThresholdFilter->SaveOutputCluster(kTRUE);
   clusterThresholdFilter->SetAdcParaFile(adcparaFile.Data());
   clusterThresholdFilter->SetPedestalFile(pedestal_file.Data());
-  clusterThresholdFilter->SetThreshold(2);
+  clusterThresholdFilter->SetThreshold(5);
   fRun->AddTask(clusterThresholdFilter);
 
   // 8. filter out clusters with number of digis larger than a threshold

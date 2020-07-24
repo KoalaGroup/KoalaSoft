@@ -69,30 +69,57 @@ InitStatus KoaRecClusterSeedFilter::Init()
 
   fClusters = new TClonesArray("KoaRecCluster", 32);
 
-  // Do whatever else is needed at the initilization stage
-  if (fPedestalFileName.empty()) LOG(fatal) << "No pedestal parameters found";
-  auto params = readParameterList<double>(fPedestalFileName);
+  // Read in parameters from threshold file in the file exists
+  switch (fThreshMode) {
+    case ClusterSeedMode::Pedestal: {
+      if (fPedestalFile.empty()) LOG(fatal) << "No pedestal parameters found";
 
-  auto it = findValueContainer(params, "Mean");
-  if ( it == params.end()) {
-    LOG(error) << "No \'Mean\' parameter found in the pedestal file";
-    return kERROR;
-  }
-  auto& means = it->second;
+      auto params = readParameterList<double>(fPedestalFile);
+      auto it = findValueContainer(params, "Mean");
+      if ( it == params.end()) {
+        LOG(error) << "No \'Mean\' parameter found in the pedestal file";
+        return kERROR;
+      }
+      auto& means = it->second;
 
-  it = findValueContainer(params, "Sigma");
-  if ( it == params.end()) {
-    LOG(error) << "No \'Sigma\' parameter found in the pedestal file";
-    return kERROR;
-  }
-  auto& sigmas = it->second;
+      it = findValueContainer(params, "Sigma");
+      if ( it == params.end()) {
+        LOG(error) << "No \'Sigma\' parameter found in the pedestal file";
+        return kERROR;
+      }
+      auto& sigmas = it->second;
 
-  //
-  for(const auto& mean: means) {
-    auto& id = mean.first;
-    auto& mean_value = mean.second;
-    auto& sigma_value = sigmas[id];
-    fPedThresh.emplace(id, mean_value + fThresh*sigma_value);
+      //
+      for(const auto& mean: means) {
+        auto& id = mean.first;
+        auto& mean_value = mean.second;
+        auto& sigma_value = sigmas[id];
+        fSeedThreshold.emplace(id, mean_value + fThresh*sigma_value);
+      }
+      break;
+    }
+    default: {
+      if(!fThreshFile.empty()){
+        LOG(info) << "Threshold setting from " << fThreshFile;
+
+        auto thresh_params = readParameterList<double>(fThreshFile);
+        auto it = findValueContainer(thresh_params, "Threshold");
+        if ( it == thresh_params.end()) {
+          LOG(error) << "No \'Threshold\' parameter found in the threshold parameter file";
+          return kERROR;
+        }
+        fSeedThreshold = it->second;
+      }
+      else {
+        auto encoder = KoaMapEncoder::Instance();
+        auto ChIds = encoder->GetRecChIDs();
+        for(auto id: ChIds){
+          fSeedThreshold.emplace(id, fThresh);
+        }
+      }
+
+      break;
+    }
   }
 
   return kSUCCESS;
@@ -152,7 +179,7 @@ void KoaRecClusterSeedFilter::Exec(Option_t* /*option*/)
     // check whether there is digi above threshold
     bool isValid = false;
     for(Int_t iNrDigi = 0; iNrDigi < fNrDigits; iNrDigi++) {
-      if( energy_ptr[iNrDigi] > fPedThresh[id_ptr[iNrDigi]] ) {
+      if( energy_ptr[iNrDigi] > fSeedThreshold[id_ptr[iNrDigi]] ) {
         isValid = true;
         break;
       }

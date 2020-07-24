@@ -1,4 +1,4 @@
-Name        Id          Size
+Name        Id          Threshold
 Si1_1       0           5 
 Si1_2       1           5 
 Si1_3       2           5 

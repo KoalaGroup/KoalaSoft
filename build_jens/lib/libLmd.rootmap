@@ -1,0 +1,11 @@
+[ Lmd.so ]
+# List of selected classes
+class KoaHybridHitProducer
+class Koaladetector
+class PndLmdAlignPar
+class PndLmdContFact
+class PndLmdDetector
+class PndLmdGeo
+class PndLmdHitProducerIdeal
+class PndLmdHybridHitProducer
+class PndLmdPixelHitProducerFast

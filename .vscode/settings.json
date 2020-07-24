@@ -1,0 +1,12 @@
+{
+    "terminal.integrated.env.linux": {
+        "SIMPATH" : "/home/yong/fairsoft/jun19",
+        "FAIRROOTPATH" : "/home/yong/fairroot/v18_jun19"
+    },
+    "cmake.environment": {
+        "SIMPATH" : "/home/yong/fairsoft/jun19",
+        "FAIRROOTPATH" : "/home/yong/fairroot/v18_jun19"
+    },
+    "cmake.configureOnOpen": true,
+    "C_Cpp.default.configurationProvider": "vector-of-bool.cmake-tools"
+}

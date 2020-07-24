@@ -1,0 +1,12 @@
+[ KoaTools.so ]
+# List of selected classes
+class KoaElasticCalculator
+class KoaGeoHandler
+class KoaMapEncoder
+class KoaMapHandler
+class PndGeoHandling
+class PndSensorNameContFact
+class PndSensorNamePar
+class PndStringSeparator
+# List of selected namespaces
+namespace KoaUtility

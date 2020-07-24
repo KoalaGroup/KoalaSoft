@@ -1,0 +1,5 @@
+#ifndef FAIRROOT_VERSION
+#define FAIRROOT_VERSION "v0.1-161-gbed9693"
+#define FAIRROOT_GIT_DATE "Wed Jul 15 09:18:38 2020 +0200"
+#endif
+

@@ -1,0 +1,24 @@
+[ LmdTrk.so ]
+# List of selected classes
+class KoaBackProp
+class KoaComp
+class KoaEffi
+class KoaGeaneTask
+class KoaIPvis
+class KoaLinFitTask
+class KoaLinTrack
+class KoaPloti
+class KoaTrackFinderTask
+class KoaTrksFilterTask
+class LmdEffi
+class MomentumVi
+class PndLinTrack
+class PndLmdGeaneTask
+class PndLmdIdealFitTask
+class PndLmdLinFitTask
+class PndLmdLineTask
+class PndLmdNoiseTrkSuppressionTask
+class PndLmdSigCleanTask
+class PndLmdTrackFinderCATask
+class PndLmdTrackFinderTask
+class PndLmdTrksFilterTask

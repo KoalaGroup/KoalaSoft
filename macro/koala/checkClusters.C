@@ -18,8 +18,8 @@ void checkClusters(const char* filename,
   //
   double zoffset[4] = {0.}; // in cm
   double yoffset[4] = {0, 0, 0, 0}; // in cm
-  auto Positions = getStripGlobalPosition(geoFile, zoffset);
-  auto Alphas = getStripAlphas(geoFile, yoffset, zoffset);
+  auto Positions = getChannelGlobalPosition(geoFile, zoffset);
+  auto Alphas = getChannelAlphas(geoFile, yoffset, zoffset);
 
   double pedestal_threshold[4]={100, 100, 500, 1000}; // equivalent pedestal energy threshold
 

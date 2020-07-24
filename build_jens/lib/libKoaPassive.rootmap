@@ -1,0 +1,6 @@
+[ KoaPassive.so ]
+# List of selected classes
+class KoaCave
+class KoaGeoCave
+class KoaPassiveContFact
+class KoaPipe

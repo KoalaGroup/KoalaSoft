@@ -1,0 +1,10 @@
+[ KoaGenerator.so ]
+# List of selected classes
+class FairEvtFilter
+class FairEvtFilterParams
+class FairFilteredPrimaryGenerator
+class KoaEvtFilterOnGeometry
+class KoaPPElasticIdealGenerator
+class KoaPpelasticGenerator
+class KoaPpelasticGeneratorImp
+class KoaPythia8Generator
