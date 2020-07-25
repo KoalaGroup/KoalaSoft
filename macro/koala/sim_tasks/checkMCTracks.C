@@ -1,5 +1,7 @@
 #include "KoaColors.h"
+#include "KoaHistUtility.h"
 
+using namespace KoaColors;
 using namespace KoaUtility;
 
 // this macro can only be used for two-body elastic scattering events

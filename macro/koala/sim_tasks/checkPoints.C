@@ -1,258 +1,222 @@
-#include "KoaColors.h"
 #include "KoaHistUtility.h"
 
-using namespace KoaColors;
 using namespace KoaUtility;
 
-// this macro can only be used for two-body elastic scattering events
-void checkAcceptance(const char* primaryFile, // root file from simulation macro, containing MCTrack tree
-                     const char* geoFile = "../calib_para/geo_standard.root") // the detector geometry to be checked
+// void checkPoints(const char* filename)
+// {
+//   TH2D* h2Fwd=new TH2D("h2Fwd","h2Fwd",200,0,70,200,-1.5,1.5);
+//   TH2D* h2Fwd=new TH2D("h2Fwd","h2Fwd",200,0,70,200,-1.5,1.5);
+//   TH2D* h2Rec=new TH2D("h2Rec","h2Rec",600,-20,40,350,-17.5,17.5);
+//   TH2D* h2RecEVsPos = new TH2D("h2RecEVsPos","h2RecEVsPos",400,-10,30,1000,0,70);
+//   TH1D* h1FwdEloss = new TH1D("h1FwdEloss","h1FwdEloss", 1000,-10,90);
+//   TH1D* h1RecEloss = new TH1D("h1RecEloss","h1RecEloss", 1000,0,70);
+//   TH2D* h2lowRec=new TH2D("h2lowRec","h2lowRec",400,-10,30,200,-7.5,7.5);
+
+//   TFile* f = new TFile(filename);
+//   TTree* tree = (TTree*)f->Get("koalasim");
+//   TClonesArray* RecPoints = new TClonesArray("KoaRecPoint");
+//   TClonesArray* FwdPoints = new TClonesArray("KoaFwdPoint");
+//   tree->SetBranchAddress("KoaRecPoint",&RecPoints);
+//   tree->SetBranchAddress("KoaFwdPoint",&FwdPoints);
+
+//   Int_t entries = tree->GetEntries();
+//   for(int id=0;id<entries;id++){
+//     tree->GetEntry(id);
+//     //
+
+//     Int_t recHits = RecPoints->GetEntriesFast();
+//     Int_t fwdHits = FwdPoints->GetEntriesFast();
+//     if(recHits>0){
+//       // std::cout<< "Event No. " << id+1 << std::endl;
+//       // std::cout<< "Interesting! More than 1 hits in RecArm" << std::endl;
+//       for(int i=0;i<recHits;i++){
+//         KoaRecPoint* recpoint = (KoaRecPoint*)RecPoints->At(i);
+//         h2Rec->Fill(recpoint->GetZ(),recpoint->GetY());
+//         h1RecEloss->Fill(recpoint->GetEnergyLoss()*1e3);
+//         h2RecEVsPos->Fill(recpoint->GetZ(), recpoint->GetEnergyLoss()*1e3);
+//         if(recpoint->GetEnergyLoss()<1e-3){
+//           h2lowRec->Fill(recpoint->GetZ(),recpoint->GetY());
+//         }
+//       }
+//       for(int i=0;i<fwdHits;i++){
+//         KoaFwdPoint* fwdpoint = (KoaFwdPoint*)FwdPoints->At(i);
+//         h2Fwd->Fill(fwdpoint->GetX(), fwdpoint->GetY());
+//         h1FwdEloss->Fill(fwdpoint->GetEnergyLoss()*1000);
+//       }
+//     }
+//   }
+
+//   gStyle->SetOptStat(111111);
+//   // TCanvas* cfwd=new TCanvas("cfwd");
+//   // h2Fwd->Draw("colz");
+//   // TCanvas* crec = new TCanvas("crec");
+//   // h2Rec->Draw("colz");
+//   // TCanvas* cfwde = new TCanvas("cfwde");
+//   // h1FwdEloss->Draw();
+//   // TCanvas* crece = new TCanvas("crece");
+//   // h1RecEloss->Draw();
+//   TCanvas* crecevspos=new TCanvas("crecevspos");
+//   h2RecEVsPos->Draw("colz");
+//   // TCanvas* clowEPosDist= new TCanvas("clowEPosDist");
+//   // h2lowRec->Draw("colz");
+//   // output file
+//   TString outfilename(filename);
+//   outfilename.ReplaceAll(".root", "");
+//   outfilename.Append("_result.root");
+//   TFile *fout = new TFile(outfilename.Data(),"update");
+
+//   TDirectory* hdir;
+//   TString dirname("histograms");
+//   if(!(hdir=fout->GetDirectory(dirname.Data())))
+//     hdir = fout->mkdir(dirname.Data());
+//   hdir->cd();
+//   h2Fwd->Write(0,TObject::kOverwrite);
+//   h2Rec->Write(0,TObject::kOverwrite);
+//   h1FwdEloss->Write(0,TObject::kOverwrite);
+//   h1RecEloss->Write(0,TObject::kOverwrite);
+//   h2RecEVsPos->Write(0,TObject::kOverwrite);
+//   h2lowRec->Write(0,TObject::kOverwrite);
+  
+//   delete f;
+//   delete fout;
+// }
+
+// void checkRecSize(const char* filename)
+// {
+//   TH2D* h2Rec=new TH2D("h2Rec","h2Rec",400,-10,30,200,-7.5,7.5);
+//   TH1D* h1Rec=new TH1D("h1Rec","Multiplicity", 10, 0,10);
+//   auto f=new TFile(filename);
+
+//   TTree* tree = (TTree*)f->Get("koalasim");
+//   TClonesArray* RecPoints = new TClonesArray("KoaRecPoint");
+//   tree->SetBranchAddress("KoaRecPoint",&RecPoints);
+
+//   Int_t entries = tree->GetEntries();
+//   for(int id=0;id<entries;id++){
+//     tree->GetEntry(id);
+//     //
+//     Int_t recHits = RecPoints->GetEntriesFast();
+//     h1Rec->Fill(recHits);
+
+//     if(recHits>0){
+//       for(int i=0;i<recHits;i++){
+//         KoaRecPoint* recpoint = (KoaRecPoint*)RecPoints->At(i);
+//         h2Rec->Fill(recpoint->GetZ(),recpoint->GetY());
+//       }
+//     }
+//   }
+
+//   delete f;
+//   gStyle->SetOptStat(111111);
+//   TCanvas* crec = new TCanvas("crec");
+//   h2Rec->Draw("colz");
+//   TCanvas* cmulti = new TCanvas("cmulti");
+//   h1Rec->Draw();
+// }
+
+void checkRecEnergy(const char* filename)
 {
+  auto fin = TFile::Open(filename);
+  TTree* tin; fin->GetObject("koalasim", tin);
+
+  auto recPts = new TClonesArray("KoaRecPoint", 200);
+  tin->SetBranchAddress("KoaRecPoint", &recPts);
+
   //
-  TStopwatch timer;
-  TH1::AddDirectory(false);
+  auto h2map_all = new TH2D("h2_recpoint_EvsZ",
+                            "Recoil MC Points (All): Energy vs Z;MeV;mm",
+                            260, -10, 250,
+                            7100, -1, 70);
 
-  using PointArray = std::vector<TVector3>;
+  auto h2map_single = new TH2D("h2_recpoint_EvsZ_single",
+                               "Recoil MC Points (Single Point): Energy vs Z;MeV;mm",
+                               260, -10, 250,
+                               7100, -1, 70);
 
-  // setup color scheme
-  init_KoaColors();
-  set_KoaPalette_Sunset(100);
+  auto h2map_multi = new TH2D("h2_recpoint_EvsZ_multi",
+                               "Recoil MC Points (Mulit-Points): Energy vs Z;MeV;mm",
+                               260, -10, 250,
+                               7100, -1, 70);
 
-  // book histograms
-  // rec
-  Int_t nXbinRec = 350;
-  Double_t xLowRec = -5, xHighRec = 30; // in cm
-  Int_t nYbinRec = 200;
-  Double_t yLowRec = -10, yHighRec = 10; // in cm
+  //
+  auto entries = tin->GetEntries();
+  std::cout<< "Entries: " << entries << std::endl;
+  for(auto entry=0; entry < entries; entry++) {
+    tin->GetEntry(entry);
 
-  TH2D* h2rec_acceptance = new TH2D("h2_Rec_Acceptance", "Recoil Detector Acceptance;Z (cm);Y (cm)",
-                                    nXbinRec, xLowRec, xHighRec,
-                                    nYbinRec, yLowRec, yHighRec);
-  TH2D* h2rec_hitmap = new TH2D("h2_Rec_Hitmap", "Recoil Detector Hitmap; Z(cm);Y (cm)",
-                                nXbinRec, xLowRec, xHighRec,
-                                nYbinRec, yLowRec, yHighRec);
+    auto points = recPts->GetEntries();
+    for(int pt=0; pt < points; pt++) {
+      KoaRecPoint* point = static_cast<KoaRecPoint*>(recPts->At(pt));
+      h2map_all->Fill(10*point->GetZ(), point->GetEnergyLoss()*1000.);
 
-  // fwd
-  Int_t nXbinFwd = 1400;
-  Double_t xLowFwd = 0, xHighFwd = 14; // in cm
-  Int_t nYbinFwd = 300;
-  Double_t yLowFwd = -1.5, yHighFwd = 1.5; // in cm
-
-  TH2D* h2fwd_acceptance_1 = new TH2D("h2_Fwd_Acceptance_1", "Fwd_1 Detector Acceptance;X (cm);Y (cm)",
-                                      nXbinFwd, xLowFwd, xHighFwd,
-                                      nYbinFwd, yLowFwd, yHighFwd);
-  TH2D* h2fwd_acceptance_2 = new TH2D("h2_Fwd_Acceptance_2", "Fwd_2 Detector Acceptance;X (cm);Y (cm)",
-                                      nXbinFwd, xLowFwd, xHighFwd,
-                                      nYbinFwd, yLowFwd, yHighFwd);
-  TH2D* h2fwd_hitmap_1 = new TH2D("h2_Fwd_Hitmap_1", "Fwd_1 Detector Hitmap;X (cm);Y (cm)",
-                                  nXbinFwd, xLowFwd, xHighFwd,
-                                  nYbinFwd, yLowFwd, yHighFwd);
-  TH2D* h2fwd_hitmap_2 = new TH2D("h2_Fwd_Hitmap_2", "Fwd_2 Detector Hitmap;X (cm);Y (cm)",
-                                  nXbinFwd, xLowFwd, xHighFwd,
-                                  nYbinFwd, yLowFwd, yHighFwd);
-
-  // vertex
-  TH2D* h2vertex_xy = new TH2D("h2vertex_xy", "Primary Vertex;X(mm);Y(mm)",20,-10,10, 20,-10,10);
-  TH1D* h1vertex_z = new TH1D("h1vertex_z", "Primary Vertex;Z(mm)",40,-2,2);
-
-  // get the boundaryPoints
-  auto fgeo = TFile::Open(geoFile);
-  TGeoManager* geoMan=(TGeoManager*)fgeo->Get("FAIRGeom");
-  auto geoHandler = new KoaGeoHandler(kFALSE);
-  KoaMapEncoder* encoder = KoaMapEncoder::Instance();
-
-  // rec
-  Double_t rec_distance = geoHandler->GetDetPositionById(0);
-
-  Int_t RecIdRange[2];
-  encoder->GetRecDetIDRange(RecIdRange[0], RecIdRange[1]);
-
-  std::vector<TCutG> rec_cutg;
-  for(auto sensor : ROOT::TSeqI(RecIdRange[0],RecIdRange[1]+1)){
-    TString volName = encoder->DetectorIDToVolName(sensor);
-    volName.ReplaceAll("Sensor", "");
-
-    auto cutg = rec_cutg.emplace(rec_cutg.end(), Form("rec_cutg_%s", volName.Data()));
-    cutg->SetLineWidth(2);
-    cutg->SetLineColor(kRed);
-    auto rec_boundaries = geoHandler->GetDetBoundaryPointsById(sensor);
-    for ( auto point=0; point < 4; point++ ) {
-      cutg->SetPoint(point, rec_boundaries[point].z(), rec_boundaries[point].y());
-    }
-    cutg->SetPoint(4, rec_boundaries[0].z(), rec_boundaries[0].y());
-  }
-
-  // fwd
-  Int_t FwdIdRange[2];
-  encoder->GetFwdDetIDRange(FwdIdRange[0], FwdIdRange[1]);
-  FwdIdRange[1] = FwdIdRange[0]+1; // now FwdIdRange represent the two fwd scintillators we're interested
-
-  Double_t fwd_distance_1 = geoHandler->GetDetPositionById(FwdIdRange[0]);
-  Double_t fwd_distance_2 = geoHandler->GetDetPositionById(FwdIdRange[1]);
-
-  PointArray fwd_boundaries_1 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[0]);
-  PointArray fwd_boundaries_2 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[1]);
-
-  TCutG fwd_cutg_1("fwd_cutg_1"); fwd_cutg_1.SetLineWidth(2); fwd_cutg_1.SetLineColor(kRed);
-  TCutG fwd_cutg_2("fwd_cutg_2"); fwd_cutg_2.SetLineWidth(2); fwd_cutg_2.SetLineColor(kRed);
-  for( auto point=0; point < 4; point++ ) {
-    fwd_cutg_1.SetPoint(point, fwd_boundaries_1[point].x(), fwd_boundaries_1[point].y());
-    fwd_cutg_2.SetPoint(point, fwd_boundaries_2[point].x(), fwd_boundaries_2[point].y());
-  }
-  fwd_cutg_1.SetPoint(4, fwd_boundaries_1[0].x(), fwd_boundaries_1[0].y());
-  fwd_cutg_2.SetPoint(4, fwd_boundaries_2[0].x(), fwd_boundaries_2[0].y());
-
-  // input
-  TFile* fPrimary = new TFile(primaryFile);
-  TTree* tPrimary = (TTree*)fPrimary->Get("koalasim");
-  TClonesArray *MCTracks  = new TClonesArray("KoaMCTrack",10);
-  tPrimary->SetBranchAddress("MCTrack", &MCTracks);
-
-  Long64_t entries = tPrimary->GetEntriesFast();
-  for( auto entry=0; entry < entries; entry++ ) {
-    tPrimary->GetEntry(entry);
-
-    // pick out beam and recoil particle
-    Int_t ntracks = MCTracks->GetEntries();
-    std::vector<Int_t> indexes;
-    Int_t beam_index;
-    Double_t maxPz = 0;
-    for( auto track=0; track < ntracks; track++ ) {
-      KoaMCTrack* MCTrack = (KoaMCTrack*)MCTracks->At(track);
-      if( MCTrack->GetMotherId() == -1 ) {
-        auto Pz = MCTrack->GetPz();
-        if( Pz > maxPz ) {
-          maxPz = Pz;
-          beam_index = track;
-        }
-        indexes.emplace_back(track);
+      if(points == 1) {
+        h2map_single->Fill(10*point->GetZ(), point->GetEnergyLoss()*1000.);
+      }
+      else{
+        h2map_multi->Fill(10*point->GetZ(), point->GetEnergyLoss()*1000.);
       }
     }
-
-    if ( indexes.size() !=2 ) {
-      std::cout << "The macro is only useful for two-body elastic scattering " << std::endl;
-      break;
-    }
-
-    KoaMCTrack* recoilParticle = nullptr;
-    KoaMCTrack* beamParticle = nullptr;
-    if( indexes[0] == beam_index ) {
-      beamParticle = (KoaMCTrack*)MCTracks->At(indexes[0]);
-      recoilParticle = (KoaMCTrack*)MCTracks->At(indexes[1]);
-    }
-    else {
-      recoilParticle = (KoaMCTrack*)MCTracks->At(indexes[0]);
-      beamParticle = (KoaMCTrack*)MCTracks->At(indexes[1]);
-    }
-
-    // calculate the hit position 
-    // rec
-    Double_t recoil_ratio = rec_distance*recoilParticle->GetPx();
-    if( recoil_ratio < 0 ) {
-      std::cout << "Error: incorrect recoil particle picked!" << std::endl;
-      break;
-    }
-
-    recoil_ratio = (rec_distance-recoilParticle->GetStartX())/recoilParticle->GetPx();
-    Double_t recoil_hit_y = recoil_ratio * recoilParticle->GetPy() + recoilParticle->GetStartY();
-    Double_t recoil_hit_z = recoil_ratio * recoilParticle->GetPz() + recoilParticle->GetStartZ();
-
-    // fwd
-    Double_t fwd_ratio_1 = fwd_distance_1*beamParticle->GetPz();
-    Double_t fwd_ratio_2 = fwd_distance_2*beamParticle->GetPz();
-    if( fwd_ratio_1 < 0 || fwd_ratio_2 < 0 ) {
-      std::cout << "Error: incorrect beam particle picked!" << std::endl;
-      break;
-    }
-
-    fwd_ratio_1 = (fwd_distance_1-beamParticle->GetStartZ())/beamParticle->GetPz();
-    fwd_ratio_2 = (fwd_distance_2-beamParticle->GetStartZ())/beamParticle->GetPz();
-    Double_t fwd_hit_x_1 = fwd_ratio_1 * beamParticle->GetPx() + beamParticle->GetStartX();
-    Double_t fwd_hit_y_1 = fwd_ratio_1 * beamParticle->GetPy() + beamParticle->GetStartY();
-    Double_t fwd_hit_x_2 = fwd_ratio_2 * beamParticle->GetPx() + beamParticle->GetStartX();
-    Double_t fwd_hit_y_2 = fwd_ratio_2 * beamParticle->GetPy() + beamParticle->GetStartY();
-
-    // checking whether the hits are in acceptance and fill the histograms
-    // rec
-    for( auto cutg : rec_cutg ) {
-      if ( cutg.IsInside(recoil_hit_z, recoil_hit_y) ) {
-        h2fwd_acceptance_1->Fill(fwd_hit_x_1, fwd_hit_y_1);
-        h2fwd_acceptance_2->Fill(fwd_hit_x_2, fwd_hit_y_2);
-
-        h2rec_hitmap->Fill(recoil_hit_z, recoil_hit_y);
-        break;
-      }
-    }
-
-    // fwd
-    if ( fwd_cutg_1.IsInside(fwd_hit_x_1, fwd_hit_y_1) ) {
-      h2fwd_hitmap_1->Fill(fwd_hit_x_1, fwd_hit_y_1);
-      if( fwd_cutg_2.IsInside(fwd_hit_x_2, fwd_hit_y_2) ) {
-        h2rec_acceptance->Fill(recoil_hit_z, recoil_hit_y);
-      }
-    }
-
-    if ( fwd_cutg_2.IsInside(fwd_hit_x_2, fwd_hit_y_2) ) {
-      h2fwd_hitmap_2->Fill(fwd_hit_x_2, fwd_hit_y_2);
-    }
-
-    // vertex
-    h2vertex_xy->Fill(beamParticle->GetStartX()*10, beamParticle->GetStartY()*10);
-    h1vertex_z->Fill(beamParticle->GetStartZ()*10);
   }
 
-  // drawing and output
-  // output 
-  TString outFile(primaryFile);
-  outFile.ReplaceAll(".root", "_acceptance.root");
-  TString pdfFile(primaryFile);
-  pdfFile.ReplaceAll(".root", "_acceptance.pdf");
+  auto c = new TCanvas();
+  c->Divide(1,3);
+  c->cd(1);
+  h2map_all->Draw("colz");
+  c->cd(2);
+  h2map_single->Draw("colz");
+  c->cd(3);
+  h2map_multi->Draw("colz");
+}
+
+void checkRecPointSize(const char* filename)
+{
+  auto fin = TFile::Open(filename);
+  TTree* tin; fin->GetObject("koalasim", tin);
+
+  auto recPts = new TClonesArray("KoaRecPoint", 200);
+  tin->SetBranchAddress("KoaRecPoint", &recPts);
 
   //
-  TCanvas* canpdf = new TCanvas("canpdf");
-  canpdf->Print(pdfFile+"[");
+  auto h1 = new TH1D("h1_recpoint_size", "Size of Recoil MCPoints", 8, -1.5, 6.5);
 
-  // rec
-  h2rec_acceptance->Draw("colz");
-  for( auto& cutg: rec_cutg ) {
-    cutg.Draw("same");
+  //
+  auto entries = tin->GetEntries();
+  std::cout<< "Entries: " << entries << std::endl;
+  for(auto entry=0; entry < entries; entry++) {
+    tin->GetEntry(entry);
+
+    auto points = recPts->GetEntries();
+    h1->Fill(points);
   }
-  canpdf->Print(pdfFile);
 
-  // fwd
-  h2fwd_acceptance_1->Draw("colz");
-  fwd_cutg_1.Draw("same");
-  canpdf->Print(pdfFile);
+  h1->Scale(1/h1->Integral());
+  h1->Draw("text0");
+}
 
-  h2fwd_acceptance_2->Draw("colz");
-  fwd_cutg_2.Draw("same");
-  canpdf->Print(pdfFile);
+void checkRecPointTrackId(const char* filename)
+{
+  auto fin = TFile::Open(filename);
+  TTree* tin; fin->GetObject("koalasim", tin);
 
-  canpdf->Print(pdfFile+"]");
+  auto recPts = new TClonesArray("KoaRecPoint", 200);
+  tin->SetBranchAddress("KoaRecPoint", &recPts);
 
   //
-  TFile* fOutput = new TFile(outFile, "recreate");
-  h2rec_acceptance->Write(0,TObject::kOverwrite);
-  h2rec_hitmap->Write(0,TObject::kOverwrite);
-  h2fwd_acceptance_1->Write(0,TObject::kOverwrite);
-  h2fwd_acceptance_2->Write(0,TObject::kOverwrite);
-  h2fwd_hitmap_1->Write(0,TObject::kOverwrite);
-  h2fwd_hitmap_2->Write(0,TObject::kOverwrite);
-  h2vertex_xy->Write(0,TObject::kOverwrite);
-  h1vertex_z->Write(0,TObject::kOverwrite);
+  auto h1 = new TH1D("h1_recpoint_trackid", "Track IDs of Recoil MCPoints", 8, -1.5, 6.5);
 
-  for( auto cutg : rec_cutg ) {
-    cutg.Write(0, TObject::kOverwrite);
+  //
+  auto entries = tin->GetEntries();
+  std::cout<< "Entries: " << entries << std::endl;
+  for(auto entry=0; entry < entries; entry++) {
+    tin->GetEntry(entry);
+
+    auto points = recPts->GetEntries();
+    for(int pt=0; pt < points; pt++) {
+      auto* point = static_cast<KoaRecPoint*>(recPts->At(pt));
+      h1->Fill(point->GetTrackID());
+    }
   }
-  fwd_cutg_1.Write(0, TObject::kOverwrite);
-  fwd_cutg_2.Write(0, TObject::kOverwrite);
 
-  // cleanning
-  delete fgeo;
-  delete fPrimary;
-  delete fOutput;
-
-  //
-  timer.Stop();
-  timer.Print();
+  h1->Scale(1/h1->Integral());
+  h1->Draw("text0");
 }

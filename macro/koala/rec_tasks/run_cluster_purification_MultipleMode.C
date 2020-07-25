@@ -9,7 +9,7 @@ void run_cluster_purification_MultipleMode(const char* data,
                                            const char* para,
                                            int threshold = 7,
                                            std::string thresh_file = "",
-                                           const char* suffix = "_cluster_purification_multple.root",
+                                           const char* suffix = "_cluster_purification_multiple.root",
                                            const char* ped_file = "adc_pedestal_20190902_003449.txt",
                                            const char* adcpara_file = "adc_calib_energy.txt"
                               )
