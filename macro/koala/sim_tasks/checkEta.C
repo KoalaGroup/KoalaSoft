@@ -36,6 +36,21 @@ void checkEta(const char* point_file,
                                                                102, -0.01, 1.01,
                                                                102, -0.01, 1.01,
                                                                true);
+  // out parameters
+  ParameterList<double> outParamters;
+  auto& totalHits = addValueContainer(outParamters, "TotalHit");
+  auto& singleHits = addValueContainer(outParamters, "SingleHit");
+  auto& multiHits = addValueContainer(outParamters, "MultiHit");
+  auto& singleFractions = addValueContainer(outParamters, "SingleHit(%)");
+
+  auto encoder = KoaMapEncoder::Instance();
+  auto ChIDs = encoder->GetRecChIDs();
+  for(auto id: ChIDs){
+    totalHits[id] = 0;
+    singleHits[id] = 0;
+    multiHits[id] = 0;
+  }
+
   // looping
   auto entries = tin->GetEntries();
   for(auto entry=0; entry < entries; entry++) {
@@ -71,6 +86,8 @@ void checkEta(const char* point_file,
         continue;
       }
 
+      totalHits[chID_in] += 1;
+
       Double_t point_start = local_in[2];
       Double_t point_stop  = local_out[2];
 
@@ -81,10 +98,14 @@ void checkEta(const char* point_file,
       if(chID_out == chID_in){
         h2map_percentage[chID_in].Fill((point_start - point_low)*10, 1);
         h2map_percentage_relative_position[chID_in].Fill((point_start - point_low)/(point_high - point_low), 1);
+
+        singleHits[chID_in] += 1;
       }
       else{
         h2map_percentage[chID_in].Fill((point_start - point_low)*10, (point_high - point_start)/track_len);
         h2map_percentage_relative_position[chID_in].Fill((point_start - point_low)/(point_high - point_low), (point_high - point_start)/track_len);
+
+        multiHits[chID_in] += 1;
       }
     }
   }
@@ -108,6 +129,13 @@ void checkEta(const char* point_file,
 
   pdfFileName.ReplaceAll(".pdf", "_relative_position.pdf");
   printHistos<TH2D>(h2map_percentage_relative_position, pdfFileName.Data());
+
+  // parameters
+  TString textFileName(point_file);
+  textFileName.ReplaceAll(".root", "_singleHits_multiHits_counts.txt");
+
+  calcValueContainer<double, std::divides>(singleHits, totalHits, singleFractions);
+  printValueList(outParamters, textFileName.Data());
 
   //
   delete geoHandler;
