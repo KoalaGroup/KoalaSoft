@@ -2,6 +2,7 @@
 #include "KoaGeometryUtility.h"
 
 using namespace KoaUtility;
+using namespace std;
 
 void checkEta(const char* point_file,
               const char* geoFile = "geo_standard.root"
@@ -18,36 +19,57 @@ void checkEta(const char* point_file,
   tin->SetBranchAddress("KoaRecPoint", &recPts);
 
   // book histograms
-  TString hname_percentage = "eta_percentage";
-  TString htitle_percentage = "MCPoint: FirstHit Energy Fraction VS Hit Position in FirstHit Channel";
-  TString hdir_percentage = "mcpoint_eta_percentage";
+  string hname = "eta_percentage";
+  string htitle = "MCPoint: Fraction of FirstHit Channel VS Impact Position";
+  string hdir = "mcpoint_eta_percentage";
 
-  auto h2map_percentage = bookH2dByChannelId(hname_percentage.Data(),
-                                             htitle_percentage.Data(),
-                                             100, -0.1, 4.9,
-                                             102, -0.01, 1.01,
-                                             true);
-  TString hname_percentage_relative_position = "eta_percentage_relative_position";
-  TString htitle_percentage_relative_position = "MCPoint: FirstHit Energy Fraction VS Relative Hit Position in FirstHit Channel";
-  TString hdir_percentage_relative_position = "mcpoint_eta_percentage_relative_position";
+  auto h2map_all = bookH2dByChannelId(hname.data(),
+                                      htitle.data(),
+                                      100, -0.1, 4.9,
+                                      102, -0.01, 1.01,
+                                      true);
+  auto h2map_single = bookH2dByChannelId((hname+"_single").data(),
+                                         (htitle+" (SingleHit)").data(),
+                                         100, -0.1, 4.9,
+                                         102, -0.01, 1.01,
+                                         true);
+  auto h2map_double = bookH2dByChannelId((hname+"_double").data(),
+                                         (htitle+" (DoubleHit)").data(),
+                                         100, -0.1, 4.9,
+                                         102, -0.01, 1.01,
+                                         true);
+  auto h2map_multi = bookH2dByChannelId((hname+"_multi").data(),
+                                        (htitle+" (MultiHit)").data(),
+                                        100, -0.1, 4.9,
+                                        102, -0.01, 1.01,
+                                        true);
 
-  auto h2map_percentage_relative_position = bookH2dByChannelId(hname_percentage_relative_position.Data(),
-                                                               htitle_percentage_relative_position.Data(),
-                                                               102, -0.01, 1.01,
-                                                               102, -0.01, 1.01,
-                                                               true);
+  // TString hname_percentage_relative_position = "eta_percentage_relative_position";
+  // TString htitle_percentage_relative_position = "MCPoint: FirstHit Energy Fraction VS Relative Hit Position in FirstHit Channel";
+  // TString hdir_percentage_relative_position = "mcpoint_eta_percentage_relative_position";
+
+  // auto h2map_relative_position = bookH2dByChannelId(hname_percentage_relative_position.Data(),
+  //                                                              htitle_percentage_relative_position.Data(),
+  //                                                              102, -0.01, 1.01,
+  //                                                              102, -0.01, 1.01,
+  //                                                              true);
+
   // out parameters
   ParameterList<double> outParamters;
   auto& totalHits = addValueContainer(outParamters, "TotalHit");
   auto& singleHits = addValueContainer(outParamters, "SingleHit");
+  auto& doubleHits = addValueContainer(outParamters, "DoubleHit");
   auto& multiHits = addValueContainer(outParamters, "MultiHit");
   auto& singleFractions = addValueContainer(outParamters, "SingleHit(%)");
+  auto& doubleFractions = addValueContainer(outParamters, "DoubleHit(%)");
+  auto& multiFractions = addValueContainer(outParamters, "MultiHit(%)");
 
   auto encoder = KoaMapEncoder::Instance();
   auto ChIDs = encoder->GetRecChIDs();
   for(auto id: ChIDs){
     totalHits[id] = 0;
     singleHits[id] = 0;
+    doubleHits[id] = 0;
     multiHits[id] = 0;
   }
 
@@ -90,20 +112,33 @@ void checkEta(const char* point_file,
 
       Double_t point_start = local_in[2];
       Double_t point_stop  = local_out[2];
+      Int_t step = chID_out - chID_in + 1;
 
       Double_t point_low,point_high;
       geoHandler->RecDetChToPosition(chID_in, point_low, point_high);
       Double_t track_len = point_stop - point_start;
 
       if(chID_out == chID_in){
-        h2map_percentage[chID_in].Fill((point_start - point_low)*10, 1);
-        h2map_percentage_relative_position[chID_in].Fill((point_start - point_low)/(point_high - point_low), 1);
+        h2map_all[chID_in].Fill((point_start - point_low)*10, 1);
+        // h2map_relative_position[chID_in].Fill((point_start - point_low)/(point_high - point_low), 1);
+
+        h2map_single[chID_in].Fill((point_start - point_low)*10, 1);
 
         singleHits[chID_in] += 1;
       }
+      else if(step == 2){
+        h2map_all[chID_in].Fill((point_start - point_low)*10, (point_high - point_start)/track_len);
+        // h2map_relative_position[chID_in].Fill((point_start - point_low)/(point_high - point_low), 1);
+
+        h2map_double[chID_in].Fill((point_start - point_low)*10, (point_high - point_start)/track_len);
+
+        doubleHits[chID_in] += 1;
+      }
       else{
-        h2map_percentage[chID_in].Fill((point_start - point_low)*10, (point_high - point_start)/track_len);
-        h2map_percentage_relative_position[chID_in].Fill((point_start - point_low)/(point_high - point_low), (point_high - point_start)/track_len);
+        h2map_all[chID_in].Fill((point_start - point_low)*10, (point_high - point_start)/track_len);
+        // h2map_relative_position[chID_in].Fill((point_start - point_low)/(point_high - point_low), (point_high - point_start)/track_len);
+
+        h2map_multi[chID_in].Fill((point_start - point_low)*10, (point_high - point_start)/track_len);
 
         multiHits[chID_in] += 1;
       }
@@ -116,25 +151,30 @@ void checkEta(const char* point_file,
   outfilename.ReplaceAll(".root","_result.root");
   TFile *fout = new TFile(outfilename.Data(), "update");
 
-  TDirectory* hdir = nullptr;
-  hdir = getDirectory(fout, hdir_percentage.Data());
-  writeHistos(hdir, h2map_percentage);
+  TDirectory* hDirectory = nullptr;
+  hDirectory = getDirectory(fout, hdir.data());
+  writeHistos(hDirectory, h2map_all);
+  writeHistos(hDirectory, h2map_single);
+  writeHistos(hDirectory, h2map_double);
+  writeHistos(hDirectory, h2map_multi);
 
-  hdir = getDirectory(fout, hdir_percentage_relative_position.Data());
-  writeHistos(hdir, h2map_percentage_relative_position);
+  // hdir = getDirectory(fout, hdir_percentage_relative_position.Data());
+  // writeHistos(hdir, h2map_relative_position);
 
   TString pdfFileName(point_file);
   pdfFileName.ReplaceAll(".root", "_eta.pdf");
-  printHistos<TH2D>(h2map_percentage, pdfFileName.Data());
+  printHistos<TH2D>(h2map_all, pdfFileName.Data());
 
-  pdfFileName.ReplaceAll(".pdf", "_relative_position.pdf");
-  printHistos<TH2D>(h2map_percentage_relative_position, pdfFileName.Data());
+  // pdfFileName.ReplaceAll(".pdf", "_relative_position.pdf");
+  // printHistos<TH2D>(h2map_relative_position, pdfFileName.Data());
 
   // parameters
   TString textFileName(point_file);
   textFileName.ReplaceAll(".root", "_singleHits_multiHits_counts.txt");
 
   calcValueContainer<double, std::divides>(singleHits, totalHits, singleFractions);
+  calcValueContainer<double, std::divides>(doubleHits, totalHits, doubleFractions);
+  calcValueContainer<double, std::divides>(multiHits, totalHits, multiFractions);
   printValueList(outParamters, textFileName.Data());
 
   //
