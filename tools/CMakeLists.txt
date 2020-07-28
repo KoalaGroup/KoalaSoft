@@ -43,6 +43,9 @@ Set(DEPENDENCIES
   Geom
   Core
   KoaData
+  Physics
+  Hist
+  KoaData
 )
 
 GENERATE_LIBRARY()
