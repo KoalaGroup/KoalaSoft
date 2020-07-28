@@ -1,0 +1,376 @@
+{
+  "general": {   
+    "navigation_paths":
+    [
+      {"name": "koala_root", "is_alignable": true},
+      {"name": "half", "is_alignable": true},
+      {"name": "plane", "is_alignable": true},
+      {"name": "module", "is_alignable": true},
+      {"name": "sensor", "is_alignable": true},
+      {"name": "LumActivePixelRect", "is_alignable": false}
+    ],
+    
+	"pipe_bend_start_position_z": 1.0,
+	"pipe_bend_radius": 5700.1,
+	"pipe_bend_segment_phi": 40e-3,
+	
+	"modules_per_half_plane": 5,
+	"sensors_per_module_side": 5,
+	"offset_second_row_sensors_x": 0.0,
+	"rotation_second_row_sensors_z": 0.0,
+	"relative_module_distance_z": 0.5,
+	"upstream_beampipe_connection_z_position": 472.54,
+	"first_plane_position_z": 520,
+	"plane_z_positions": [0.0, 20.0, 30.0, 40.0]
+  },
+
+  "vacuum_box": {
+      "dimension_x": 44.0,
+      "dimension_x_sec": 64.892,
+	"dimension_y": 60.0,
+	"dimension_z": 88.0,
+	"wall_thickness": 1.0,
+	"zplane_reinforcement_rib": {
+	  "inner_distance_to_box_front_plate": 20.25,
+	  "thickness": 1.0
+	},
+	"horizontal_detector_half_clash_plates" : {
+	  "comment": "regarding length (z-dim): the plates span the whole sensor chamber",
+	  "thickness": 1.0,
+	  "width": 9.0,
+	  "position_y": 0.0
+	}
+  },
+  
+  "beam_pipe": {
+	"entrance_pipe": {
+	  "inner_radius": 7.5, 
+	  "thickness": 0.2,
+	  "length": 15.13
+	},
+      "exit_pipe": {
+	  "inner_radius": 4.4,
+	  "thickness": 0.5,
+	  "length": 12.0,
+	  "flange_outer_radius": 7.0,
+	  "flange_thickness": 4.0
+	}
+  },
+    "Koala_pos":{
+       "Koala_placement" : 5.5,
+	"Koala_height" : 0
+   },
+    
+    "sensors": {
+	"dimension_x": 7.68,
+	"dimension_y": 5.0,
+	"offset_x": 0.0,
+	"offset_y": 0.0,
+	"sensor_placement": 90.0,
+	"active_part": {
+	    "dimension_x": 7.68,
+	    "dimension_y": 4.96,
+	    "offset_x": 0.0,
+	    "offset_y": 0.0
+	},
+	"thickness": 0.1
+    },
+    "sensors_vert": {
+	"dimension_x": 7.68,
+	"dimension_y": 5.0,
+	"offset_x": 0.0,
+	"offset_y": 0.0,
+	"upper_sensor_y": 0.0,
+	"lower_sensor_y": 0.0,
+	"upper_sensor_z": 0.0,
+	"lower_sensor_z": 0.0,
+	"sensor_placement": 90.0,
+	"active_part": {
+	    "dimension_x": 7.68,
+	    "dimension_y": 4.96,
+	    "offset_x": 0.0,
+	    "offset_y": 0.0
+	},
+	 "thickness": 0.1
+    },
+    "sensors_ger": {
+	"dimension_xger": 8.04,
+	"dimension_yger": 5.0,
+	"offset_xger": 0.0,
+	"offset_yger": 0.0,
+	"upper_sensor_y": 0.0,
+	"lower_sensor_y": 0.0,
+	"upper_sensor_z": 0.0,
+	"lower_sensor_z": 0.0,
+	"sensor_placement": 90.0,
+	"active_partger": {
+	    "dimension_xger": 8.04,
+	    "dimension_yger": 4.96,
+	    "offset_xger": 0.0,
+	    "offset_yger": 0.0
+	},
+	"thicknessger": 0.5,
+	"thicknessger2": 1.1
+    },
+    
+    
+    "koalabase_box": {
+	"dimension_x": 2.2,
+	"dimension_y": 30.8,
+	"dimension_z": 46.4,
+	"hole_distance": 9.373
+    },
+    "koala_beam_hole": {
+	"entrance_piece": {
+	    "inner_radius": 7.11, 
+	    "outer_radius": 7.8,
+	    "inner_length": 7.48,
+	    "outer_length": 3.03
+	    
+	},
+	"exit_piece":{ 
+	    "outer_radius": 12.65,
+	    "outer_length": 2.25
+	}
+    },
+    
+    "koalastandbox":{
+	"dimension_x": 7.8,
+	"dimension_y": 52.2,
+	"dimension_z": 30.4,
+	"dimension_x_inner": 4.0,
+	"dimension_y_inner": 51.0,
+	"dimension_z_inner": 28.0,
+	"hole_distance": 0.0
+    },
+    
+    "koalastandpipe":{
+	"inner_radius": 10.0, 
+	"thickness": 3.85,
+	"length": 13.5
+	
+    },
+    
+    "koalachamber_ent":{
+	"ring": {
+	    "inner_radius": 10.15, 
+	    "outer_radius": 11.1,
+	    "length": 0.2
+	    
+	},
+	"entrance_pipe": {
+	    "inner_radius": 10.0, 
+	    "outer_radius": 12.65,
+	    "length": 2.25
+	    
+	},
+
+	"cone_tube": {
+	    "inner_radius": 3.3, 
+	    "thickness": 0.2,
+	    "length": 20.0
+	    
+	},
+	"cone_tube_cap": {
+	    "radius":5.6 ,
+	    "length":1.7
+	    
+	},
+	"cone_entrance": {
+	    "inner_radius": 10.0, 
+	    "outer_radius": 10.25,
+	    "length": 1.769
+	    
+	},
+	
+	"cone_exit": {
+	    "inner_radius": 12.65, 
+	    "outer_radius": 12.92,
+	    "length": 1.769
+	    
+	},
+	"cone": {
+	    "angle_in_rad": 6.28,
+	    "thickness": 0.25,
+	    "length": 8.0328
+	    
+	}
+    },
+    "koalachamber":{
+	"chamber_entrance": {
+	    "inner_radius": 12.915, 
+	    "outer_radius": 20.5,
+	    "length": 1.44,
+	    "position_hole": 5.65
+	    
+	},
+	"chamber_cone": {
+	    "inner_radius_ent": 12.915, 
+	    "outer_radius_ent": 20.05,
+	    "inner_radius_exit": 12.65, 
+	    "outer_radius_exit": 19.45,
+	    "length": 1.1
+	    
+	},
+	"chamber": {
+	    "inner_radius": 20.00, 
+	    "outer_radius": 20.50,
+	    "length": 52.70
+	    
+	},
+	"chamber_tube": {
+	    "inner_radius": 5.15, 
+	    "outer_radius": 5.355,
+	    "length": 8.15,
+	    "hole_position": 7.0
+	    
+	},
+	"chamber_tube_end": { 
+	    "radius": 5.5,
+	    "thickness": 1.0
+	    
+	},
+	"chamber_end": {
+	    "inner_plate_radius": 20.20,
+	    "middle_plate_radius": 21.68, 
+	    "outer_plate_radius": 24.575,
+	    "inner_plate_length": 0.34,
+	    "middle_plate_length": 0.175,
+	    "outer_plate_length": 2.57
+	    
+	}
+	
+    },
+    "koala_inner_chamber":{
+	"chamber1": {
+	    "inner_radius": 18.3, 
+	    "outer_radius": 18.5,
+	    "length": 48.51
+	},
+	"chamber2": {
+	    "inner_radius": 18.5, 
+	    "outer_radius": 18.8,
+	    "length": 50.71
+	},
+	"chamber3": {
+	    "inner_radius": 18.8, 
+	    "outer_radius": 19.1,
+	    "length": 50.71
+	},
+	"chamber4": {
+	    "inner_radius": 19.1, 
+	    "outer_radius": 19.4,
+	    "length": 50.71
+	},
+	"copper_plate_ent": { 
+	    "radius": 18.5,
+	    "thickness": 0.3
+	},
+	"alu_plate_ent": { 
+	    "radius": 18.5,
+	    "thickness": 0.2
+	},
+	"plate_ent_cutout": { 
+	    "y_length": 8.7,
+	    "x_length": 20.5,
+	    "centerdistance_x":13.65
+	},
+	"chamberring": {
+	    "inner_radius": 17.1, 
+	    "outer_radius": 18.3,
+	    "thickness": 1.2
+	},
+	"copper_plate_exit": { 
+	    "inner_radius": 8.6, 
+	    "outer_radius": 18.5,
+	    "thickness": 0.3
+	},
+	"alu_plate_exit": { 
+	    "inner_radius": 8.6, 
+	    "outer_radius": 18.5,
+	    "thickness": 0.2
+	},
+	"inner_chamber_tube_alu": { 
+	    "inner_radius": 3.6 , 
+	    "outer_radius": 3.8,
+	    "length": 16.6,
+	    "endpiece_radius":4.7,
+	    "endpiece_thickness":0.2,
+	    "hole_position": 7.25
+	},
+	"inner_chamber_tube_steel_1": { 
+	    "inner_radius": 3.8 , 
+	    "outer_radius": 4.1,
+	    "length": 16.6
+	},
+	"inner_chamber_tube_steel_2": { 
+	    "inner_radius": 4.1, 
+	    "outer_radius": 4.4,
+	    "length": 16.6
+	},
+	"inner_chamber_tube_steel_3": { 
+	    "inner_radius": 4.4 , 
+	    "outer_radius": 4.7,
+	    "length": 16.6
+	},
+	"inner_chamber_tube_copperstop_out": {  
+	    "radius": 3.6,
+	    "thickness": 1.0
+	},
+	"inner_chamber_tube_copperstop_in": {  
+	    "outer": 3.6,
+	    "thickness": 0.8
+	}
+
+    
+    
+    },
+
+    "Koala_sensor_pipe": {
+	"outer_pipe": {
+	    "inner_radius": 6.1, 
+	    "outer_radius": 6.3,
+	    "outer_radius_thicc": 7.2,
+	    "length_start": 101.86,
+	    "length_end": 92.75,
+	    "thicc_length": 0.6
+	},
+	
+	"plate": {
+	    "x_length": 32.9, 
+	    "y_length": 16.0,
+	    "thickness": 1.0,
+	    "side_length": 5,
+	    "side_thickness": 2.2
+	},
+	
+	"sensor_box": {
+	    "x-length": 11.0, 
+	    "y-length": 6.3,
+	    "thickness": 1.69
+	}
+    },
+    
+    "beam_tpiece": {
+	"entrance_tpiece": {
+	    "inner_radius": 10.0, 
+	    "thickness": 0.225,
+	    "length": 1200.13
+	}
+    },
+    
+    
+    "beam_tpiecevert": {
+	"entrance_tpiecevert": {
+	    "radius": 10.4,
+	    "inner_radius": 10.0,
+	    "length": 30.1,
+	    "length_cutout": 75.0
+	},
+	"close_tpiecevert": {
+	    "radius": 12.0,
+	    "length": 3.0
+	}
+	
+    }
+}    

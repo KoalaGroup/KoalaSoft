@@ -1,5 +1,4 @@
 # Create a library called "libKoaGenerator"
-
 set(INCLUDE_DIRECTORIES
 ${PYTHIA8_INCLUDE_DIR}
 ${SIMPATH}/include

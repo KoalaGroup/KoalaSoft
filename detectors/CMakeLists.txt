@@ -1,7 +1,7 @@
 # Directory for sensitive detector modules
 
 # Shared classes for implementation of semiconductor detectors
-# add_subdirectory(sds)
+ add_subdirectory(sds)
 
 # Implementation of recoil detector
 # Two versions of geometry available:
@@ -13,4 +13,4 @@ add_subdirectory(recoil)
 add_subdirectory(scint-forward)
 
 # Implementation of forward detector from LMD group
-# add_subdirectory(lmd-forward)
+ add_subdirectory(lmdforward)

@@ -11,9 +11,14 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class KoaMapEncoder+;
-#pragma link C++ class KoaMapHandler+;
-#pragma link C++ class KoaGeoHandler+;
-#pragma link C++ class KoaElasticCalculator+;
+#pragma link C++ class KoaMapEncoder + ;
+#pragma link C++ class KoaMapHandler + ;
+#pragma link C++ class KoaGeoHandler + ;
+#pragma link C++ class KoaElasticCalculator + ;
+
+#pragma link C++ class PndSensorNameContFact + ;
+#pragma link C++ class PndSensorNamePar + ;
+#pragma link C++ class PndStringSeparator + ;
+#pragma link C++ class PndGeoHandling + ;
 
 #endif
