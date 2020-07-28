@@ -6,7 +6,7 @@
 # and the experiment part.
 
 # Check if cmake has the required version
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0 FATAL_ERROR)
 
 #######################################################
 # Version number of KoalaSoft
@@ -139,6 +139,17 @@ find_package2(PUBLIC FairLogger  VERSION 1.2.0 REQUIRED)
 find_package2(PUBLIC Pythia6)
 find_package2(PUBLIC Pythia8)
 find_package2(PUBLIC Geant3)
+ Set(GEANT3_INCLUDE_DIR ${Geant3_INCLUDE_DIRS})
+    if(Geant3_FOUND)
+      list(APPEND PROJECT_PACKAGE_COMPONENTS Geant3)
+      Set(Geant3_LIBRARY_DIR ${Geant3_DIR}/${Geant3_CMAKE_INSTALL_LIBDIR})
+      Set(G3SYS ${Geant3_DIR})
+      SET(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${Geant3_LIBRARY_DIR})
+      FIND_PATH(Geant3_SYSTEM_DIR NAMES data PATHS
+        ${Geant3_DIR}/../../share/geant3
+        NO_DEFAULT_PATH)
+    endif()
+
 find_package2(PUBLIC Geant4)
 Find_Package2(PUBLIC VGM)
 find_package2(PUBLIC Geant4VMC)
