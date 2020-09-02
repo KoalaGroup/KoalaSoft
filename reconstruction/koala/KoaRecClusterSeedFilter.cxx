@@ -180,6 +180,10 @@ void KoaRecClusterSeedFilter::Exec(Option_t* /*option*/)
     for(Int_t iNrDigi = 0; iNrDigi < fNrDigits; iNrDigi++) {
       if( energy_ptr[iNrDigi] > fSeedThreshold[id_ptr[iNrDigi]] ) {
         isValid = true;
+      }
+
+      if( energy_ptr[iNrDigi] > fOverflowThresh ) {
+        isValid = false;
         break;
       }
     }
@@ -194,8 +198,6 @@ void KoaRecClusterSeedFilter::Exec(Option_t* /*option*/)
       }
     }
   }
-
-  // clean up
 }
 
 // ---- Finish --------------------------------------------------------

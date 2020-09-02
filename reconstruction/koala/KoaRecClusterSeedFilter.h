@@ -12,10 +12,16 @@ class KoaMapEncoder;
 
 using namespace KoaUtility;
 
-/* Collect digis into cluster first.
- * Then, filter out clusters in which the max-energy digi is smaller than threshold
- * The digis in the the remaining clusters are pushed into the output TClonesArray
- * for usage in later tasks.
+/* Function:
+ *   Filter out clusters without seed digi and clusters with overflow digis.
+ *
+ * Steps:
+ *   1. Collect digis into cluster first.
+ *   2. Then, filter out clusters in which the max-energy digi is smaller than threshold
+ *   3. Menatime, filter out clusters in which an overflow digi exists.
+ *   4. The digis in the the left clusters are pushed into the output TClonesArray
+ *      for usage in later tasks.
+ * CAVEAT: digi array instead of cluster array output
  *
  * Input parameters in Pedestal mode:
  * 1. Pedestal parameter file
