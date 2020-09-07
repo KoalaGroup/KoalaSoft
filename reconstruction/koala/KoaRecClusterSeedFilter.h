@@ -85,6 +85,9 @@ public:
   void SetThreshold(double thresh) {
     fThresh = thresh;
   }
+  void SetOverflow(double overflow) {
+    fOverflowThresh = overflow;
+  }
 
 private:
   // Input digit branch name
@@ -114,6 +117,7 @@ private:
   //    Or alternative, set a global value for all channels using fThresh
   std::string fPedestalFile = "";
   double fThresh = 3.;
+  double fOverflowThresh = 7679; // largest ADC channel within range
 
   std::string fThreshFile = "";
 

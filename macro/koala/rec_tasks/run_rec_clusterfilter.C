@@ -80,6 +80,7 @@ void run_rec_clusterfilter(const char* data,
   seedFilter->SetMode(ClusterSeedMode::Trigger);
   seedFilter->SetThresholdFile(seed_file.Data());
   // seedFilter->SetThreshold(130);
+  // seedFilter->SetOverflow(7679); // max bin of ADC range
   fRun->AddTask(seedFilter);
 
   // 3. correct recoil front channels' time offset for digis with valid timestamp
