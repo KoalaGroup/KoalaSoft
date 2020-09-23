@@ -77,7 +77,7 @@ InitStatus KoaRecClusterThresholdFilter::Init()
   auto adc_params = readParameterList<double>( fAdcParaFile);
 
   it = findValueContainer(adc_params, "AdcToE_p1");
-  if ( it == params.end()) {
+  if ( it == adc_params.end()) {
     LOG(error) << "No \'AdcToE_p1\' parameter found in the ADC parameter file";
     return kERROR;
   }
