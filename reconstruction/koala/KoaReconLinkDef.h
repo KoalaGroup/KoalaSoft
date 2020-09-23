@@ -23,5 +23,6 @@
 #pragma link C++ class KoaRecClusterSizeFilter++;
 #pragma link C++ class KoaRecClusterNoiseFilter++;
 #pragma link C++ class KoaRecClusterPurification++;
+#pragma link C++ class KoaRecClusterSmear++;
 
 #endif
