@@ -76,7 +76,7 @@ void run_cluster_simulation(const char* data,
   seedFilter->SetInputDigiName("RecDigi_NoiseFilter");
   seedFilter->SetOutputDigiName("RecDigi_ClusterSeedFilter");
   seedFilter->SetPedestalFile(pedestal_file.Data());
-  seedFilter->SetThreshold(3);
+  seedFilter->SetThreshold(5);
   fRun->AddTask(seedFilter);
 
   // 3. clustering based on adjacency
@@ -93,7 +93,7 @@ void run_cluster_simulation(const char* data,
   clusterThresholdFilter->SaveOutputCluster(kTRUE);
   clusterThresholdFilter->SetAdcParaFile(adcparaFile.Data());
   clusterThresholdFilter->SetPedestalFile(pedestal_file.Data());
-  clusterThresholdFilter->SetThreshold(2);
+  clusterThresholdFilter->SetThreshold(5);
   fRun->AddTask(clusterThresholdFilter);
 
   fRun->Init();
