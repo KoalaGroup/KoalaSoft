@@ -54,7 +54,12 @@ class KoaRecChargeDivisionIdeal : public FairTask
   struct KoaRecStrip{
     Double_t fTimestamp;
     Double_t fCharge;
+
+    KoaRecStrip(): fTimestamp(-1), fCharge(0) {}
+    KoaRecStrip(double ts, double charge) : fTimestamp(ts), fCharge(charge) {}
+    ~KoaRecStrip() {}
   };
+
   using KoaRecStrips = std::map<Int_t, KoaRecStrip>;
 
   void SetOutputDigiName(const char* name) {

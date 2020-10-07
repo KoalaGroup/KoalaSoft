@@ -715,8 +715,9 @@ Int_t KoaGeoHandler::RecLocalPositionToDetCh(Double_t* hitPos, Int_t detID)
   Int_t strip_ch = (hitPos[2] + fRecDetDimension[detID])/STRIPWIDTH;
   strip_ch = fMapEncoder->EncodeChannelID(detID,strip_ch);
   auto search = fRecStripIdToChId.find(strip_ch);
-  if(search == fRecStripIdToChId.end())
-    strip_ch--;
+  while(search == fRecStripIdToChId.end()) {
+    search = fRecStripIdToChId.find(--strip_ch);
+  }
 
   return fRecStripIdToChId[strip_ch];
 }

@@ -67,8 +67,9 @@ InitStatus KoaRecChargeDivisionIdeal::Init()
   // Create the TClonesArray for the output data and register
   // it in the IO manager
   if (fOutputName.empty()) LOG(fatal) << "No output branch name set";
-  fDigis = new TClonesArray("KoaRecDigi", 200);
+  fDigis = new TClonesArray("KoaRecDigi");
   ioman->Register(fOutputName.data(),"KoaRec",fDigis,fSaveOutput);
+  // ioman->RegisterAny(fOutputName.data(),fDigis,fSaveOutput);
   // if(!gMC->IsMT()){
   //   ioman->Register("KoaRecDigi","KoaRec",fDigis,kTRUE);
   // }
@@ -120,6 +121,7 @@ void KoaRecChargeDivisionIdeal::Finish()
 {
   LOG(debug) << "Finish of KoaRecChargeDivisionIdeal";
 
+  Reset();
 }
 
 // ---- Reset --------------------------------------------------------
@@ -177,6 +179,13 @@ void KoaRecChargeDivisionIdeal::FillFiredStrips(KoaRecPoint* McPoint)
     Int_t step = stop - start;
     Double_t point_low,point_high,point_temp;
     
+    if (step > 64) {
+      LOG(info) << "KoaRecChargeDivisionIdeal: Unexpected large step " << step << " in Sensor " << detID
+                 << "\t chID_in: " << chID_in << "/" << global_in[2] << "/" << local_in[2]
+                 << "\t chID_out: " << chID_out << "/" << global_out[2] << "/" << local_out[2];
+      return;
+    }
+
     point_low = point_start;
     for(int segid=0;segid<step;segid++){
       fGeoHandler->RecDetChToPosition(start+segid, point_temp, point_high);
@@ -200,10 +209,9 @@ void KoaRecChargeDivisionIdeal::FillFiredStrip(Int_t DetID, Double_t Timestamp, 
     search->second.fCharge+=Charge;
   }
   else{
-    KoaRecStrip strip;
-    strip.fTimestamp = Timestamp;
-    strip.fCharge = Charge;
-    fFiredStrips.insert(std::make_pair(DetID, strip));
+    fFiredStrips.emplace(std::piecewise_construct,
+                         std::forward_as_tuple(DetID),
+                         std::forward_as_tuple(Timestamp, Charge));
   }
 }
 

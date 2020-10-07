@@ -3,6 +3,9 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
 
+  // ----    Random Seed option   -------------------------------------------------
+  gRandom->SetSeed(0);
+
   FairLogger *logger = FairLogger::GetLogger();
   //  logger->SetLogFileName("MyLog.log");
   logger->SetLogToScreen(kTRUE);
@@ -73,8 +76,8 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   run->AddModule(rec_det);
 
   KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  fwd_det->SetGeometryFileName("fwd.root");
-  // fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
+  // fwd_det->SetGeometryFileName("fwd.root");
+  fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
   fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
 
@@ -93,8 +96,8 @@ void run_sim_elastic_ideal(Double_t beamMom = 2.6, Int_t nEvents = 100, const ch
   // Add filter
   KoaEvtFilterOnGeometry* evtFilter = new KoaEvtFilterOnGeometry("evtFilter");
   evtFilter->SetX(-90.432);
-  evtFilter->SetZRange(-3,30);
-  evtFilter->SetYRange(-10,10);
+  evtFilter->SetZRange(-3,30); // real: [-2.85,23.95]
+  evtFilter->SetYRange(-10,10); // real: [-5.675, 5.675]
   primGen->AndFilter(evtFilter);
 
   // Smear Interaction Point

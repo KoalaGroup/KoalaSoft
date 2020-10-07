@@ -214,13 +214,18 @@ void KoaRecAddNoise::AddNoise()
     auto id = curDigi->GetDetID();
     auto charge = curDigi->GetCharge();
 
-    digi_map.emplace(std::piecewise_construct,
-                     std::forward_as_tuple(id),
-                     std::forward_as_tuple(ts, charge));
+    auto insterted = digi_map.emplace(std::piecewise_construct,
+                                   std::forward_as_tuple(id),
+                                   std::forward_as_tuple(ts, charge));
+
+    if( !insterted.second )
+      LOG(fatal) << "KoaRecAddNoise: pre-existing digi in digi_map";
 
     if (digi_map[id].timestamp != ts || digi_map[id].charge != charge) {
-      LOG(fatal) << "digi_map incorrect";
+      LOG(fatal) << "digi_map incorrect " << digi_map[id].timestamp << "/" << ts << "\t"
+                 << digi_map[id].charge << "/" << charge;
     }
+
   }
 
   // Add noises to each channel
