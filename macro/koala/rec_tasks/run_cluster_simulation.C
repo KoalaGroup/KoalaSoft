@@ -7,7 +7,7 @@
  ********************************************************************************/
 
 /*
- * Clustering of simulation data with a full chain of digitization:
+ * Clustering of simulation data with a full chain of digitization (energy value):
  * Specifically, electronic noises are added to each channel.
  * Thus, in this case, a clustering chain from NoiseFilter is needed.
  * However, the pedestal noise parameter file should be energy-equivalent noise
@@ -16,8 +16,9 @@
 
 void run_cluster_simulation(const char* data,
                             const char* para,
-                            const char* suffix = "_calib.root",
+                            const char* suffix = "_digi.root",
                             const char* ped_file = "adc_pedestal_20190902_003449_energy.txt",
+                            const char* ped_adcfile = "adc_pedestal_20190902_003449.txt",
                             const char* adcpara_file = "adc_calib_energy.txt"
                             )
 {
@@ -48,6 +49,7 @@ void run_cluster_simulation(const char* data,
 
   TString param_dir = dir+"/parameters/";
   TString pedestal_file = param_dir + ped_file;
+  TString pedestal_adcfile = param_dir + ped_adcfile;
   TString adcparaFile = param_dir + adcpara_file;
 
   // -----   Run   --------------------------------------------------------
@@ -75,6 +77,8 @@ void run_cluster_simulation(const char* data,
   KoaRecClusterSeedFilter* seedFilter = new KoaRecClusterSeedFilter();
   seedFilter->SetInputDigiName("RecDigi_NoiseFilter");
   seedFilter->SetOutputDigiName("RecDigi_ClusterSeedFilter");
+  seedFilter->SaveOutputDigi(true);
+  seedFilter->SetMode(ClusterSeedMode::Pedestal);
   seedFilter->SetPedestalFile(pedestal_file.Data());
   seedFilter->SetThreshold(5);
   fRun->AddTask(seedFilter);
@@ -90,9 +94,9 @@ void run_cluster_simulation(const char* data,
   KoaRecClusterThresholdFilter* clusterThresholdFilter = new KoaRecClusterThresholdFilter();
   clusterThresholdFilter->SetInputClusterName("KoaRecCluster_SeedFilter");
   clusterThresholdFilter->SetOutputClusterName("KoaRecCluster_ThresholdFilter");
-  clusterThresholdFilter->SaveOutputCluster(kTRUE);
+  clusterThresholdFilter->SaveOutputCluster(true);
   clusterThresholdFilter->SetAdcParaFile(adcparaFile.Data());
-  clusterThresholdFilter->SetPedestalFile(pedestal_file.Data());
+  clusterThresholdFilter->SetPedestalFile(pedestal_adcfile.Data());
   clusterThresholdFilter->SetThreshold(5);
   fRun->AddTask(clusterThresholdFilter);
 

@@ -6,9 +6,9 @@
 /** KoaPpelasticGenerator.h
  *@author S.Spataro <stefano.spataro@exp2.physik.uni-giessen.de>
  *
- The KoaPpelasticGenerator reads the DPM output file (ROOT format)
- and inserts the tracks into the PndStack via the FairPrimaryGenerator.
- Derived from FairGenerator.
+
+ Use SetTetmin() to switch on/off Coulomb & Interference term
+
 **/
 
 
@@ -74,17 +74,21 @@ private:
 
  public:
   KoaPpelasticGeneratorImp();
-  KoaPpelasticGeneratorImp(Double_t p);
+  // min < 0 for Hadron part only
+  // min > 0 to include Coulomb and Interference part, and is the lower range of t
+  KoaPpelasticGeneratorImp(Double_t p, Double_t min = -1);
   virtual   ~KoaPpelasticGeneratorImp()  {Reset();}
 
   void     SetPlab(Double_t plab) {fPlab=plab;}
+  // tetmin < 0 for Hadron part only
+  // tetmin > 0 to include Coulomb and Interference part, and is the lower range of t
   void     SetTetmin(Double_t tetmin) {fTetmin=tetmin;}
 
   void     InitValue();
   void     Init(Double_t Plab=20., Double_t tetmin=-1.);
   void     NextEvent(); 
   
-  Double_t  SampleInvariantT(Double_t Plab=20., Int_t Z=1);
+  Double_t SampleInvariantT(Double_t Plab=20., Int_t Z=1);
   Double_t SampleThetaCMS(Double_t Plab=20., Int_t Z=1);
   Double_t SampleThetaLab(Double_t Plab=20., Int_t Z=1);
   Double_t CalculateParticleBeta(Double_t momentum);
@@ -92,7 +96,7 @@ private:
   Double_t DSIG_INT(Double_t T);
   Double_t DSIG_HAD(Double_t T);
 
-  void       Reset()        {}
+  void     Reset()        {}
 
   ClassDef(KoaPpelasticGeneratorImp,1)
 };
@@ -105,7 +109,7 @@ class KoaPpelasticGenerator : public FairGenerator
 
   /** Default constructor (should not be used) **/
   KoaPpelasticGenerator();
-  KoaPpelasticGenerator(Double_t p);
+  KoaPpelasticGenerator(Double_t p, Double_t min = -1);
 
 
   /** Standard constructor

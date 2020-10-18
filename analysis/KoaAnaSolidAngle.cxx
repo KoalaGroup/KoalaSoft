@@ -180,7 +180,7 @@ void KoaAnaSolidAngle::Write()
   //
   ParameterList<double> CountsParameter;
   auto& output_solidAngle = addValueContainer(CountsParameter, "SolidAngle");
-  auto& output_hitNr = addValueContainer(CountsParameter, "HitNr");
+  auto& output_hitNr = addValueContainer(CountsParameter, "EvtNr");
   auto& output_Events = addValueContainer(CountsParameter, "TotalEvents");
 
   for(auto& ch: fNrHit){

@@ -6,7 +6,7 @@
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
 void ana_solidAngle(const char* inFile, const char* parFile, const char* outFile,
-                    Long_t nEvents, Long_t NrGenerated)
+                    Long_t NrGenerated)
 {
   // Verbosity level (0=quiet, 1=event level, 2=track level, 3=debug)
   Int_t iVerbose = 0; // just forget about it, for the moment

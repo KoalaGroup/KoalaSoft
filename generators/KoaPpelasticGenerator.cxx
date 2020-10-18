@@ -23,11 +23,11 @@ KoaPpelasticGeneratorImp::KoaPpelasticGeneratorImp()
   InitValue();
 }
 
-KoaPpelasticGeneratorImp::KoaPpelasticGeneratorImp(Double_t p)
+KoaPpelasticGeneratorImp::KoaPpelasticGeneratorImp(Double_t p, Double_t min)
   : fScatteredProton(2212,1,0,0,0,0,0,0,0,0,0,0,0,0),
     fRecoilProton(2212,1,0,0,0,0,0,0,0,0,0,0,0,0),
     fPlab(p),
-    fTetmin(-1)
+    fTetmin(min)
 {
   InitValue();
 }
@@ -157,8 +157,12 @@ void  KoaPpelasticGeneratorImp::Init(Double_t Plab, Double_t tetmin)
 
   Double_t T11, T22, dto, dt;
 
-  if(tetmin<0.) { Elastic=0.; }
-          else { Elastic=1.; }
+  if(tetmin<0.) {
+    Elastic=0.;
+  }
+  else {
+    Elastic=1.;
+  }
  
   if(Elastic==0.) {
     // only hadron part of elastic
@@ -169,98 +173,98 @@ void  KoaPpelasticGeneratorImp::Init(Double_t Plab, Double_t tetmin)
     fdto=dto;
     Double_t SIG_Had=0;
     for(int k=1; k<fNdiv; k++)
-   {
-     T11=k*dto;
-     T22=T11+dto;
-     dt=(T22-T11)/2.0;
-     SIG_Had=fabs(dt)*(1./3.*DSIG_HAD(T11)+
-     4./3.*DSIG_HAD(T11+dt)+1./3.*DSIG_HAD(T22)) ;
-     Fun_inv[k] =  Fun_inv[k-1]+SIG_Had;
+    {
+      T11=k*dto;
+      T22=T11+dto;
+      dt=(T22-T11)/2.0;
+      SIG_Had=fabs(dt)*(1./3.*DSIG_HAD(T11)+
+                        4./3.*DSIG_HAD(T11+dt)+1./3.*DSIG_HAD(T22)) ;
+      Fun_inv[k] =  Fun_inv[k-1]+SIG_Had;
     }
     cs_el=Fun_inv[fNdiv-1]; 
     for(int k=1; k<fNdiv; k++){Fun_inv[k]/=Fun_inv[fNdiv-1];}
 
   }
 
-  if(Elastic>0.) 
-    { // simulation of hadron, interference and Coulomb parts 
-      // calculation of XS of Hadron, Coulomb, Interference parts
+  if(Elastic>0.) {
+    // simulation of hadron, interference and Coulomb parts
+    // calculation of XS of Hadron, Coulomb, Interference parts
 
-      Double_t Tetmin = tetmin*3.1416/180. ;
+    Double_t Tetmin = tetmin*3.1416/180. ;
 
- Double_t Tmin = 2.*(Plab*Plab)*(1.-cos(Tetmin));
- Tmin=-Tmin;
- fTmin=Tmin;
+    Double_t Tmin = 2.*(Plab*Plab)*(1.-cos(Tetmin));
+    Tmin=-Tmin;
+    fTmin=Tmin;
 
- Int_t      Ndiv=fNdiv;   
-  dto=(Tmax/2.-Tmin)/(double)Ndiv;            //  /2.
+    Int_t      Ndiv=fNdiv;   
+    dto=(Tmax/2.-Tmin)/(double)Ndiv;            //  /2.
 
- Double_t   SIG_Had=0.;
- for(int k=1; k<=Ndiv; k++){
-   T11=Tmin+(k-1)*dto;
-   T22=T11+dto;
-   dt=(T22-T11)/2.0;
-SIG_Had=SIG_Had+fabs(dt)*(1./3.*DSIG_HAD(T11)+4./3.*DSIG_HAD(T11+dt)+1./3.*DSIG_HAD(T22)) ;
+    Double_t   SIG_Had=0.;
+    for(int k=1; k<=Ndiv; k++){
+      T11=Tmin+(k-1)*dto;
+      T22=T11+dto;
+      dt=(T22-T11)/2.0;
+      SIG_Had=SIG_Had+fabs(dt)*(1./3.*DSIG_HAD(T11)+4./3.*DSIG_HAD(T11+dt)+1./3.*DSIG_HAD(T22)) ;
+    }
 
-                             }
- Double_t   SIG_COL=0.;
- for(int k=1; k<=Ndiv; k++){
-           T11=Tmin+(k-1)*dto;
-           T22=T11+dto;
-           dt=(T22-T11)/2.0;
-           SIG_COL=SIG_COL+fabs(dt)*(1./3.*DSIG_COL(T11)+
-           4./3.*DSIG_COL(T11+dt)+1./3.*DSIG_COL(T22));
-                          }
+    Double_t   SIG_COL=0.;
+    for(int k=1; k<=Ndiv; k++){
+      T11=Tmin+(k-1)*dto;
+      T22=T11+dto;
+      dt=(T22-T11)/2.0;
+      SIG_COL=SIG_COL+fabs(dt)*(1./3.*DSIG_COL(T11)+
+                                4./3.*DSIG_COL(T11+dt)+1./3.*DSIG_COL(T22));
+    }
 
-Double_t   SIG_INTER=0. ;
- for(int k=1; k<=Ndiv; k++){
-          T11=Tmin+(k-1)*dto;
-          T22=T11+dto;
-          dt=(T22-T11)/2.0;
-         SIG_INTER=SIG_INTER+fabs(dt)*(1./3.*DSIG_INT(T11)+
-        4./3.*DSIG_INT(T11+dt)+1./3.*DSIG_INT(T22)) ;
-
-                         }
-
-cout<<"  sig_had  "<<SIG_Had<<" Sig_col " <<SIG_COL<<" Sig_inter "<< SIG_INTER<< endl; 
-
-  dto=(Tmax/2.-Tmin)/(double)fNdiv;       //  /2.
-  fdto=dto;
- SIG_COL=0.;
- SIG_INTER=0.;
- SIG_Had=0.;
- Fun_inv[0]=0; 
- for(int k=1; k<fNdiv; k++)
-   {
-       T11=Tmin+(k-1)*dto;
-          T22=T11+dto;
-          dt=(T22-T11)/2.0;
-         SIG_COL=fabs(dt)*(1./3.*DSIG_COL(T11)+
-           4./3.*DSIG_COL(T11+dt)+1./3.*DSIG_COL(T22));
-
-    SIG_INTER=fabs(dt)*(1./3.*DSIG_INT(T11)+
-        4./3.*DSIG_INT(T11+dt)+1./3.*DSIG_INT(T22)) ;
-
-     SIG_Had=fabs(dt)*(1./3.*DSIG_HAD(T11)+
-     4./3.*DSIG_HAD(T11+dt)+1./3.*DSIG_HAD(T22)) ;
-
- Fun_inv[k] = Fun_inv[k-1]+SIG_COL-SIG_INTER+SIG_Had;
+    Double_t   SIG_INTER=0. ;
+    for(int k=1; k<=Ndiv; k++){
+      T11=Tmin+(k-1)*dto;
+      T22=T11+dto;
+      dt=(T22-T11)/2.0;
+      SIG_INTER=SIG_INTER+fabs(dt)*(1./3.*DSIG_INT(T11)+
+                                    4./3.*DSIG_INT(T11+dt)+1./3.*DSIG_INT(T22)) ;
 
     }
-  cs_el=Fun_inv[fNdiv-1];  
-  for(int k=1; k<fNdiv; k++){Fun_inv[k]/=Fun_inv[fNdiv-1];}
+
+    cout<<"  sig_had  "<<SIG_Had<<" Sig_col " <<SIG_COL<<" Sig_inter "<< SIG_INTER<< endl; 
+
+    dto=(Tmax/2.-Tmin)/(double)fNdiv;       //  /2.
+    fdto=dto;
+    SIG_COL=0.;
+    SIG_INTER=0.;
+    SIG_Had=0.;
+    Fun_inv[0]=0; 
+    for(int k=1; k<fNdiv; k++)
+    {
+      T11=Tmin+(k-1)*dto;
+      T22=T11+dto;
+      dt=(T22-T11)/2.0;
+      SIG_COL=fabs(dt)*(1./3.*DSIG_COL(T11)+
+                        4./3.*DSIG_COL(T11+dt)+1./3.*DSIG_COL(T22));
+
+      SIG_INTER=fabs(dt)*(1./3.*DSIG_INT(T11)+
+                          4./3.*DSIG_INT(T11+dt)+1./3.*DSIG_INT(T22)) ;
+
+      SIG_Had=fabs(dt)*(1./3.*DSIG_HAD(T11)+
+                        4./3.*DSIG_HAD(T11+dt)+1./3.*DSIG_HAD(T22)) ;
+
+      Fun_inv[k] = Fun_inv[k-1]+SIG_COL-SIG_INTER+SIG_Had;
+
+    }
+    cs_el=Fun_inv[fNdiv-1];  
+    for(int k=1; k<fNdiv; k++){Fun_inv[k]/=Fun_inv[fNdiv-1];}
   
    
-/*
-/////testing
+    /*
+ /////testing
  for(int kk=1; kk<20; kk++){
  Double_t t1=-0.01*kk;
  cout <<" T " <<t1<<" Colon " <<DSIG_COL(t1)<<" Int "<<DSIG_INT(t1)<<" Hadron "
-<< DSIG_HAD(t1)<<endl;
+ << DSIG_HAD(t1)<<endl;
  }  /////end testing
- */ 
+    */ 
  
- }
+  }
 
  }
 /////////////////////////////////////////////////////////////
@@ -474,12 +478,12 @@ KoaPpelasticGenerator::KoaPpelasticGenerator() :
 }
 
 // -----  In-class generation   -------------------------------------------
-KoaPpelasticGenerator::KoaPpelasticGenerator(Double_t p):
+KoaPpelasticGenerator::KoaPpelasticGenerator(Double_t p, Double_t min):
   fFromFile(kFALSE),
   iEvent(0),
   fInputTree(NULL),
   fInputFile(NULL),
-  fInternalGenerator(p)
+  fInternalGenerator(p, min)
 {
 }
 

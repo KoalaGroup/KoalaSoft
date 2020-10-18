@@ -65,28 +65,28 @@ void run_digi(const char* data, const char* para,
   // charge division
   KoaRecChargeDivisionIdeal* recDigiTask = new KoaRecChargeDivisionIdeal();
   recDigiTask->SetOutputDigiName("RecDigi_ChargeDivision");
-  recDigiTask->SaveOutputDigi(true);
+  recDigiTask->SaveOutputDigi(false);
   fRun->AddTask(recDigiTask);
 
   // fano factor
   KoaRecAddFano* recAddFano = new KoaRecAddFano();
   recAddFano->SetInputDigiName("RecDigi_ChargeDivision");
   recAddFano->SetOutputDigiName("RecDigi_AddFano");
-  recAddFano->SaveOutputDigi(true);
+  recAddFano->SaveOutputDigi(false);
   fRun->AddTask(recAddFano);
 
-  // charge collection
+  // // charge collection
   KoaRecChargeCollection* recChargeCollection = new KoaRecChargeCollection();
   recChargeCollection->SetInputDigiName("RecDigi_AddFano");
   recChargeCollection->SetOutputDigiName("RecDigi_ChargeCollection");
-  recChargeCollection->SaveOutputDigi(true);
+  recChargeCollection->SaveOutputDigi(false);
   fRun->AddTask(recChargeCollection);
 
-  // noise addition
+  // // noise addition
   KoaRecAddNoise* recAddNoise = new KoaRecAddNoise();
   recAddNoise->SetInputDigiName("RecDigi_ChargeCollection");
   recAddNoise->SetOutputDigiName("RecDigi_AddNoise");
-  recAddNoise->SaveOutputDigi(true);
+  recAddNoise->SaveOutputDigi(false);
   recAddNoise->SetPedestalFile(pedestal_file.Data());
   recAddNoise->SetAdcParaFile(adcparaFile.Data());
   fRun->AddTask(recAddNoise);
@@ -95,17 +95,17 @@ void run_digi(const char* data, const char* para,
   KoaRecAddTimeWalk* recAddTimeWalk = new KoaRecAddTimeWalk();
   recAddTimeWalk->SetInputDigiName("RecDigi_AddNoise");
   recAddTimeWalk->SetOutputDigiName("RecDigi_AddTimeWalk");
-  recAddTimeWalk->SaveOutputDigi(true);
+  recAddTimeWalk->SaveOutputDigi(false);
   fRun->AddTask(recAddTimeWalk);
 
-  // add time-jitter
+  // // add time-jitter
   KoaRecAddTimeJitter* recAddTimeJitter = new KoaRecAddTimeJitter();
   recAddTimeJitter->SetInputDigiName("RecDigi_AddTimeWalk");
   recAddTimeJitter->SetOutputDigiName("KoaRecDigi");
   recAddTimeJitter->SaveOutputDigi(true);
   fRun->AddTask(recAddTimeJitter);
 
-  // fwd digitization
+  // // fwd digitization
   KoaFwdDigitization* fwdDigiTask = new KoaFwdDigitization();
   fRun->AddTask(fwdDigiTask);
 
@@ -117,7 +117,9 @@ void run_digi(const char* data, const char* para,
 
   // rtdb->saveOutput();
   rtdb->print();
+
   // -----   Finish   -------------------------------------------------------
+  fRun->TerminateRun();
 
   cout << endl << endl;
 

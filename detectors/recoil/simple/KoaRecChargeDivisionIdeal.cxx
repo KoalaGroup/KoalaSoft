@@ -129,7 +129,7 @@ void KoaRecChargeDivisionIdeal::Reset()
 {
   LOG(debug) << "Reset of KoaRecChargeDivisionIdeal";
 
-  fDigis->Clear();
+  fDigis->Delete();
   fFiredStrips.clear();
 }
 

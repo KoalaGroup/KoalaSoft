@@ -181,6 +181,7 @@ void KoaRecAddNoise::Finish()
 {
   LOG(debug) << "Finish of KoaRecAddNoise";
 
+  // Reset();
 }
 
 // ---- Reset --------------------------------------------------------
@@ -188,7 +189,7 @@ void KoaRecAddNoise::Reset()
 {
   LOG(debug) << "Reset of KoaRecAddNoise";
 
-  fOutputDigis->Clear();
+  fOutputDigis->Delete();
 }
 
 // ---- AddNoise --------------------------------------------------------
