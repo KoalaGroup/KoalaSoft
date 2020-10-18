@@ -66,7 +66,7 @@ void run_sim_mip(Int_t nEvents = 100, const char* outdir="./",
 
   KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
   rec_det->SetGeometryFileName("rec.root");
-  rec_det->SetModifyGeometry(kTRUE);
+  rec_det->SetModifyGeometry(false);
   run->AddModule(rec_det);
 
   KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
@@ -91,6 +91,12 @@ void run_sim_mip(Int_t nEvents = 100, const char* outdir="./",
     evtFilter->SetZRange(-3,30);
     evtFilter->SetYRange(-10,10);
     primGen->AndFilter(evtFilter);
+
+    // Smear Interaction Vertex with Gaussian distribution
+    primGen->SmearGausVertexZ(kTRUE);
+    primGen->SetTarget(0, 0.2); // residual gas thickness sigma 3 cm
+    primGen->SmearGausVertexXY(kTRUE);
+    primGen->SetBeam(0, 0, 1., 1.); // beam profile sigma: 10 mm
 
   run->SetGenerator(primGen);
 // ------------------------------------------------------------------------

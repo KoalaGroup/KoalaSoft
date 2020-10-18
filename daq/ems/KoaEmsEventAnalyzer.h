@@ -22,6 +22,7 @@ class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
   void InitOutputBuffer();
   void InitOutputTree();
 
+  bool Analyze();
   bool NextEvent();
   void Decode();
   void FillTree();

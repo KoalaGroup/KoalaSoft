@@ -65,6 +65,30 @@ void KoaEmsEventAnalyzer::InitOutputTree()
   }
 }
 
+bool KoaEmsEventAnalyzer::Analyze()
+{
+  // 1. get the latest event from input buffer
+  if (!NextEvent())  return true;
+
+  // 2. decode
+  Decode();
+
+  // 3. update
+  Update();
+
+  // 4. fill tree
+  FillTree();
+
+  // 5. fill histograms
+  FillHist();
+
+  // 6. recycle input event buffer
+  Recycle();
+
+  // 7. go to next event
+  Analyze();
+}
+
 bool KoaEmsEventAnalyzer::NextEvent()
 {
   // 1. check whether there is new ems event available
