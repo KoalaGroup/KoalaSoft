@@ -39,4 +39,14 @@ void KoaEventAssembler::Assemble()
   }
 }
 
+void KoaEventAssembler::Finish()
+{
+  for( auto module : fModuleBuffer ){
+    auto buffer = module.second;
+    while (auto item = buffer->PopTopItem()) {
+      item->Recycle();
+    }
+  }
+}
+
 ClassImp(KoaEventAssembler)

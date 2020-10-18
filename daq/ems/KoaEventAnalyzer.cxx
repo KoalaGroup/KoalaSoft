@@ -10,6 +10,8 @@ KoaEventAnalyzer::~KoaEventAnalyzer()
   if(fNrWords)    delete [] fNrWords;
   if(fTimestamp)  delete [] fTimestamp;
   if(fData)       delete [] fData;
+  if(fSecond)  delete [] fSecond;
+  if(fUsecond)  delete [] fUsecond;
 
   if(fRawEvent) delete fRawEvent;
 
@@ -65,6 +67,8 @@ void KoaEventAnalyzer::InitOutputBuffer()
   fNrWords  =  new Short_t[nr_mesymodules];
   fTimestamp = new Long64_t[nr_mesymodules];
   fData      = new Int_t[nr_mesymodules][34];
+  fSecond = new Long64_t[nr_mesymodules];
+  fUsecond = new Long64_t[nr_mesymodules];
 
   // 2. index map
   Int_t indexnum = 0;
@@ -131,6 +135,8 @@ void KoaEventAnalyzer::InitOutputTree()
       if ( module.second.type != MesytecType::MQDC32 ) {
         tree->Branch("Resolution",fResolution+mod,"Resolution/B");
       }
+      tree->Branch("Second", fSecond+mod, "Second/L");
+      tree->Branch("Usecond", fUsecond+mod, "Usecond/L");
     }
   }
 }
@@ -159,6 +165,10 @@ void KoaEventAnalyzer::Decode()
     fTimestamp[mod] = event->fData.timestamp;
     fModuleId[mod] = (event->fData.header>>16)&0xff;
     fNrWords[mod] = event->fData.header&0xfff;
+
+    auto ems_event = event->fData.ems_event;
+    fSecond[mod] = ems_event->fData.time.tv_sec;
+    fUsecond[mod] = ems_event->fData.time.tv_usec;
 
     switch(module.second.type) {
     case MesytecType::MADC32 :
@@ -261,6 +271,13 @@ void KoaEventAnalyzer::FillTree()
       (*output) = (*input)*unit;
     }
   }
+
+  //
+  fRawEvent->Timestamp = fTimestamp[0];
+
+  //
+  fRawEvent->Second = fSecond[0];
+  fRawEvent->Usecond = fUsecond[0];
 
   // 2. fill the output tree if persistence is set
   if (fPersistence) {

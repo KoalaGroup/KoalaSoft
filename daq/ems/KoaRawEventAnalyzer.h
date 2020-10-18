@@ -73,7 +73,7 @@ public:
   }
 
   /* finish */
-  void Finish() {
+ virtual void Finish() {
     if ( fPersistence && fRootFile ) {
       fRootFile->Write();
     }

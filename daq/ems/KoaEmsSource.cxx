@@ -343,10 +343,6 @@ Int_t KoaEmsSource::ParseSubevent(const ems_u32 *buf, Int_t size, ems_u32 is_id)
 //
 void KoaEmsSource::Close()
 {
-  // 1. event analyzers
-  fEmsEvtAnalyzer->Finish();
-  fKoaEvtAnalyzer->Finish();
-
   // 2. close input stream
   if ( fInput >= 0 ) {
     LOG(info) << "KoaEmsSource::Close : close input stream";
@@ -355,6 +351,10 @@ void KoaEmsSource::Close()
 
   // 3. TODO other
   fAssembler->Finish();
+
+  // 1. event analyzers
+  fKoaEvtAnalyzer->Finish();
+  fEmsEvtAnalyzer->Finish(); // ems analyzer must be at last
 }
 
 Bool_t KoaEmsSource::ReInitUnpackers()

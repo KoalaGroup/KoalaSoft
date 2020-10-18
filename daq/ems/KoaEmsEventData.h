@@ -14,7 +14,7 @@ struct KoaEmsEventData
   void Initialize() {
     std::memset(this, 0, sizeof *this);
   }
-  void Recycle() {}
+  void Recycle() { ref = 0; }
 
   // ems event number, totally different from experiment event
   ems_u32 event_nr;
@@ -28,6 +28,9 @@ struct KoaEmsEventData
   // From Scalor IS
   ems_u32 scalor[32];
   bool scalor_valid;
+
+  // reference counter
+  int ref;
 };
 
 template class KoaBufferItem<KoaEmsEventData>;

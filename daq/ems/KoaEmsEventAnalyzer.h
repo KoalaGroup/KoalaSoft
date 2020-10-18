@@ -30,6 +30,7 @@ class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
 
   void Update();
   void FillHist();
+  void Finish();
 
  private:
   // ems event buffer and current item

@@ -296,6 +296,11 @@ public:
     return fCurrent;
   }
 
+  // Get the top item
+  ItemType* TopItem() {
+    return fTop;
+  }
+
   // Reset the current pointer to the top of the buffer
   void Reset() {
     fCurrent = fTop;

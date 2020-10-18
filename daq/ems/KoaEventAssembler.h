@@ -22,7 +22,7 @@ public:
 
   virtual void Init();
   virtual void Assemble();
-  virtual void Finish() {}
+  virtual void Finish();
   virtual void PrintStatistics() {}
   
 

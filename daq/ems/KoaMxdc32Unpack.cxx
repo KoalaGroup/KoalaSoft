@@ -21,6 +21,10 @@ Bool_t KoaMxdc32Unpack::Init()
     fModuleBuffer.emplace(module_id, module_buffer);
   }
 
+  // 3. Get EMS event buffer manager
+  auto emsBufferManager = KoaEmsEventBufferManager::Instance();
+  fEmsBuffer = emsBufferManager->GetBuffer("EMS");
+
   return true;
 }
 
@@ -44,11 +48,14 @@ Int_t KoaMxdc32Unpack::DoUnpack(const ems_u32* buf, Int_t size)
         }
         priv = search->second;
         event = priv->PrepareNewItem();
+        auto ems_event = fEmsBuffer->GetNewItem();
         module = fModuleTable[id];
 
         //
         event->fData.header = d;
         event->fData.length = d&0xfff;
+        event->fData.ems_event = ems_event;
+        ems_event->fData.ref++;
         
         // TODO statist
         // priv->statist.events++;

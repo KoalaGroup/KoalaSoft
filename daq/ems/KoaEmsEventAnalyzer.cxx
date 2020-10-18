@@ -91,12 +91,14 @@ bool KoaEmsEventAnalyzer::Analyze()
 
 bool KoaEmsEventAnalyzer::NextEvent()
 {
-  // 1. check whether there is new ems event available
-  fCurrentEvent = fBuffer->PopTopItem();
-  if (!fCurrentEvent) {
+  // 1. get the next event on roll and whether it's referenced by other objects
+  fCurrentEvent = fBuffer->TopItem();
+  if (!fCurrentEvent || fCurrentEvent->fData.ref != 0 ) {
     return false;
   }
 
+  // 2. pop out the top item, since it's not referenced by any object
+  fBuffer->PopTopItem();
   return true;
 }
 
@@ -171,4 +173,13 @@ void KoaEmsEventAnalyzer::FillHist()
   for ( auto scalor : fScalorChMap ) {
   
   }
+}
+
+void KoaEmsEventAnalyzer::Finish()
+{
+  // clean the remaining items in the buffer
+  Analyze();
+
+  // standard finish tasks in base class
+  KoaRawEventAnalyzer::Finish();
 }
