@@ -74,6 +74,7 @@ void unpack(const char* data)
   
     // Config analyzer
     KoaEventAnalyzer* koalaAnalyzer = new KoaEventAnalyzer();
+    koalaAnalyzer->SaveRawEvent(kTRUE); // save channel-mapped raw data
     fFileSource->SetKoaEventAnalyzer(koalaAnalyzer);
 
     KoaEmsEventAnalyzer* emsAnalyzer = new KoaEmsEventAnalyzer();
