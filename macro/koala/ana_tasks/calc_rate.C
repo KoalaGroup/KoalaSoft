@@ -42,7 +42,7 @@ void calc_rate(const char* infile,
   Long64_t second;
   Long64_t usecond;
   tout->Branch("Second", &second, "Second/L");
-  tout->Branch("Usecond", &second, "Usecond/L");
+  tout->Branch("Usecond", &usecond, "Usecond/L");
   for(auto it = ScalorChMap->begin(); it != ScalorChMap->end(); it++) {
     tout->Branch(Form("%s_Rate",it->first.data()), rate+it->second, Form("%s_Rate/d",it->first.data()));
   }
