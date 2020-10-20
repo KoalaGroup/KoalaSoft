@@ -32,7 +32,7 @@ void filterOnRate(const char* digifile,
       elist.Enter(entry);
     }
   }
-  std::cout << elist.GetN()/(Double32_t)entries*100 << "% koala events selected" << std::endl;
+  std::cout << elist.GetN()/(Double32_t)entries << "\t" << digifile << std::endl;
 
   // output
   auto fout = new TFile(elistfile, "update");

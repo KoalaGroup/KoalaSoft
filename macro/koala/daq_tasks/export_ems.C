@@ -4,10 +4,16 @@
 // #include <map>
 // #include <fstream>
 // #include <iterator>
+#include "KoaUtility.h"
 
+using namespace KoaUtility;
 using namespace std;
 
-void export_ems(const char* finname, const char* foutname)
+void export_ems(const char* finname,
+                const char* elistFileName = nullptr,
+                const char* edirName = "/",
+                const char* elistName = "rate_elist"
+                )
 {
   TFile* fin=new TFile(finname);
 
@@ -21,6 +27,14 @@ void export_ems(const char* finname, const char* foutname)
   fin->GetObject("ScalorChMap", ScalorChMap);
 
   // Define output columns
+  TString foutname = finname;
+  if(elistFileName) {
+    foutname.ReplaceAll("_EmsRawEvent.root","_scalor_selected.csv");
+  }
+  else{
+    foutname.ReplaceAll("_EmsRawEvent.root","_scalor.csv");
+  }
+
   ofstream fout;
   fout.open(foutname);
   fout<<"Time_s, Time_us, Event, ";
@@ -37,10 +51,30 @@ void export_ems(const char* finname, const char* foutname)
   }
   fout << endl;
 
+  // retrieve elist
+  TFile* felist = nullptr;
+  TDirectory* eDir = nullptr;
+  TEventList* eList = nullptr;
+  if ( elistFileName ) {
+    felist = new TFile(elistFileName);
+    eDir = getDirectory(felist, edirName);
+    eList = getObject<TEventList>(eDir, elistName);
+  }
+
   // Export EMS data
-  int entries=tin->GetEntries();
+  Long_t entries = tin->GetEntries();
+  if ( elistFileName ) {
+    entries = eList->GetN();
+  }
+
   for(int entry=0;entry<entries;entry++){
-    tin->GetEntry(entry);
+    if ( elistFileName ) {
+      auto tree_index = eList->GetEntry(entry);
+      tin->GetEntry(tree_index);
+    }
+    else {
+      tin->GetEntry(entry);
+    }
 
     //
     fout << evt->Second << ", " << evt->Usecond << ", " << evt->EventNr << ", ";
