@@ -316,6 +316,20 @@ public:
     }
   }
 
+  // Get size of the buffer
+  int Size() {
+    ItemType* temp = fCurrent;
+    fCurrent = fTop;
+
+    int size=0;
+    while(NextItem()){
+      size++;
+    }
+
+    fCurrent = temp;
+    return size;
+  }
+
 private:
   DepotType* fDepot;
   ItemType* fPrepared;
@@ -384,6 +398,8 @@ public:
     else {
       buffer = new BufferType();
       fBufferList.emplace(name, buffer);
+
+      GetStatistic(name);
     }
     return buffer;
   }
@@ -401,12 +417,28 @@ public:
     return buffer;
   }
 
+  void Print(){
+    for( auto buffer : fBufferList ) {
+      std::cout << buffer.first << " size: " << buffer.second->Size() << std::endl;
+    }
+  }
+
+  void PrintStatist(){
+    for ( auto statist : fStatistList ) {
+      auto buffer = GetBuffer(statist.first);
+      std::cout << statist.first << ": processed " << statist.second->events
+                << " , remaining " << buffer->Size() << std::endl;
+    }
+  }
+
 private:
   /* friend class CleanerType; */
   friend class KoaBufferManagerCleaner<DataType>;
 
   KoaBufferManager() {}
   ~KoaBufferManager() {
+    PrintStatist();
+
     for( auto buffer : fBufferList ) {
       delete buffer.second;
     }
