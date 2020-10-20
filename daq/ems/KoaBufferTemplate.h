@@ -4,20 +4,21 @@
 #include "FairLogger.h"
 #include <cstdint>
 #include <iostream>
+#include <iomanip>
 #include <map>
 #include <string>
 
 /************** KoaBufferStatistic Begin ********************/
 struct KoaBufferStatistic
 {
-  KoaBufferStatistic() : events(0), words(0) {}
+  KoaBufferStatistic() : events(0), discarded(0) {}
   void Reset() {
     events = 0;
-    words  = 0;
+    discarded  = 0;
   }
 
   std::uint64_t events;
-  std::uint64_t words;
+  std::uint64_t discarded;
 };
 
 /************** KoaBufferStatist End ********************/
@@ -426,8 +427,11 @@ public:
   void PrintStatist(){
     for ( auto statist : fStatistList ) {
       auto buffer = GetBuffer(statist.first);
-      std::cout << statist.first << ": totally processed " << statist.second->events
-                << " , currently remaining " << buffer->Size() << std::endl;
+      std::cout << std::setw(8)  << std::left << statist.first
+                << std::setw(12) << std::right << ": total " << std::setw(12) << std::left << statist.second->events
+                << std::setw(12) << std::right << ", remaining " << std::setw(12) << std::left << buffer->Size()
+                << std::setw(12) << std::right << ", discarded " << std::setw(12) << std::left << statist.second->discarded
+                << std::endl;
     }
   }
 

@@ -82,6 +82,7 @@ protected:
 protected:
   int fModuleNr;
   std::map<ModuleId, KoaMxdc32Buffer*> fModuleBuffer;
+  std::map<ModuleId, KoaBufferStatistic*> fModuleStat;
   ModuleTable fModuleTable;
   KoaEventBuffer* fKoalaBuffer;
   KoaBufferStatistic* fKoalaStat;

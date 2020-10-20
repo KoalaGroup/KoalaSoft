@@ -19,6 +19,8 @@ void KoaEventAssembler::Init()
 
     auto module_buffer = bufferManager->GetBuffer(module_info.name);
     fModuleBuffer.emplace(module_id, module_buffer);
+    auto module_stat = bufferManager->GetStatistic(module_info.name);
+    fModuleStat.emplace(module_id, module_stat);
   }
   fModuleNr = fModuleBuffer.size();
 

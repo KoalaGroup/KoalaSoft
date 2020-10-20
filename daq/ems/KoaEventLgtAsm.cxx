@@ -36,6 +36,7 @@ bool KoaEventLgtAsm::NextEvent()
         auto buffer = fModuleBuffer[module_id];
         auto item = buffer->PopTopItem();
         item->Recycle();
+        fModuleStat[module_id]->discarded++;
       }
     }
   }
