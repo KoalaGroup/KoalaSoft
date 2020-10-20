@@ -426,8 +426,8 @@ public:
   void PrintStatist(){
     for ( auto statist : fStatistList ) {
       auto buffer = GetBuffer(statist.first);
-      std::cout << statist.first << ": processed " << statist.second->events
-                << " , remaining " << buffer->Size() << std::endl;
+      std::cout << statist.first << ": totally processed " << statist.second->events
+                << " , currently remaining " << buffer->Size() << std::endl;
     }
   }
 

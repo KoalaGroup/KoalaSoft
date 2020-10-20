@@ -84,6 +84,7 @@ protected:
   std::map<ModuleId, KoaMxdc32Buffer*> fModuleBuffer;
   ModuleTable fModuleTable;
   KoaEventBuffer* fKoalaBuffer;
+  KoaBufferStatistic* fKoalaStat;
 
   Int_t   fQdcTimeDiff; // correction of QDC timestamp, the width of QDC gate in 62.5ns
   Int_t   fMaxTimeDiff; // the maximum difference of timestamps between module

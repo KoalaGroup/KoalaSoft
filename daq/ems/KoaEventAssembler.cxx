@@ -25,6 +25,7 @@ void KoaEventAssembler::Init()
   // 3. Init koala event buffer
   auto koabufferManager = KoaEventBufferManager::Instance();
   fKoalaBuffer = koabufferManager->GetBuffer("KOALA");
+  fKoalaStat = koabufferManager->GetStatistic("KOALA");
 }
 
 void KoaEventAssembler::Assemble()
@@ -36,6 +37,7 @@ void KoaEventAssembler::Assemble()
       koala_cur->fData.modules.emplace(module.first, module.second->PopTopItem());
     }
     fKoalaBuffer->StoreNewItem();
+    fKoalaStat->events++;
   }
 }
 

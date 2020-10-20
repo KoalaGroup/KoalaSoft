@@ -272,6 +272,7 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
   KoaEmsEventBufferManager* event_manager = KoaEmsEventBufferManager::Instance();
   // 'EMS' is the key label of the ems event buffer
   auto event_buffer = event_manager->GetBuffer("EMS");
+  auto event_stat = event_manager->GetStatistic("EMS");
   auto event_data = event_buffer->PrepareNewItem();
 
   // we need event_number, trigger id and number of subevents
@@ -320,6 +321,7 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
 
   // EmsEventData storage
   event_buffer->StoreNewItem();
+  event_stat->events++;
 
   return 0;
 }

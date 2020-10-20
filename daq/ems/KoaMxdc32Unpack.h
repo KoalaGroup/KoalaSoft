@@ -20,6 +20,7 @@ class KoaMxdc32Unpack : public KoaUnpack
 
 private:
   std::map<ModuleId, KoaMxdc32Buffer*> fModuleBuffer;
+  std::map<ModuleId, KoaBufferStatistic*> fModuleStat;
   ModuleTable fModuleTable;
 
   KoaEmsEventBuffer *fEmsBuffer;
