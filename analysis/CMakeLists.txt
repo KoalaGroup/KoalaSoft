@@ -7,6 +7,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_SOURCE_DIR}/data
 ${CMAKE_SOURCE_DIR}/detectors/recoil/simple
 ${CMAKE_SOURCE_DIR}/tools
+${CMAKE_SOURCE_DIR}/daq/ems
+${CMAKE_SOURCE_DIR}/detectors/scint-forward
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -23,6 +25,7 @@ set(SRCS
 #Put here your sourcefiles
 KoaAnaSolidAngle.cxx
 KoaTransformToArray.cxx
+KoaAnaTrigger.cxx
 )
 
 Set(LINKDEF AnalysisLinkDef.h)
@@ -34,6 +37,8 @@ Set(DEPENDENCIES
     KoaData
     KoaSimpleRec
     KoaTools
+    KoaEmsDaq
+    KoaScintFwd
 )
 
 GENERATE_LIBRARY()
