@@ -14,5 +14,6 @@
 #pragma link C++ class KoaAnaSolidAngle+;
 #pragma link C++ class KoaTransformToArray+;
 #pragma link C++ class KoaAnaTrigger+;
+#pragma link C++ class KoaAnaTrigger::TimeStruct+;
 
 #endif
