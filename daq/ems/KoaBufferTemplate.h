@@ -11,14 +11,16 @@
 /************** KoaBufferStatistic Begin ********************/
 struct KoaBufferStatistic
 {
-  KoaBufferStatistic() : events(0), discarded(0) {}
+  KoaBufferStatistic() : events(0), discarded(0), remaining(0) {}
   void Reset() {
     events = 0;
     discarded  = 0;
+    remaining  = 0;
   }
 
   std::uint64_t events;
   std::uint64_t discarded;
+  std::uint64_t remaining;
 };
 
 /************** KoaBufferStatist End ********************/
@@ -429,7 +431,7 @@ public:
       auto buffer = GetBuffer(statist.first);
       std::cout << std::setw(8)  << std::left << statist.first
                 << std::setw(12) << std::right << ": total " << std::setw(12) << std::left << statist.second->events
-                << std::setw(12) << std::right << ", remaining " << std::setw(12) << std::left << buffer->Size()
+                << std::setw(12) << std::right << ", remaining " << std::setw(12) << std::left << buffer->Size()+statist.second->remaining
                 << std::setw(12) << std::right << ", discarded " << std::setw(12) << std::left << statist.second->discarded
                 << std::endl;
     }

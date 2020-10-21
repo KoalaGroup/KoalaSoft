@@ -98,7 +98,7 @@ bool KoaEmsEventAnalyzer::NextEvent()
   }
 
   // 2. pop out the top item, since it's not referenced by any object
-  fBuffer->PopTopItem();
+  fCurrentEvent = fBuffer->PopTopItem();
   return true;
 }
 

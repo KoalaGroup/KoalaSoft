@@ -49,6 +49,7 @@ void KoaEventAssembler::Finish()
     auto buffer = module.second;
     while (auto item = buffer->PopTopItem()) {
       item->Recycle();
+      fModuleStat[module.first]->remaining++;
     }
   }
 }
