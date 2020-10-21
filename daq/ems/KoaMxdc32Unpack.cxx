@@ -52,20 +52,12 @@ Int_t KoaMxdc32Unpack::DoUnpack(const ems_u32* buf, Int_t size)
         priv = search->second;
         stat = fModuleStat[id];
         event = priv->PrepareNewItem();
-        auto ems_event = fEmsBuffer->GetNewItem();
         module = fModuleTable[id];
 
         //
         event->fData.header = d;
         event->fData.length = d&0xfff;
-        event->fData.ems_event = ems_event;
-        ems_event->fData.ref++;
-        
-        // TODO statist
-        // priv->statist.events++;
-        // priv->statist.words+=event->len;
-        // event->evnr=priv->statist.events;
-        
+
         break;
       }
     case 0x0: /* data, ext. timestamp or dummy */
@@ -133,6 +125,10 @@ Int_t KoaMxdc32Unpack::DoUnpack(const ems_u32* buf, Int_t size)
           event->fData.timestamp |= event->fData.ext_stamp<<30;
 
         //
+        auto ems_event = fEmsBuffer->GetNewItem();
+        event->fData.ems_event = ems_event;
+        ems_event->fData.ref++;
+
         priv->StoreNewItem();
         stat->events++;
         event = nullptr;

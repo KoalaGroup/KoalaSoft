@@ -98,7 +98,7 @@ void unpack(const char* data)
 
   // -----   Tasks   --------------------------------------------------------
 
-  // Transform to simulation data format, i.e. TClonesArray based
+  // // Transform to simulation data format, i.e. TClonesArray based
   KoaRawEventTransform *evtTransTask = new KoaRawEventTransform();
   fRun->AddTask(evtTransTask);
 

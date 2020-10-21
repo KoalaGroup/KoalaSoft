@@ -35,6 +35,7 @@ private:
 
   // koala event buffer
   KoaEventBuffer* fBuffer; //!
+  KoaBufferStatistic* fStat;//!
   KoaEventDataItem* fCurrentEvent; //!
 
   // ems configuration and channel mapping

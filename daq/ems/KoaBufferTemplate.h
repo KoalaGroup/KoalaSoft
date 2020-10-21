@@ -11,16 +11,19 @@
 /************** KoaBufferStatistic Begin ********************/
 struct KoaBufferStatistic
 {
-  KoaBufferStatistic() : events(0), discarded(0), remaining(0) {}
+  KoaBufferStatistic() : events(0), discarded(0),
+                         remaining(0), processed(0) {}
   void Reset() {
     events = 0;
     discarded  = 0;
     remaining  = 0;
+    processed  = 0;
   }
 
   std::uint64_t events;
   std::uint64_t discarded;
   std::uint64_t remaining;
+  std::uint64_t processed;
 };
 
 /************** KoaBufferStatist End ********************/
@@ -429,10 +432,11 @@ public:
   void PrintStatist(){
     for ( auto statist : fStatistList ) {
       auto buffer = GetBuffer(statist.first);
-      std::cout << std::setw(8)  << std::left << statist.first
-                << std::setw(12) << std::right << ": total " << std::setw(12) << std::left << statist.second->events
-                << std::setw(12) << std::right << ", remaining " << std::setw(12) << std::left << buffer->Size()+statist.second->remaining
-                << std::setw(12) << std::right << ", discarded " << std::setw(12) << std::left << statist.second->discarded
+      std::cout << std::setw(6)  << std::left << statist.first
+                << std::setw(12) << std::right << ": total " << std::setw(10) << std::left << statist.second->events
+                << std::setw(12) << std::right << ", remaining " << std::setw(8) << std::left << buffer->Size()+statist.second->remaining
+                << std::setw(12) << std::right << ", discarded " << std::setw(8) << std::left << statist.second->discarded
+                << std::setw(12) << std::right << ", processed " << std::setw(8) << std::left << statist.second->processed
                 << std::endl;
     }
   }

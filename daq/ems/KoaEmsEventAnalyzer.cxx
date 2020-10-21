@@ -28,6 +28,7 @@ void KoaEmsEventAnalyzer::InitInputBuffer()
 {
   auto bufferManager = KoaEmsEventBufferManager::Instance();
   fBuffer = bufferManager->GetBuffer("EMS");
+  fStat   = bufferManager->GetStatistic("EMS");
 }
 
 void KoaEmsEventAnalyzer::InitChannelMap()
@@ -47,7 +48,6 @@ void KoaEmsEventAnalyzer::InitOutputBuffer()
 
   // 2. init the storage space
   fCurrentRawEvent = new KoaEmsRawEvent();
-  fPreviousRawEvent = new KoaEmsRawEvent();
 }
 
 void KoaEmsEventAnalyzer::InitOutputTree()
@@ -94,11 +94,14 @@ bool KoaEmsEventAnalyzer::NextEvent()
   // 1. get the next event on roll and whether it's referenced by other objects
   fCurrentEvent = fBuffer->TopItem();
   if (!fCurrentEvent || fCurrentEvent->fData.ref != 0 ) {
+    // if(fCurrentEvent && fCurrentEvent->fData.ref == 1)
+    //   std::cout << "EMS Event ref: " << fCurrentEvent->fData.ref << std::endl;
     return false;
   }
 
   // 2. pop out the top item, since it's not referenced by any object
   fCurrentEvent = fBuffer->PopTopItem();
+  fStat->processed++;
   return true;
 }
 

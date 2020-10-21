@@ -37,6 +37,7 @@ void KoaEventAssembler::Assemble()
     auto koala_cur = fKoalaBuffer->PrepareNewItem();
     for ( auto module : fModuleBuffer ) {
       koala_cur->fData.modules.emplace(module.first, module.second->PopTopItem());
+      fModuleStat[module.first]->processed++;
     }
     fKoalaBuffer->StoreNewItem();
     fKoalaStat->events++;

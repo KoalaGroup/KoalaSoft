@@ -35,6 +35,7 @@ class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
  private:
   // ems event buffer and current item
   KoaEmsEventBuffer* fBuffer;
+  KoaBufferStatistic *fStat;
   KoaEmsEventDataItem* fCurrentEvent;
 
   // decoded ems event data

@@ -40,6 +40,7 @@ void KoaEventAnalyzer::InitInputBuffer()
 {
   auto bufferManager = KoaEventBufferManager::Instance();
   fBuffer = bufferManager->GetBuffer("KOALA");
+  fStat = bufferManager->GetStatistic("KOALA");
 }
 
 void KoaEventAnalyzer::InitChannelMap()
@@ -147,6 +148,8 @@ bool KoaEventAnalyzer::NextEvent()
 
   if ( !fCurrentEvent )
     return false;
+
+  fStat->processed++;
 
   return true;
 }
