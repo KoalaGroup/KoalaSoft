@@ -44,7 +44,7 @@ void KoaMapEncoder::Init()
   fFwdDetIDRange[1]=11;
   fFwdNrOfSensors = fFwdDetIDRange[1] - fFwdDetIDRange[0] + 1;
 
-  fDetectorIDToVolName[12]="RecoilRear";
+  fDetectorIDToVolName[12]="Rear";
   fRecRearID = 12;
 
   //-------------------------------------//
@@ -62,7 +62,7 @@ void KoaMapEncoder::Init()
   fVolNameToDetectorID["SensorSc7"]=10;
   fVolNameToDetectorID["SensorSc8"]=11;
 
-  fVolNameToDetectorID["RecoilRear"]=12;
+  fVolNameToDetectorID["Rear"]=12;
 
   //-------------------------------------//
   fDetectorIDToChNr[0]=48;
