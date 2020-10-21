@@ -28,7 +28,7 @@ KoaAnaTrigger::KoaAnaTrigger()
 // ---- Destructor ----------------------------------------------------
 KoaAnaTrigger::~KoaAnaTrigger()
 {
-  delete fSecond, fUsecond;
+  delete fTimestamp;
   delete fTriggerIDs, fTriggerCounts;
 
   LOG(debug) << "Destructor of KoaAnaTrigger";
@@ -80,10 +80,8 @@ InitStatus KoaAnaTrigger::Init()
   fTriggerCounts = new std::map<Int_t, Long_t>();
   ioman->RegisterAny("TriggerCount", fTriggerCounts, kTRUE);
 
-  fSecond = new Long_t();
-  fUsecond = new Long_t();
-  ioman->RegisterAny("Second", fSecond, kTRUE);
-  ioman->RegisterAny("Usecond", fUsecond, kTRUE);
+  fTimestamp = new TimeStruct();
+  ioman->RegisterAny("Timestamp", fTimestamp, kTRUE);
 
   // Read in parameters from threshold file in the file exists
   if(!fThreshFile.empty()){
@@ -138,8 +136,8 @@ void KoaAnaTrigger::Exec(Option_t* /*option*/)
 
   Reset();
 
-  ( *fSecond ) = fRawEvent->Second;
-  ( *fUsecond ) = fRawEvent->Usecond;
+  fTimestamp->Second = fRawEvent->Second;
+  fTimestamp->Usecond = fRawEvent->Usecond;
 
   // 
   Int_t rec_nr = fRecDigis->GetEntriesFast();

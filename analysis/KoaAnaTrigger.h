@@ -54,6 +54,12 @@ class KoaAnaTrigger : public FairTask
     fThreshFile = name;
   }
 
+ public:
+  struct TimeStruct {
+    Long_t Second;
+    Long_t Usecond;
+  };
+
  private:
   KoaAnaTrigger(const KoaAnaTrigger&);
   KoaAnaTrigger operator=(const KoaAnaTrigger&);
@@ -66,8 +72,7 @@ class KoaAnaTrigger : public FairTask
   TClonesArray* fRearDigis = nullptr;
   TClonesArray* fFwdDigis = nullptr;
 
-  Long_t *fSecond;
-  Long_t *fUsecond;
+  TimeStruct* fTimestamp;
   std::vector<Int_t> *fTriggerIDs;
   std::map<Int_t, Long_t> *fTriggerCounts;
 
