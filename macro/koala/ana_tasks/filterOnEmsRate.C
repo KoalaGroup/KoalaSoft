@@ -32,7 +32,8 @@ void filterOnEmsRate(const char* digifile,
       elist.Enter(entry);
     }
   }
-  std::cout << elist.GetN()/(Double32_t)entries << "\t" << digifile << std::endl;
+  std::cout << elist.GetN()/(Double32_t)entries << "\t" << elist.GetN() << "\t" << entries
+            << "\t" << digifile << std::endl;
 
   // output
   auto fout = new TFile(elistfile, "update");

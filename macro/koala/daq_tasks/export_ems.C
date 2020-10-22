@@ -12,7 +12,7 @@ using namespace std;
 void export_ems(const char* finname,
                 const char* elistFileName = nullptr,
                 const char* edirName = "/",
-                const char* elistName = "rate_elist"
+                const char* elistName = "ems_rate_elist"
                 )
 {
   TFile* fin=new TFile(finname);
