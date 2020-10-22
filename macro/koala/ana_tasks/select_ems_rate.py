@@ -6,7 +6,7 @@ import subprocess
 import batch
 
 vmc_dir = os.environ['VMCWORKDIR']
-macro = os.path.join(vmc_dir, 'macro/koala/ana_tasks/select_rate.C')
+macro = os.path.join(vmc_dir, 'macro/koala/ana_tasks/select_ems_rate.C')
 exec_bin = os.path.join(vmc_dir,'build/bin/koa_execute')
 
 # arguments definitions
@@ -30,18 +30,10 @@ parser.add_argument("--rate_in_low",
                     help="Low limit of fwd inside rate")
 parser.add_argument("--rate_in_high",
                     help="High limit of fwd inside rate")
-parser.add_argument("--rate_out_low",
-                    help="Low limit of fwd outside rate")
-parser.add_argument("--rate_out_high",
-                    help="High limit of fwd outside rate")
 parser.add_argument("--rate_up_low",
                     help="Low limit of fwd up rate")
 parser.add_argument("--rate_up_high",
                     help="High limit of fwd up rate")
-parser.add_argument("--rate_down_low",
-                    help="Low limit of fwd down rate")
-parser.add_argument("--rate_down_high",
-                    help="High limit of fwd down rate")
 
 args = parser.parse_args()
 
@@ -53,12 +45,11 @@ list_input = batch.get_list(args.infile, args.suffix, in_dir)
 # invoking the command
 for fin in list_input:
     command = [exec_bin, macro, fin,
-               args.ratio_ver_low, args.ratio_ver_high,
                args.ratio_hor_low, args.ratio_hor_high,
                args.rate_in_low, args.rate_in_high,
-               args.rate_out_low, args.rate_out_high,
-               args.rate_up_low, args.rate_up_high,
-               args.rate_down_low, args.rate_down_high]
+               args.ratio_ver_low, args.ratio_ver_high,
+               args.rate_up_low, args.rate_up_high
+               ]
     print(command)
     process = subprocess.Popen(command)
     process.wait()

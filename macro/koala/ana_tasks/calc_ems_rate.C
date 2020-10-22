@@ -1,8 +1,14 @@
 using namespace std;
 
-void calc_rate(const char* infile,
-               const char* outfile,
-               int half_window = 2)
+/*
+ * Calculate the rates of scalor value from EMS event.
+ * The calculation is took place within a event window (based on event entry order),
+ * the half size of which is provided by user.
+ */
+
+void calc_ems_rate(const char* infile,
+                   const char* outfile,
+                   int half_window = 2)
 {
   // 1. read the scalor data into buffer
   auto fin = new TFile(infile);
@@ -36,7 +42,7 @@ void calc_rate(const char* infile,
 
   // 3. configure the output branch
   auto fout = new TFile(outfile, "recreate");
-  auto tout = new TTree("Rates", "Rates from EMS scalor");
+  auto tout = new TTree("EMS_Rates", "Rates from EMS scalor");
 
   double rate[32];
   Long64_t second;

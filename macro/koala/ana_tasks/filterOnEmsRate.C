@@ -2,14 +2,14 @@
 
 using namespace KoaUtility;
 
-void filterOnRate(const char* digifile,
-                  const char* ratefile,
-                  const char* elistfile
-                  )
+void filterOnEmsRate(const char* digifile,
+                     const char* ratefile,
+                     const char* elistfile
+                     )
 {
   // the selected ems rate events
   auto frate = new TFile(ratefile);
-  auto trate = (TTree*)frate->Get("Rates_Selected");
+  auto trate = (TTree*)frate->Get("EMS_Rates_Selected");
 
   trate->BuildIndex("Second", "Usecond");
 
@@ -20,7 +20,7 @@ void filterOnRate(const char* digifile,
   tin->SetBranchAddress("KoaRawEvent", &evt);
 
   // the output elist
-  TEventList elist("rate_selected", "Events based on Rate selection");
+  TEventList elist("ems_rate_selected", "Events based on Rate selection");
 
   // event loop based on selected rate keys : Second, Usecond
   int entries=tin->GetEntries();

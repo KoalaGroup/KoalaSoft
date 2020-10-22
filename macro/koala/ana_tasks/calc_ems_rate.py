@@ -6,7 +6,7 @@ import subprocess
 import batch
 
 vmc_dir = os.environ['VMCWORKDIR']
-macro = os.path.join(vmc_dir, 'macro/koala/ana_tasks/calc_rate.C')
+macro = os.path.join(vmc_dir, 'macro/koala/ana_tasks/calc_ems_rate.C')
 exec_bin = os.path.join(vmc_dir,'build/bin/koa_execute')
 
 # arguments definitions

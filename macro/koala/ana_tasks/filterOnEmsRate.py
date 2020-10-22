@@ -6,14 +6,14 @@ import subprocess
 import batch
 
 vmc_dir = os.environ['VMCWORKDIR']
-macro = os.path.join(vmc_dir, 'macro/koala/ana_tasks/filterOnRate.C')
+macro = os.path.join(vmc_dir, 'macro/koala/ana_tasks/filterOnEmsRate.C')
 exec_bin = os.path.join(vmc_dir,'build/bin/koa_execute')
 
 # arguments definitions
 parser = argparse.ArgumentParser()
 parser.add_argument("infile",help="the file list to be processed")
 parser.add_argument("-o","--output",
-                    default="rate_select_efficiency.txt",
+                    default="ems_rate_select_efficiency.txt",
                     help="the output file containing selection efficiency")
 parser.add_argument("-d","--directory",
                     default="./",

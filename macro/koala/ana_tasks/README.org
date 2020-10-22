@@ -1,0 +1,13 @@
+* Rates
+** EMS Scalor Rates
+   | Index | Function                                       | Macro                | Input                | Output                                           | Note                         |
+   |-------+------------------------------------------------+----------------------+----------------------+--------------------------------------------------+------------------------------|
+   |     1 | Calculate the rates                            | calc_ems_rate.C/py   | *_EmsRawEvent.root   | *_Rate.root                                      |                              |
+   |-------+------------------------------------------------+----------------------+----------------------+--------------------------------------------------+------------------------------|
+   |     2 | Select the rates                               | select_ems_rate.C/py | *_Rate.root          | *_Rate_Selected.root                             |                              |
+   |       |                                                |                      |                      | ems_rate_elist in *_Rate.root                    |                              |
+   |-------+------------------------------------------------+----------------------+----------------------+--------------------------------------------------+------------------------------|
+   |     3 | Draw the Fwd rate correlation                  | checkFwdRate.C/py    | *_Rate.root          | *_Rate.root (hists saved in the same input file) | code repo: macros_koalasoft_ |
+   |-------+------------------------------------------------+----------------------+----------------------+--------------------------------------------------+------------------------------|
+   |     4 | Filter KOALA event based on Fwd rate condition | filterOnRate.C/py    | *.root               | *_EntryList.root                                 |                              |
+   |       |                                                |                      | *_Rate_Selected.root |                                                  |                              |
