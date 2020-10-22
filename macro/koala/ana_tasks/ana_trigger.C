@@ -8,7 +8,6 @@
 
 void ana_trigger(const char* data,
                  const char* para,
-                 const char* outdir,
                  const char* suffix = "_Trigger.root",
                  const char* trigger_thresh_file = "cluster_seed_threshold.txt"
                  )
@@ -27,8 +26,7 @@ void ana_trigger(const char* data,
   TString paraFile(para);
 
   // Output file
-  TString outFile = gSystem->BaseName(inFile);
-  outFile = gSystem->ConcatFileName(outdir, outFile.Data());
+  TString outFile = inFile;
   outFile.ReplaceAll(".root", suffix);
 
   // -----   Timer   --------------------------------------------------------

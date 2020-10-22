@@ -13,4 +13,4 @@
    |       |                                                |                      | *_Rate_Selected.root |                                                  |                              |
    |-------+------------------------------------------------+----------------------+----------------------+--------------------------------------------------+------------------------------|
    |     5 | Export the EMS scalor values to csv file       | export_ems.py        | *_EmsRawEvent.root   | *_scalor.csv                                     |                              |
-   |       |                                                |                      | *_EntryList.root     | *_scalor_selected.csv                          |                              |
+   |       |                                                |                      | *_EntryList.root     | *_scalor_selected.csv                            |                              |
