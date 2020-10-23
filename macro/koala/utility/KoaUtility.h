@@ -26,6 +26,34 @@ T* getObject(TDirectory* dir, const char* name)
   return object;
 }
 
+// get list of file name for batch processing
+std::vector<std::string> getFileList(const char* fileconfig, const char* outdir, const char* suffix)
+{
+  std::ifstream flist;
+  flist.open(gSystem->ExpandPathName(fileconfig));
+  if (!flist.is_open()) {
+    cout << "Can't open file : " << fileconfig << '\n';
+  }
+
+  vector<string> outlist;
+
+  string line, file, dir;
+  while (!flist.eof()) {
+    getline(flist, line);
+    stringstream ss(line);
+
+    ss >> file >> dir;
+
+    TString filename(file.data());
+    filename.ReplaceAll(".cl", suffix);
+
+    // outlist.emplace_back(gSystem->ConcatFileName(outdir, filename.Data()));
+    outlist.emplace_back(gSystem->ConcatFileName(gSystem->ExpandPathName(outdir), filename.Data()));
+  }
+  flist.close();
+  return outlist;
+}
+
 };
 
 #endif

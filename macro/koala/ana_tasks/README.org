@@ -1,5 +1,8 @@
 * Rates
 ** EMS Scalor Rates
+   
+   The rates come from EMS event, which has scalor data inside.
+   
    | Index | Function                                       | Macro                | Input                | Output                                           | Note                         |
    |-------+------------------------------------------------+----------------------+----------------------+--------------------------------------------------+------------------------------|
    |     1 | Calculate the rates                            | calc_ems_rate.C/py   | *_EmsRawEvent.root   | *_Rate.root                                      |                              |
@@ -14,3 +17,17 @@
    |-------+------------------------------------------------+----------------------+----------------------+--------------------------------------------------+------------------------------|
    |     5 | Export the EMS scalor values to csv file       | export_ems.py        | *_EmsRawEvent.root   | *_scalor.csv                                     |                              |
    |       |                                                |                      | *_EntryList.root     | *_scalor_selected.csv                            |                              |
+
+** KOALA Trigger Rates
+   
+   The trigger rates of KOALA comes from the analysis of detector amplitude.
+   A trigger threshold is identified from amplitude spectrum for each channel and then applied to the data as triggering condition.
+   
+   | Index | Function                                         | Macro                         | Input                  | Output                 | Note                                                          |
+   |-------+--------------------------------------------------+-------------------------------+------------------------+------------------------+---------------------------------------------------------------|
+   |     1 | Trigger selection/identification                 | ana_trigger.C/py              | *.root                 | *_Trigger.root         | input is digi file, output trigger count is koala-event based |
+   |-------+--------------------------------------------------+-------------------------------+------------------------+------------------------+---------------------------------------------------------------|
+   |     2 | Accumulate trigger counts based on EMS timestamp | accumulate_koala_trigger.C/py | *_Trigger.root         | *_TriggerSumCount.root | input is koala-event based, output is ems-event based         |
+   |-------+--------------------------------------------------+-------------------------------+------------------------+------------------------+---------------------------------------------------------------|
+   |     3 | Export trigger counts to csv file                | export_koala.C/py             | *_TriggerSumCount.root | *_trigger.csv          |                                                               |
+   |-------+--------------------------------------------------+-------------------------------+------------------------+------------------------+---------------------------------------------------------------|
