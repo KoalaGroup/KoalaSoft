@@ -207,4 +207,32 @@ std::vector<Int_t> KoaMapEncoder::GetRecRearChIDs()
   return ids;
 }
 
+std::map<Int_t, Int_t> KoaMapEncoder::GetOverlapChMaps()
+{
+  std::map<Int_t, Int_t> maps;
+
+  // Si1 & Si2
+  for(int i=0;i<20;i++){
+    auto id1 = EncodeChannelID(0,28+i);
+    auto id2 = EncodeChannelID(1,i);
+    maps.emplace(id1, id2);
+  }
+
+  // Si2 & Ge1
+  for(int i=0;i<9;i++){
+    auto id1 = EncodeChannelID(1,55+i);
+    auto id2 = EncodeChannelID(2,i);
+    maps.emplace(id1, id2);
+  }
+
+  // Ge1 & Ge2
+  for(int i=0;i<5;i++){
+    auto id1 = EncodeChannelID(2,27+i);
+    auto id2 = EncodeChannelID(3,i);
+    maps.emplace(id1, id2);
+  }
+
+  return maps;
+}
+
 ClassImp(KoaMapEncoder)
