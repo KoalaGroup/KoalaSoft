@@ -45,6 +45,8 @@ void checkClusterVsTof(const char* filename,
 
   // event loop
   auto encoder = KoaMapEncoder::Instance();
+  double pedestal_threshold[4]={0, 0, 0, 0}; // equivalent pedestal energy threshold
+
   Long_t entries = tree->GetEntries();
   for(auto entry=0;entry<entries;entry++){
     tree->GetEntry(entry);
@@ -60,15 +62,19 @@ void checkClusterVsTof(const char* filename,
         int det_id, ch_id;
         cluster->SetGeoHandler(geoHandler);
         // auto cluster_id = cluster->GetMaximaChId();
-        auto cluster_id = cluster->ChIdTotal();
+        // auto cluster_id = cluster->ChIdTotal();
+        det_id = cluster->GetDetId();
+        cluster->SetThreshold(pedestal_threshold[det_id]);
+        auto cluster_id = cluster->GetFirstChIdAboveThresh();
         ch_id = encoder->DecodeChannelID(cluster_id, det_id);
 
-        if(det_id == 0 && ch_id < 18 ) continue;
-        if(ch_id == 0 || ch_id == 47) continue;
+        if(det_id == 0 && (ch_id < 12 || ch_id == 47)) continue;
+        if(det_id == 1 && (ch_id == 0 || ch_id == 63)) continue;
+        if(cluster->TimeFirstCh() < 0) continue;
 
         //
         auto cluster_e = cluster->Energy()/1000.;
-        auto cluster_tof = cluster->Time() - fwdhit_timestamp;
+        auto cluster_tof = cluster->TimeFirstCh() - fwdhit_timestamp;
 
         h2_cluster->Fill(cluster_e, cluster_tof);
 

@@ -48,6 +48,7 @@ public:
   Double_t EnergyTotal() const; // in keV
   Double_t PositionTotal() const; // in cm
   Double_t TimeTotal() const;
+  Double_t TimeFirstCh() const;
 
   Int_t ChIdTotal() const; 
   Int_t GetMaximaChId() const;

@@ -104,6 +104,13 @@ Double_t KoaRecCluster::TimeTotal() const
   return min;
 }
 
+Double_t KoaRecCluster::TimeFirstCh() const
+{
+  auto result = std::min_element(fIds,fIds+fNrOfDigis);
+  auto idx = std::distance(fIds,result);
+  return fTimestamps[idx]; 
+}
+
 Int_t KoaRecCluster::ChIdTotal() const
 {
   Double_t hit_pos = PositionTotal(); // in cm
