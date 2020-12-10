@@ -6,7 +6,7 @@ import subprocess
 import batch
 
 vmc_dir = os.environ['VMCWORKDIR']
-macro = os.path.join(vmc_dir, 'macro/koala/filter/checkClusterVsTof.C')
+macro = os.path.join(vmc_dir, 'macro/koala/filter/checkClusterVsTofWithSingleDigi.C')
 exec_bin = os.path.join(vmc_dir,'build/bin/koa_execute')
 
 # arguments definitions

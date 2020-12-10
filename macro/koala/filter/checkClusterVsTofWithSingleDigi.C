@@ -1,7 +1,7 @@
 #include "KoaHistUtility.h"
 using namespace KoaUtility;
 
-void checkClusterVsTof(const char* filename,
+void checkClusterVsTofWithSingleDigi(const char* filename,
                       const char* treename, const char* brName_cluster,
                       const char* fwdhitFileName, const char* fwdhitTreeName = "fwdhit_time",
                       int amp_nbin = 500, double amp_low = 0, double amp_high = 10,
@@ -41,7 +41,7 @@ void checkClusterVsTof(const char* filename,
   TString hName = "cluster_vs_tof";
   TString hTitle = "Cluster Energy VS TOF;Energy (MeV);TOF (ns)";
 
-  bool useSingle = false;
+  bool useSingle = true;
   if(useSingle) {
     hDirName.Append("_SingleDigi");
     hName.Append("_SingleDigi");
