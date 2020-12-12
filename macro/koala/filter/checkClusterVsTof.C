@@ -114,12 +114,12 @@ void checkClusterVsTof(const char* filename,
 
         if(det_id == 0 && (ch_id < 12 || ch_id == 47)) continue;
         if(det_id == 1 && (ch_id == 0 || ch_id == 63)) continue;
-        if(cluster->TimeFirstCh() < 0) continue;
+        if(cluster->Time() < 0) continue;
         if(useSingle && cluster->NumberOfDigis()>1) continue;
 
         //
         auto cluster_e = cluster->Energy()/1000.;
-        auto cluster_tof = cluster->TimeFirstCh() - fwdhit_timestamp;
+        auto cluster_tof = cluster->Time() - fwdhit_timestamp;
 
         h2_cluster->Fill(cluster_e, cluster_tof);
 
