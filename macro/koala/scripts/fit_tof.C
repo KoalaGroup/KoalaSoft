@@ -7,7 +7,6 @@ using namespace KoaUtility;
 void fit_tof(const char* infile,
              const char* dirname = "tof_spectrum",
              const char* suffix = "tof",
-             const char* outfile = "tof.txt",
              const char* geoFile = "geo_standard.root",
              double loffset = 0,
              double zoffset_si1 = 0, double zoffset_si2 = 0, double zoffset_ge1 = 0, double zoffset_ge2 = 0
@@ -48,7 +47,7 @@ void fit_tof(const char* infile,
                  {
                    // config the search paramters
                    Int_t search_maxpeaks=1;
-                   auto rangeid = encoder->EncodeChannelID(0, 18);
+                   auto ip_id = encoder->EncodeChannelID(0, 12);
 
                    // loop through all hists
                    for ( auto& hist : h1s_ptr ) {
@@ -57,13 +56,13 @@ void fit_tof(const char* infile,
                      Int_t det_id, ch_id;
                      ch_id = encoder->DecodeChannelID(id, det_id);
 
-                     if(id < rangeid )
+                     if(id < ip_id )
                        continue;
 
                      //
                      TSpectrum s(search_maxpeaks);
                      Int_t npeaks;
-                     npeaks = s.Search(h1, 0.1, "", 0.5);
+                     npeaks = s.Search(h1, 0.5, "", 0.3);
 
                      // fit window in sigma
                      double fit_window[4]={1,2,3,2};
@@ -76,7 +75,7 @@ void fit_tof(const char* infile,
                        // first fit to get rough estimation
                        auto sigma = result->Parameter(2);
                        h1->GetXaxis()->SetRangeUser(xpeaks[0]-10*sigma, xpeaks[0]+10*sigma);
-                       result = h1->Fit("gaus", "qs", "", xpeaks[0]-2.5*sigma, xpeaks[0]+1.5*sigma);
+                       result = h1->Fit("gaus", "qs", "", xpeaks[0]-3*sigma, xpeaks[0]+1.5*sigma);
 
                        double mean = result->Parameter(1);
                        double sigma_fitted = result->Parameter(2);
@@ -157,11 +156,13 @@ void fit_tof(const char* infile,
   writeGraphs<TGraph*>(hDirOut, graphs_correlation,"WriteDelete");
 
   //
-  TString outfile_pdf(outfile);
-  outfile_pdf.ReplaceAll(".txt","_fitted.pdf");
-  printH1Ds(h1s_ptr, outfile_pdf.Data());
+  TString outfile_pdf(infile);
+  outfile_pdf.ReplaceAll(".root","_tof_fitted.pdf");
+  printHistos<TH1D*>(h1s_ptr, outfile_pdf.Data());
 
-  printValueList<double>(OutputParameters, outfile);
+  TString outfile_txt(infile);
+  outfile_txt.ReplaceAll(".root","_tof_fitted.txt");
+  printValueList<double>(OutputParameters, outfile_txt.Data());
 
   //
   delete filein;
