@@ -4,7 +4,7 @@ using namespace KoaUtility;
 void checkClusterVsTofWithSingleDigi(const char* filename,
                       const char* treename, const char* brName_cluster,
                       const char* fwdhitFileName, const char* fwdhitTreeName = "fwdhit_time",
-                      int amp_nbin = 500, double amp_low = 0, double amp_high = 10,
+                      int amp_nbin = 3000, double amp_low = 0, double amp_high = 6,
                       int time_nbin = 1500, double time_low = 450, double time_high = 750,
                        const char* geoFile="./geo_standard.root",
                        const char* elistFileName = nullptr, const char* edirName = "fwd", const char* elistName = "elist_fwdhit"

@@ -2,6 +2,7 @@
 #define KOA_HISTUTILTIY_H
 
 #include "KoaUtility.h"
+#include <algorithm>
 
 namespace KoaUtility
 {
@@ -14,7 +15,9 @@ using HistoPtr2D = std::map<Int_t, TH2D*>;
 
 Histo1D bookH1dByChannelId(const char *hName, const char *hTitle, Int_t nBin = 7000,
                            Double_t xLow = 0, Double_t xHigh = 70, Bool_t IsRec = true,
-                           Int_t colorLine = kBlack) {
+                           Int_t colorLine = kBlack,
+                           Bool_t seperateTdc = false
+                           ) {
   Histo1D h1book;
   KoaMapEncoder *encoder = KoaMapEncoder::Instance();
   IndexContainer ChIDs;
@@ -24,16 +27,31 @@ Histo1D bookH1dByChannelId(const char *hName, const char *hTitle, Int_t nBin = 7
     ChIDs = encoder->GetFwdChIDs();
   }
 
+  IndexContainer TdcChIDs = encoder->GetRecTdcChIDs();
+
   for (auto &ChID : ChIDs) {
     TString volName;
     Int_t ch = encoder->DecodeChannelID(ChID, volName);
     volName.ReplaceAll("Sensor", "");
 
-    h1book.emplace(std::piecewise_construct, std::forward_as_tuple(ChID),
-                   std::forward_as_tuple(
-                       Form("h1_%s_%s_%d", volName.Data(), hName, ch + 1),
-                       Form("%s_%d: %s", volName.Data(), ch + 1, hTitle), nBin,
-                       xLow, xHigh));
+    bool IsTdc = false;
+    auto search = std::find(std::begin(TdcChIDs), std::end(TdcChIDs), ChID);
+    if(search != std::end(TdcChIDs)) IsTdc = true;
+
+    if(IsTdc) {
+      h1book.emplace(std::piecewise_construct, std::forward_as_tuple(ChID),
+                     std::forward_as_tuple(
+                         Form("h1_%s_%s_%d", volName.Data(), hName, ch + 1),
+                         Form("%s_%d: %s", volName.Data(), ch + 1, hTitle), 8000,
+                         0, 8));
+    }
+    else{
+      h1book.emplace(std::piecewise_construct, std::forward_as_tuple(ChID),
+                     std::forward_as_tuple(
+                         Form("h1_%s_%s_%d", volName.Data(), hName, ch + 1),
+                         Form("%s_%d: %s", volName.Data(), ch + 1, hTitle), nBin,
+                         xLow, xHigh));
+    }
 
     h1book[ChID].SetLineColor(colorLine);
     h1book[ChID].SetDirectory(0);

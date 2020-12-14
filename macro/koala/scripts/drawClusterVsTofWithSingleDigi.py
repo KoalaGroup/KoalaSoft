@@ -42,7 +42,7 @@ if (args.elist_dir):
     for fin,ffwd,felist in zip(list_files, list_fwd, list_elist):
         command = [exec_bin, macro, fin, 'koalasim', args.branch,
                    ffwd, 'fwdhit_time',
-                   '500', '0', '10',
+                   '3000', '0', '6',
                    '1500', '450', '750',
                    geofile,
                    felist, args.elist_dirname, args.elist_name]
@@ -53,7 +53,7 @@ else:
     for fin,ffwd in zip(list_files, list_fwd):
         command = [exec_bin, macro, fin, 'koalasim', args.branch,
                    ffwd, 'fwdhit_time',
-                   '500', '0', '10',
+                   '3000', '0', '6',
                    '1500', '450', '750',
                    geofile]
         print(command)

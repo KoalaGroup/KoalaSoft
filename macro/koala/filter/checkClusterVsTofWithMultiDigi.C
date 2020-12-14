@@ -1,7 +1,7 @@
 #include "KoaHistUtility.h"
 using namespace KoaUtility;
 
-void checkClusterVsTof(const char* filename,
+void checkClusterVsTofWithMultiDigi(const char* filename,
                       const char* treename, const char* brName_cluster,
                       const char* fwdhitFileName, const char* fwdhitTreeName = "fwdhit_time",
                       int amp_nbin = 3000, double amp_low = 0, double amp_high = 6,
@@ -37,16 +37,9 @@ void checkClusterVsTof(const char* filename,
   }
 
   // string definition
-  TString hDirName = "cluster_vs_tof";
-  TString hName = "cluster_vs_tof";
-  TString hTitle = "Cluster Energy VS TOF;Energy (MeV);TOF (ns)";
-
-  bool useSingle = false;
-  if(useSingle) {
-    hDirName.Append("_SingleDigi");
-    hName.Append("_SingleDigi");
-    hTitle.Prepend("(Only one digi in cluster)");
-  }
+  TString hDirName = "cluster_vs_tof_MultiDigi";
+  TString hName = "cluster_vs_tof_MultiDigi";
+  TString hTitle = "(Multi digis) Cluster Energy VS TOF;Energy (MeV);TOF (ns)";
 
   TString eListName = elistName;
   eListName.ReplaceAll("elist_","");
@@ -115,7 +108,7 @@ void checkClusterVsTof(const char* filename,
         if(det_id == 0 && (ch_id < 12 || ch_id == 47)) continue;
         if(det_id == 1 && (ch_id == 0 || ch_id == 63)) continue;
         if(cluster->Time() < 0) continue;
-        if(useSingle && cluster->NumberOfDigis()>1) continue;
+        if(cluster->NumberOfDigis()<2) continue;
 
         //
         auto cluster_e = cluster->Energy()/1000.;
