@@ -21,6 +21,14 @@ parser.add_argument("-o","--output",
 parser.add_argument("-s","--suffix",
                     default="_calib.root",
                     help="suffix of the output")
+parser.add_argument("--pedestal",
+                    default="adc_pedestal_20190902_003449.txt")
+parser.add_argument("--adc",
+                    default="adc_calib_energy_huagen.txt")
+parser.add_argument("--tdc",
+                    default="tdc_calib_shift.txt")
+parser.add_argument("--seed",
+                    default="cluster_seed_threshold.txt")
 
 args = parser.parse_args()
 
@@ -31,7 +39,11 @@ out_dir = os.path.expanduser(args.output)
 list_decoded = batch.get_list(args.infile, '.root', in_dir)
 for fin in list_decoded:
     fpara = fin.replace(".root","_param.root")
-    command = [exec_bin, macro, fin, fpara, out_dir, args.suffix]
+    command = [exec_bin, macro, fin, fpara, out_dir, args.suffix,
+               args.pedestal,
+               args.adc,
+               args.tdc,
+               args.seed]
     print(command)
     process = subprocess.Popen(command)
     process.wait()

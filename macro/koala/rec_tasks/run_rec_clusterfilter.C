@@ -10,7 +10,7 @@ void run_rec_clusterfilter(const char* data,
                            const char* outdir,
                            const char* suffix = "_clusterfilter.root",
                            const char* ped_file = "adc_pedestal_20190902_003449.txt",
-                           const char* adcpara_file = "adc_calib_energy.txt",
+                           const char* adcpara_file = "adc_calib_energy_huagen.txt",
                            const char* tdcpara_file = "tdc_calib_shift.txt",
                            const char* seedfile = "cluster_seed_threshold.txt",
                            const char* clustersize_file = "cluster_size.txt"

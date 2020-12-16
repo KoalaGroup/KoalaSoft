@@ -75,10 +75,15 @@ class KoaElasticCalculator : public TObject
   /* Get fwd hit position in x-axis based on recoil energy. T in MeV, return value in cm */
   Double_t GetFwdXByEnergy(Double_t T);
 
+  /* Get TOF of fwd scattering proton based on recoil angle (in degree), return value in ns*/
+  Double_t GetFwdTOFByAlpha(Double_t alpha);
+
+  Double_t GetRecTOFByAlpha(Double_t alpha);
+
  private:
   Double_t fMom; // momentum of incident proton, in GeV
-  Double_t fRecDistance; // distance of recoil sensor surface to IP, in cm
-  Double_t fFwdDistance; // distance of fwd sensor surface to IP, in cm
+  Double_t fRecDistance = 90.4; // distance of recoil sensor surface to IP, in cm
+  Double_t fFwdDistance = 460; // distance of fwd sensor surface to IP, in cm
 
   static Double_t fProtonMass;
   Double_t fKappa;
@@ -87,3 +92,4 @@ class KoaElasticCalculator : public TObject
 };
 
 #endif
+
