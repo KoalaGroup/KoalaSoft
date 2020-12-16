@@ -5,6 +5,7 @@
 using namespace KoaUtility;
 
 void fit_tof(const char* infile,
+             double mom = 2.2,
              const char* dirname = "tof_spectrum",
              const char* suffix = "tof",
              const char* geoFile = "geo_standard.root",
@@ -15,9 +16,23 @@ void fit_tof(const char* infile,
   TStopwatch timer;
 
   //
+  // zoffset_si1 = 0.18; zoffset_si2 = 0.13; zoffset_ge1 = 0.14;zoffset_ge2 = 0.14;
   double zoffset[4] = {zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2}; // in cm
+  double yoffset[4] ={0};
   auto distances = getChannelDistances(geoFile,loffset,zoffset); // flight distance of recoil particle
   auto positions = getChannelGlobalPosition(geoFile,zoffset); // strip position along z-axis
+  auto alphas = getChannelAlphas(geoFile, yoffset, zoffset);
+
+  auto calculator = new KoaElasticCalculator(mom);
+  std::map<Int_t, double> CalculatedEnergies;
+  for(auto item: positions ){
+    auto id = item.first;
+    auto pos = item.second;
+    if(pos>0){
+      auto energy = calculator->GetEnergyByAlpha(alphas[id]);
+      CalculatedEnergies.emplace(id, energy);
+    }
+  }
 
   //
   TString infile_name = gSystem->ExpandPathName(infile);
@@ -40,6 +55,7 @@ void fit_tof(const char* infile,
   auto& output_sigma_errs = addValueContainer(OutputParameters, "Err(Sigma)");
   auto& output_distances = addValueContainer(OutputParameters, "Distance");
   auto& output_positions = addValueContainer(OutputParameters, "Position");
+  auto& output_alphas = addValueContainer(OutputParameters, "Alpha");
 
   // fit
   auto encoder = KoaMapEncoder::Instance();
@@ -94,7 +110,7 @@ void fit_tof(const char* infile,
   //
   TMultiGraph* mg_tof = new TMultiGraph();
   mg_tof->SetName("mg_tof");
-  mg_tof->SetTitle("Fitted TOF");
+  mg_tof->SetTitle("Fitted TOF;Energy (MeV);TOF (ns)");
   auto graphs_tof = bookGraphByRecDetectorId("tof","Fitted TOF",8);
   for(auto& graph: graphs_tof) {
     mg_tof->Add(graph.second);
@@ -102,7 +118,7 @@ void fit_tof(const char* infile,
 
   TMultiGraph* mg_resolution = new TMultiGraph();
   mg_resolution->SetName("mg_resolution");
-  mg_resolution->SetTitle("Fitted TOF Sigma");
+  mg_resolution->SetTitle("Fitted TOF Sigma; Energy (MeV); #sigma_{TOF} (ns)");
   auto graphs_resolution = bookGraphByRecDetectorId("resolution","Fitted TOF Sigma",8);
   for(auto& graph: graphs_resolution) {
     mg_resolution->Add(graph.second);
@@ -110,7 +126,7 @@ void fit_tof(const char* infile,
 
   TMultiGraph* mg_correlation = new TMultiGraph();
   mg_correlation->SetName("mg_correlation");
-  mg_correlation->SetTitle("TOF VS Sigma");
+  mg_correlation->SetTitle("TOF VS Sigma;TOF (ns);#sigma (ns)");
   auto graphs_correlation = bookGraphByRecDetectorId("correlation","TOF VS Sigma",8);
   for(auto& graph: graphs_correlation) {
     mg_correlation->Add(graph.second);
@@ -126,15 +142,18 @@ void fit_tof(const char* infile,
     auto sigma = output_sigmas[id];
     auto l = distances[id];
     auto z = positions[id];
+    auto alpha = alphas[id];
+    auto energy = CalculatedEnergies[id];
 
     output_distances.emplace(id, l);
     output_positions.emplace(id, z);
+    output_alphas.emplace(id, alpha);
 
     Int_t det_id, ch_id;
     ch_id = encoder->DecodeChannelID(id, det_id);
 
-    graphs_tof[det_id]->SetPoint(index[det_id], z, mean);
-    graphs_resolution[det_id]->SetPoint(index[det_id], z, sigma);
+    graphs_tof[det_id]->SetPoint(index[det_id], energy, mean);
+    graphs_resolution[det_id]->SetPoint(index[det_id], energy, sigma);
     graphs_correlation[det_id]->SetPoint(index[det_id], mean, sigma);
 
     index[det_id]++;
