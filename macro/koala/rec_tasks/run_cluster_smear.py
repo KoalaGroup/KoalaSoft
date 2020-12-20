@@ -26,9 +26,9 @@ parser.add_argument("-o","--output",
                     help="directory where the output files are saved")
 parser.add_argument("-s","--suffix",
                     default="_smear.root",
-                    help="suffix of the output")
+                    help="suffix of the input file")
 parser.add_argument("--adc_param",
-                    default="adc_calib_energy.txt",
+                    default="adc_calib_energy_huagen.txt",
                     help="file name of ADC calib parameters")
 
 args = parser.parse_args()
@@ -36,13 +36,14 @@ args = parser.parse_args()
 in_dir = os.path.expanduser(args.directory)
 para_dir = os.path.expanduser(args.para_dir)
 out_dir = os.path.expanduser(args.output)
+out_suffix = args.branch.replace('KoaRecCluster','')+'_smear.root'
 
 # add rec each file in the list
 list_input = batch.get_list(args.infile, args.suffix, in_dir)
 list_para = batch.get_list(args.infile, "_param.root", para_dir)
 
 for fin, fpara in zip(list_input, list_para):
-    command = [exec_bin, macro, fin, fpara, args.branch, out_dir, "_smear.root", args.adc_param]
+    command = [exec_bin, macro, fin, fpara, args.branch, out_dir, out_suffix, args.adc_param]
     print(command)
     process = subprocess.Popen(command)
     process.wait()

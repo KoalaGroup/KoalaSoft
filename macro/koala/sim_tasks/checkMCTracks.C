@@ -1,12 +1,12 @@
 #include "KoaColors.h"
 #include "KoaHistUtility.h"
 
-using namespace KoaColors;
 using namespace KoaUtility;
 
 // this macro can only be used for two-body elastic scattering events
 void checkAcceptance(const char* primaryFile, // root file from simulation macro, containing MCTrack tree
-                     const char* geoFile = "../calib_para/geo_standard.root") // the detector geometry to be checked
+                     const char* geoFile = "../calib_para/geo_standard.root",
+                     long entries = -1) // the detector geometry to be checked
 {
   //
   TStopwatch timer;
@@ -33,10 +33,10 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
                                 nYbinRec, yLowRec, yHighRec);
 
   // fwd
-  Int_t nXbinFwd = 1400;
-  Double_t xLowFwd = 0, xHighFwd = 14; // in cm
-  Int_t nYbinFwd = 300;
-  Double_t yLowFwd = -1.5, yHighFwd = 1.5; // in cm
+  Int_t nXbinFwd = 1300;
+  Double_t xLowFwd = 0, xHighFwd = 65; // in cm
+  Int_t nYbinFwd = 250;
+  Double_t yLowFwd = -4, yHighFwd = 4; // in cm
 
   TH2D* h2fwd_acceptance_1 = new TH2D("h2_Fwd_Acceptance_1", "Fwd_1 Detector Acceptance;X (cm);Y (cm)",
                                       nXbinFwd, xLowFwd, xHighFwd,
@@ -63,6 +63,7 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
 
   // rec
   Double_t rec_distance = geoHandler->GetDetPositionById(0);
+  std::cout << "rec distance: " << rec_distance << std::endl;
 
   Int_t RecIdRange[2];
   encoder->GetRecDetIDRange(RecIdRange[0], RecIdRange[1]);
@@ -89,6 +90,8 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
 
   Double_t fwd_distance_1 = geoHandler->GetDetPositionById(FwdIdRange[0]);
   Double_t fwd_distance_2 = geoHandler->GetDetPositionById(FwdIdRange[1]);
+  std::cout << "fwd distance: " << fwd_distance_1 << ", " << fwd_distance_2
+            << std::endl;
 
   PointArray fwd_boundaries_1 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[0]);
   PointArray fwd_boundaries_2 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[1]);
@@ -108,7 +111,8 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
   TClonesArray *MCTracks  = new TClonesArray("KoaMCTrack",10);
   tPrimary->SetBranchAddress("MCTrack", &MCTracks);
 
-  Long64_t entries = tPrimary->GetEntriesFast();
+  if(entries<0)
+    entries = tPrimary->GetEntriesFast();
   for( auto entry=0; entry < entries; entry++ ) {
     tPrimary->GetEntry(entry);
 
