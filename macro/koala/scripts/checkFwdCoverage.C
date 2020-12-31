@@ -57,8 +57,8 @@ void checkFwdCoverage(Double_t mom, // in GeV
   // get target |t| boundary 
   // T corresponding to 0.0008 < |t| < 0.001
   double t_low = 0.0008, t_high = 0.001; // in GeV/c
-  double et_low = t_low/2/0.938*1000; // in MeV
-  double et_high = t_high/2/0.938*1000;
+  double et_low = t_low/2./0.938272081*1000; // in MeV
+  double et_high = t_high/2./0.938272081*1000;
   double rect_low = calculator->GetRecZByEnergy(et_low); // in mm
   double rect_high = calculator->GetRecZByEnergy(et_high);
   double fwdt_low = calculator->GetFwdXByEnergy(et_low); // in cm
@@ -78,7 +78,7 @@ void checkFwdCoverage(Double_t mom, // in GeV
   double l = rec_distance;
   double d = fwd_distance;
   double s = TMath::Abs(pts_si1[2].Y()-pts_si2[1].Y());
-  double fwd_width_min = s*d*thetat_high/180.*TMath::Pi()/l;
+  double fwd_width_min = s*d*thetat_high/180.*3.14151926/l;
 
   // std::cout << "l: " << l << " d: " << d << " s: " << s << std::endl;
 
