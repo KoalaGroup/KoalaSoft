@@ -35,7 +35,7 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
   // fwd
   Int_t nXbinFwd = 1300;
   Double_t xLowFwd = 0, xHighFwd = 65; // in cm
-  Int_t nYbinFwd = 250;
+  Int_t nYbinFwd = 800;
   Double_t yLowFwd = -4, yHighFwd = 4; // in cm
 
   TH2D* h2fwd_acceptance_1 = new TH2D("h2_Fwd_Acceptance_1", "Fwd_1 Detector Acceptance;X (cm);Y (cm)",
@@ -93,8 +93,10 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
   std::cout << "fwd distance: " << fwd_distance_1 << ", " << fwd_distance_2
             << std::endl;
 
-  PointArray fwd_boundaries_1 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[0]);
-  PointArray fwd_boundaries_2 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[1]);
+  // PointArray fwd_boundaries_1 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[0]);
+  // PointArray fwd_boundaries_2 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[1]);
+  PointArray fwd_boundaries_1 {{3,-1,460},{3,1,460},{12,1,460},{12,-1,460}};
+  PointArray fwd_boundaries_2 {{3,-1,480},{3,1,480},{12,1,480},{12,-1,480}};
 
   TCutG fwd_cutg_1("fwd_cutg_1"); fwd_cutg_1.SetLineWidth(2); fwd_cutg_1.SetLineColor(kRed);
   TCutG fwd_cutg_2("fwd_cutg_2"); fwd_cutg_2.SetLineWidth(2); fwd_cutg_2.SetLineColor(kRed);
