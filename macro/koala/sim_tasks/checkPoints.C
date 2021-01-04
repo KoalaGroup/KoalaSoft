@@ -114,6 +114,44 @@ using namespace KoaUtility;
 //   h1Rec->Draw();
 // }
 
+void checkFwdEnergy(const char* filename)
+{
+  auto fin = TFile::Open(filename);
+  TTree* tin; fin->GetObject("koalasim", tin);
+
+  auto fwdPts = new TClonesArray("KoaFwdPoint", 200);
+  tin->SetBranchAddress("KoaFwdPoint", &fwdPts);
+
+  //
+  auto h1map = bookH1dByDetectorId("energy","MC Fwd Point Energy",500, 0, 5, false);
+
+  //
+  auto entries = tin->GetEntries();
+  for(auto entry=0; entry < entries; entry++) {
+    tin->GetEntry(entry);
+
+    auto points = fwdPts->GetEntries();
+    std::cout << points << std::endl;
+    for(int pt=0; pt < points; pt++) {
+      KoaFwdPoint* point = static_cast<KoaFwdPoint*>(fwdPts->At(pt));
+      h1map[point->GetDetectorID()].Fill(point->GetEnergyLoss()*1000);
+      std::cout << point->GetDetectorID() << std::endl;
+    }
+  }
+
+  std::cout<< "Entries: " << entries << std::endl;
+
+  TString outfilename(filename);
+  outfilename.ReplaceAll(".root","_result.root");
+  TFile *fout = new TFile(outfilename.Data(),"update");
+
+  TDirectory* dir = getDirectory(fout, "fwd");
+  writeHistos<TH1D>(dir, h1map);
+
+  delete fin;
+  delete fout;
+}
+
 void checkRecEnergy(const char* filename)
 {
   auto fin = TFile::Open(filename);
