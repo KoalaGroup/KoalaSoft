@@ -20,6 +20,9 @@ parser.add_argument("--cluster_suffix",
                     default="_calib_ThresholdFilter_smear.root")
 parser.add_argument("--cluster_br",
                      default="KoaRecCluster_Smear")
+parser.add_argument("--cluster_nr",
+                    default="-1",
+                    help="Threshold of number of clusters")
 
 args = parser.parse_args()
 file_list = args.infile
@@ -38,7 +41,7 @@ list_file = batch.get_list(file_list, suffix, in_dir)
 list_fcluster = batch.get_list(file_list, args.cluster_suffix, args.cluster_dir)
 
 for fin, fcluster in zip( list_file , list_fcluster):
-    command = [exec_bin, macro, fin, fcluster, args.cluster_br]
+    command = [exec_bin, macro, fin, fcluster, args.cluster_br, args.cluster_nr]
     print(command)
     process = subprocess.Popen(command)
     process.wait()

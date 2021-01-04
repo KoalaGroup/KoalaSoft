@@ -7,7 +7,7 @@
  ********************************************************************************/
 void run_digi(const char* data, const char* para,
               const char* ped_file = "adc_pedestal_20190902_003449.txt",
-              const char* adcpara_file = "adc_calib_energy.txt"
+              const char* adcpara_file = "adc_calib_energy_huagen.txt"
               )
 {
   // ----    Debug option   -------------------------------------------------

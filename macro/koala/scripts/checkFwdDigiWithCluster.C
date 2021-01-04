@@ -7,7 +7,8 @@ using namespace KoaUtility;
 
 void checkFwdDigiWithCluster(const char* filename,
                              const char* filename_rec,
-                             const char* brName_rec = "KoaRecCluster_Smear"
+                             const char* brName_rec = "KoaRecCluster_Smear",
+                             int nr_cl_threshold = -1
                              )
 {
   // timer
@@ -37,7 +38,7 @@ void checkFwdDigiWithCluster(const char* filename,
   TH2D h2map_amp("h2map_amp", "Amplitude: Fwd1 Vs Fwd2;Fwd1 (QDC counts);Fwd2 (QDC counts)",
                  nbin_amp, low_amp, high_amp, nbin_amp, low_amp, high_amp);
 
-  TH1D h1_deltaT_zoom("deltaT_zoom","Fwd2 - Fwd1;#Delta T(ns)", 1000,-50, 50);
+  TH1D h1_deltaT_zoom("deltaT_zoom","Fwd2 - Fwd1;#Delta T(ns)", 1000,-10, 10);
 
   // Parameters used in event loop
   Int_t det_id, ch_id, id;
@@ -58,7 +59,7 @@ void checkFwdDigiWithCluster(const char* filename,
 
     // fwd digis
     int nr_cl = RecClusters->GetEntriesFast();
-    if(nr_cl>0){
+    if(nr_cl>0 && nr_cl_threshold >= nr_cl){
       Int_t fwddigis = FwdDigis->GetEntriesFast();
       for (int i=0;i<fwddigis;i++){
         KoaFwdDigi* digi = (KoaFwdDigi*)FwdDigis->At(i);
@@ -87,9 +88,15 @@ void checkFwdDigiWithCluster(const char* filename,
   outfilename.ReplaceAll(".root","_result.root");
   TFile *fout = new TFile(outfilename.Data(),"update");
 
-  TDirectory* hdir = getDirectory(fout, "fwd_RecTriggered");
-  writeHistos(hdir, h1map_amp);
+  TDirectory* hdir = nullptr;
+  if(nr_cl_threshold>0){
+    hdir = getDirectory(fout, Form("fwd_RecTriggered_NrCluster%d",nr_cl_threshold));
+  }
+  else{
+    hdir = getDirectory(fout, "fwd_RecTriggered");
+  }
 
+  writeHistos(hdir, h1map_amp);
   hdir->WriteTObject(&h2map_amp, "", "Overwrite");
   hdir->WriteTObject(&h1_deltaT_zoom, "", "Overwrite");
 

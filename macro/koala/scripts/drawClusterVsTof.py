@@ -19,6 +19,9 @@ parser.add_argument("-s", "--suffix", help="suffix of the output",
 parser.add_argument("-b", "--branch", help="name of the branch containing the cluster",
                     default="KoaRecCluster")
 parser.add_argument("--fwddir",help="directory where fwd timing files are located")
+parser.add_argument("--nr_cl",
+                    help="Threshold of cluster number in the event",
+                    default="-1")
 parser.add_argument("--geometry",help="geometry file used for position")
 parser.add_argument("--elist_dir",help="directory where elist file is located")
 parser.add_argument("--elist_suffix", help="suffix of the elist filename")
@@ -42,6 +45,7 @@ if (args.elist_dir):
     for fin,ffwd,felist in zip(list_files, list_fwd, list_elist):
         command = [exec_bin, macro, fin, 'koalasim', args.branch,
                    ffwd, 'fwdhit_time',
+                   args.nr_cl,
                    '3000', '0', '6',
                    '1500', '450', '750',
                    geofile,
@@ -53,6 +57,7 @@ else:
     for fin,ffwd in zip(list_files, list_fwd):
         command = [exec_bin, macro, fin, 'koalasim', args.branch,
                    ffwd, 'fwdhit_time',
+                   args.nr_cl,
                    '3000', '0', '6',
                    '1500', '450', '750',
                    geofile]

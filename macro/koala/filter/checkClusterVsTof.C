@@ -4,6 +4,7 @@ using namespace KoaUtility;
 void checkClusterVsTof(const char* filename,
                       const char* treename, const char* brName_cluster,
                       const char* fwdhitFileName, const char* fwdhitTreeName = "fwdhit_time",
+                       int nr_cl_threshold = -1,
                       int amp_nbin = 3000, double amp_low = 0, double amp_high = 6,
                       int time_nbin = 1500, double time_low = 450, double time_high = 750,
                        const char* geoFile="./geo_standard.root",
@@ -40,6 +41,12 @@ void checkClusterVsTof(const char* filename,
   TString hDirName = "cluster_vs_tof";
   TString hName = "cluster_vs_tof";
   TString hTitle = "Cluster Energy VS TOF;Energy (MeV);TOF (ns)";
+
+  if(nr_cl_threshold>0){
+    hDirName.Append(Form("_%dcluster", nr_cl_threshold));
+    hName.Append(Form("_%dcluster", nr_cl_threshold));
+    hTitle.Prepend(Form("(NrCluster <= %d)", nr_cl_threshold));
+  }
 
   bool useSingle = false;
   if(useSingle) {
@@ -99,6 +106,8 @@ void checkClusterVsTof(const char* filename,
     if (fwdhit_timestamp > 0) {
 
       Int_t clusters = RecClusters->GetEntriesFast();
+      if(clusters > nr_cl_threshold) continue;
+
       for (int i=0;i<clusters;i++){
         KoaRecCluster* cluster = (KoaRecCluster*)RecClusters->At(i);
 

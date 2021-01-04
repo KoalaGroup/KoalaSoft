@@ -19,7 +19,7 @@ void run_cluster_simulation(const char* data,
                             const char* suffix = "_digi.root",
                             const char* ped_file = "adc_pedestal_20190902_003449_energy.txt",
                             const char* ped_adcfile = "adc_pedestal_20190902_003449.txt",
-                            const char* adcpara_file = "adc_calib_energy.txt"
+                            const char* adcpara_file = "adc_calib_energy_huagen.txt"
                             )
 {
   // ----    Debug option   -------------------------------------------------
