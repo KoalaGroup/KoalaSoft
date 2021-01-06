@@ -19,10 +19,17 @@ parser.add_argument("-s", "--suffix", help="suffix of the output",
 parser.add_argument("-b", "--branch", help="name of the branch containing the cluster",
                     default="KoaRecCluster")
 parser.add_argument("--fwddir",help="directory where fwd timing files are located")
-parser.add_argument("--elist_dir",help="directory where elist file is located")
-parser.add_argument("--elist_suffix", help="suffix of the elist filename")
-parser.add_argument("--elist_dirname",help="directory name of ROOT folder containing elist")
-parser.add_argument("--elist_name",help="name of the elist")
+parser.add_argument("--elist_dir",
+                    help="directory where elist file is located")
+parser.add_argument("--elist_suffix",
+                    default="_EntryList.root",
+                    help="suffix of the elist filename")
+parser.add_argument("--elist_dirname",
+                    default="fwd",
+                    help="directory name of ROOT folder containing elist")
+parser.add_argument("--elist_name",
+                    default="elist_fwdhit",
+                    help="name of the elist")
 
 args = parser.parse_args()
 

@@ -4,19 +4,18 @@
 
 using namespace KoaUtility;
 
-void fit_tof(const char* infile,
-             double mom = 2.2,
-             const char* dirname = "tof_spectrum",
-             const char* suffix = "tof",
-             const char* geoFile = "geo_standard.root",
-             int ip_ch = 12,
-             double loffset = 0,
-             double zoffset_si1 = 0.18, double zoffset_si2 = 0.13, double zoffset_ge1 = 0.14, double zoffset_ge2 = 0.14
-             )
+void fit_energy_fwdcovered(const char* infile,
+                           double mom = 2.2,
+                           const char* dirname = "rec_cluster_energy_FirstHit_fwdhit_TimeValid",
+                           const char* suffix = "cluster_energy_firstHit_fwdhit_TimeValid",
+                           const char* geoFile = "geo_standard.root",
+                           int ip_ch = 12,
+                           double loffset = 0,
+                           double zoffset_si1 = 0.18, double zoffset_si2 = 0.13, double zoffset_ge1 = 0.14, double zoffset_ge2 = 0.14
+                           )
 {
   TStopwatch timer;
 
-  //
   // zoffset_si1 = 0.18; zoffset_si2 = 0.13; zoffset_ge1 = 0.14;zoffset_ge2 = 0.14;
   double zoffset[4] = {zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2}; // in cm
   double yoffset[4] ={0};
@@ -43,13 +42,14 @@ void fit_tof(const char* infile,
   auto h1s_ptr = getHistosByRecTdcChannelId<TH1D>(hdir, suffix);
 
   // 
-  std::map<Int_t, double> FittedTofs;
-  std::map<Int_t, double> FittedTofErrors;
+  std::map<Int_t, double> FittedEnergy;
+  std::map<Int_t, double> FittedEnergyError;
   std::map<Int_t, double> FittedSigmas;
   std::map<Int_t, double> FittedSigmaErrors;
-  std::map<Int_t, double> PeakTofs;
+  std::map<Int_t, double> PeakEnergy;
 
   ParameterList<double> OutputParameters;
+  auto& output_peaks = addValueContainer(OutputParameters, "Peak");
   auto& output_means = addValueContainer(OutputParameters, "Mean");
   auto& output_mean_errs = addValueContainer(OutputParameters, "Err(Mean)");
   auto& output_sigmas = addValueContainer(OutputParameters, "Sigma");
@@ -65,11 +65,14 @@ void fit_tof(const char* infile,
                    // config the search paramters
                    Int_t search_maxpeaks=1;
                    auto ip_id = encoder->EncodeChannelID(0, ip_ch);
+                   auto si1_thersh_id = encoder->EncodeChannelID(0, ip_ch+10);
 
                    // loop through all hists
                    for ( auto& hist : h1s_ptr ) {
                      auto id = hist.first;
                      auto h1 = hist.second;
+                     h1->SetLineColor(kBlack);
+
                      Int_t det_id, ch_id;
                      ch_id = encoder->DecodeChannelID(id, det_id);
 
@@ -82,23 +85,27 @@ void fit_tof(const char* infile,
                      npeaks = s.Search(h1, 0.5, "", 0.3);
 
                      // fit window in sigma
-                     double fit_window[4]={1,2,3,2};
+                     double fit_window[4]={0.04, 0.08, 0.12, 0.12};
 
                      if(npeaks>0) {
                        Double_t *xpeaks = s.GetPositionX();
-                       PeakTofs.emplace(id, xpeaks[0]);
-                       auto result = h1->Fit("gaus", "qs", "", xpeaks[0]-3, xpeaks[0]+3);
+                       PeakEnergy.emplace(id, xpeaks[0]);
+                       auto result = h1->Fit("gaus", "qs", "", xpeaks[0]-fit_window[det_id], xpeaks[0]+fit_window[det_id]);
 
                        // first fit to get rough estimation
                        auto sigma = result->Parameter(2);
-                       h1->GetXaxis()->SetRangeUser(xpeaks[0]-10*sigma, xpeaks[0]+10*sigma);
-                       result = h1->Fit("gaus", "qs", "", xpeaks[0]-3*sigma, xpeaks[0]+1.5*sigma);
+                       h1->GetXaxis()->SetRangeUser(xpeaks[0]-10*sigma, xpeaks[0]+7*sigma);
+                       if(id < si1_thersh_id)
+                         result = h1->Fit("gaus", "qs", "", xpeaks[0]-sigma, xpeaks[0]+3*sigma);
+                       else
+                         result = h1->Fit("gaus", "qs", "", xpeaks[0]-2*sigma, xpeaks[0]+4*sigma);
 
                        double mean = result->Parameter(1);
                        double sigma_fitted = result->Parameter(2);
                        double mean_err = result->ParError(1);
                        double sigma_err = result->ParError(2);
 
+                       output_peaks.emplace(id, xpeaks[0]);
                        output_means.emplace(id, mean);
                        output_mean_errs.emplace(id, mean_err);
                        output_sigmas.emplace(id, sigma_fitted);
@@ -109,26 +116,18 @@ void fit_tof(const char* infile,
   fitPeak();
 
   //
-  TMultiGraph* mg_tof = new TMultiGraph();
-  mg_tof->SetName("mg_tof");
-  mg_tof->SetTitle("Fitted TOF;Energy (MeV);TOF (ns)");
-  auto graphs_tof = bookGraphByRecDetectorId("tof","Fitted TOF",8);
-  for(auto& graph: graphs_tof) {
-    mg_tof->Add(graph.second);
-  }
-
-  TMultiGraph* mg_resolution = new TMultiGraph();
-  mg_resolution->SetName("mg_resolution");
-  mg_resolution->SetTitle("Fitted TOF Sigma; Energy (MeV); #sigma_{TOF} (ns)");
-  auto graphs_resolution = bookGraphByRecDetectorId("resolution","Fitted TOF Sigma",8);
-  for(auto& graph: graphs_resolution) {
-    mg_resolution->Add(graph.second);
+  TMultiGraph* mg_calc_vs_fitted = new TMultiGraph();
+  mg_calc_vs_fitted->SetName("mg_calc_vs_fitted");
+  mg_calc_vs_fitted->SetTitle("Fitted Cluster Energy;Calculated Energy (MeV);Fitted Energy (MeV)");
+  auto graphs_calc_vs_fitted = bookGraphByRecDetectorId("calc_Vs_fitted","Cluster Energy (Calculated VS Fitted)",8);
+  for(auto& graph: graphs_calc_vs_fitted) {
+    mg_calc_vs_fitted->Add(graph.second);
   }
 
   TMultiGraph* mg_correlation = new TMultiGraph();
   mg_correlation->SetName("mg_correlation");
-  mg_correlation->SetTitle("TOF VS Sigma;TOF (ns);#sigma (ns)");
-  auto graphs_correlation = bookGraphByRecDetectorId("correlation","TOF VS Sigma",8);
+  mg_correlation->SetTitle("Energy VS Sigma;Energy (MeV);#sigma (MeV)");
+  auto graphs_correlation = bookGraphByRecDetectorId("correlation","Mean VS Sigma",8);
   for(auto& graph: graphs_correlation) {
     mg_correlation->Add(graph.second);
   }
@@ -153,8 +152,7 @@ void fit_tof(const char* infile,
     Int_t det_id, ch_id;
     ch_id = encoder->DecodeChannelID(id, det_id);
 
-    graphs_tof[det_id]->SetPoint(index[det_id], energy, mean);
-    graphs_resolution[det_id]->SetPoint(index[det_id], energy, sigma);
+    graphs_calc_vs_fitted[det_id]->SetPoint(index[det_id], energy, mean);
     graphs_correlation[det_id]->SetPoint(index[det_id], mean, sigma);
 
     index[det_id]++;
@@ -166,22 +164,19 @@ void fit_tof(const char* infile,
   auto hDirOut = getDirectory(filein, outdir_name.Data());
   writeHistos<TH1D*>(hDirOut, h1s_ptr);
 
-  hDirOut->WriteTObject( mg_tof, "", "WriteDelete");
-  writeGraphs<TGraph*>(hDirOut, graphs_tof,"WriteDelete");
-
-  hDirOut->WriteTObject( mg_resolution, "", "WriteDelete");
-  writeGraphs<TGraph*>(hDirOut, graphs_resolution,"WriteDelete");
+  hDirOut->WriteTObject( mg_calc_vs_fitted, "", "WriteDelete");
+  writeGraphs<TGraph*>(hDirOut, graphs_calc_vs_fitted,"WriteDelete");
 
   hDirOut->WriteTObject( mg_correlation, "", "WriteDelete");
   writeGraphs<TGraph*>(hDirOut, graphs_correlation,"WriteDelete");
 
   //
   TString outfile_pdf(infile);
-  outfile_pdf.ReplaceAll(".root","_tof_fitted.pdf");
+  outfile_pdf.ReplaceAll(".root","_energy_fwdcovered_fitted.pdf");
   printHistos<TH1D*>(h1s_ptr, outfile_pdf.Data());
 
   TString outfile_txt(infile);
-  outfile_txt.ReplaceAll(".root","_tof_fitted.txt");
+  outfile_txt.ReplaceAll(".root","_energy_fwdcovered_fitted.txt");
   printValueList<double>(OutputParameters, outfile_txt.Data());
 
   //

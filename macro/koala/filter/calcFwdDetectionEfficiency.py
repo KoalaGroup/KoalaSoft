@@ -13,7 +13,7 @@ exec_bin = os.path.join(vmc_dir,'build/bin/koa_execute')
 parser = argparse.ArgumentParser()
 parser.add_argument("infile",help="the file list to be processed")
 parser.add_argument("-o","--output",
-                    default="fwd_efficiency.txt",
+                    default="fwd_efficiency_limit_TofE.txt",
                     help="the output file containing forward detector detection efficiency")
 parser.add_argument("-d","--directory",
                     default="./",
@@ -22,10 +22,10 @@ parser.add_argument("-s","--suffix",
                     default=".root",
                     help="suffix of the digi file")
 parser.add_argument("--fwd1_amp_trigger",
-                    default="1040",
+                    default="780",
                     help="fwd1 amplitude trigger")
 parser.add_argument("--fwd2_amp_trigger",
-                    default="1040",
+                    default="790",
                     help="fwd2 amplitude trigger")
 
 args = parser.parse_args()
@@ -54,7 +54,7 @@ fout.close()
 # Calculate efficiency with confidence interfal 95%
 import pandas as pd
 import math
-tb = pd.read_csv(out_filename, delim_whitespace=True, names=['trig1','total1','trig2','total2'])
+tb = pd.read_csv(out_filename, delim_whitespace=True, names=['trig1','total1','eff1','trig2','total2','eff2'])
 p1 = tb['trig1'].sum()/tb['total1'].sum()
 p2 = tb['trig2'].sum()/tb['total2'].sum()
 n1 = tb['total1'].sum()
