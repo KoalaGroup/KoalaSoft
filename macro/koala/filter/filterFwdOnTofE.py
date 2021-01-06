@@ -43,10 +43,10 @@ parser.add_argument("--e_high",
                     default="1.0",
                     help="suffix of the input file")
 parser.add_argument("--fwd1_amp_trigger",
-                    default="790",
+                    default="1040",
                     help="suffix of the input file")
 parser.add_argument("--fwd2_amp_trigger",
-                    default="780",
+                    default="1040",
                     help="suffix of the input file")
 
 args = parser.parse_args()

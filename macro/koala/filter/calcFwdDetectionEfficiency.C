@@ -3,7 +3,7 @@ using namespace KoaUtility;
 
 void calcFwdDetectionEfficiency(const char* digifile,
                                 const char* elist_file,
-                                double fwd1_amp_trigger = 790, double fwd2_amp_trigger=780
+                                double fwd1_amp_trigger = 1040, double fwd2_amp_trigger=1040
                                 )
 {
   TFile* file = new TFile(digifile);
@@ -13,8 +13,8 @@ void calcFwdDetectionEfficiency(const char* digifile,
   
   TFile* felist = new TFile(elist_file);
   TDirectory* eDir = getDirectory(felist, "fwd");
-  TEventList* eList1 = getObject<TEventList>(eDir, "fwd1_hitted");
-  TEventList* eList2 = getObject<TEventList>(eDir, "fwd2_hitted");
+  TEventList* eList1 = getObject<TEventList>(eDir, "fwd1_hitted_elastic");
+  TEventList* eList2 = getObject<TEventList>(eDir, "fwd2_hitted_elasitc");
 
 
   // other variables

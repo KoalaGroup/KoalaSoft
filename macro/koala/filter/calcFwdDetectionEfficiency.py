@@ -22,10 +22,10 @@ parser.add_argument("-s","--suffix",
                     default=".root",
                     help="suffix of the digi file")
 parser.add_argument("--fwd1_amp_trigger",
-                    default="790",
+                    default="1040",
                     help="fwd1 amplitude trigger")
 parser.add_argument("--fwd2_amp_trigger",
-                    default="780",
+                    default="1040",
                     help="fwd2 amplitude trigger")
 
 args = parser.parse_args()

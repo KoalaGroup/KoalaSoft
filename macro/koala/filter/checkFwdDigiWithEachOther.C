@@ -20,8 +20,8 @@ void checkFwdDigiWithEachOther(const char* filename,
 
   TFile* felist = new TFile(elist_file);
   TDirectory* eDir = getDirectory(felist, "fwd");
-  TEventList* eList1 = getObject<TEventList>(eDir, "fwd1_hitted");
-  TEventList* eList2 = getObject<TEventList>(eDir, "fwd2_hitted");
+  TEventList* eList1 = getObject<TEventList>(eDir, "fwd1_hitted_elastic");
+  TEventList* eList2 = getObject<TEventList>(eDir, "fwd2_hitted_elastic");
 
   // histograms definition
   Int_t nbin_amp=4000;

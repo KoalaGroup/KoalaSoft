@@ -2,13 +2,21 @@
 
 using namespace KoaUtility;
 
+/* Filter out elastic events based on TOF-E using information of one of the fwd.
+ * Output: Two list of events fwd1_hitted_elastic, fwd2_hitted_elastic
+ * Selection conditions:
+ * 1. cluster nr = 1
+ * 2. TOF-E relation within a time window
+ * 3. e_low < E < e_high
+ * 4. fwd amp > trigger value (MIP traversing value, not DAQ trigger value)
+ */
 void filterFwdOnTofE(const char* cluster_filename,
                      const char* branchName,
                      const char* fwddigi_filename,
                      const char* elist_filename,
                      double p0=450, double p1=79.25, double p2=-0.898, double window = 20,
                      double e_low = 0.2, double e_high = 1.0,
-                     double fwd1_amp_trigger = 790, double fwd2_amp_trigger=780
+                     double fwd1_amp_trigger = 1040, double fwd2_amp_trigger=1040
                      )
 {
   // timer
@@ -41,8 +49,8 @@ void filterFwdOnTofE(const char* cluster_filename,
   std::map<Int_t, Double_t> fwd_amp;
 
   //
-  TEventList elist1("fwd1_hitted","Elastic events which hit fwd1 and should hit fwd2");
-  TEventList elist2("fwd2_hitted","Elastic events which hit fwd2 and should hit fwd1");
+  TEventList elist1("fwd1_hitted_elastic","Elastic events which hit fwd1 and should hit fwd2");
+  TEventList elist2("fwd2_hitted_elastic","Elastic events which hit fwd2 and should hit fwd1");
 
   // event loop
   Long_t entries = tree->GetEntries();

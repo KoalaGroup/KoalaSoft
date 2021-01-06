@@ -106,7 +106,7 @@ void checkClusterVsTof(const char* filename,
     if (fwdhit_timestamp > 0) {
 
       Int_t clusters = RecClusters->GetEntriesFast();
-      if(clusters > nr_cl_threshold) continue;
+      if(clusters > nr_cl_threshold && nr_cl_threshold>0) continue;
 
       for (int i=0;i<clusters;i++){
         KoaRecCluster* cluster = (KoaRecCluster*)RecClusters->At(i);
