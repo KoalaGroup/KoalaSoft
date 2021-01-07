@@ -16,6 +16,11 @@ void fit_energy_fwdcovered(const char* infile,
 {
   TStopwatch timer;
 
+  // geoometry 
+  TFile* fgeo=new TFile(geoFile);
+  TGeoManager* geoMan=(TGeoManager*)fgeo->Get("FAIRGeom");
+  KoaGeoHandler* geoHandler = new KoaGeoHandler(kFALSE);
+
   // zoffset_si1 = 0.18; zoffset_si2 = 0.13; zoffset_ge1 = 0.14;zoffset_ge2 = 0.14;
   double zoffset[4] = {zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2}; // in cm
   double yoffset[4] ={0};
@@ -24,6 +29,21 @@ void fit_energy_fwdcovered(const char* infile,
   auto alphas = getChannelAlphas(geoFile, yoffset, zoffset);
 
   auto calculator = new KoaElasticCalculator(mom);
+  Double_t rec_distance = TMath::Abs(geoHandler->GetDetPositionByName("SensorSi1"));
+  calculator->SetRecDistance(rec_distance);
+  Double_t fwd_distance = TMath::Abs(geoHandler->GetDetPositionByName("SensorSc1"));
+  calculator->SetFwdDistance(fwd_distance);
+  Double_t fwd_low, fwd_high, temp;
+  geoHandler->GetDetBoundaryByName("SensorSc1", fwd_low, temp);
+  geoHandler->GetDetBoundaryByName("SensorSc2", temp, fwd_high);
+  Double_t si1_low, si1_high;
+  geoHandler->GetDetBoundaryByName("SensorSi1", si1_low, si1_high);
+  Double_t si2_low, si2_high;
+  geoHandler->GetDetBoundaryByName("SensorSi2", si2_low, si2_high);
+  Double_t rec_low, rec_high;
+  rec_low = calculator->GetRecZByFwdX(fwd_low);
+  rec_high = calculator->GetRecZByFwdX(fwd_high);
+
   std::map<Int_t, double> CalculatedEnergies;
   for(auto item: positions ){
     auto id = item.first;
@@ -32,6 +52,26 @@ void fit_energy_fwdcovered(const char* infile,
       auto energy = calculator->GetEnergyByAlpha(alphas[id]);
       CalculatedEnergies.emplace(id, energy);
     }
+  }
+
+  // get the range id of fwd covered Si1 and Si2
+  auto encoder = KoaMapEncoder::Instance();
+
+  Double_t global_pos[3] = {-rec_distance, 0, rec_low/10.};
+  Int_t id_temp;
+  Int_t id_si1_low = encoder->DecodeChannelID(geoHandler->RecGlobalPositionToDetCh(global_pos, 0), id_temp);
+
+  global_pos[2] = rec_high/10.;
+  Int_t id_si1_high = 47;
+  if ( rec_high/10 < si1_high ) {
+    id_si1_high = encoder->DecodeChannelID(geoHandler->RecGlobalPositionToDetCh(global_pos, 0), id_temp);
+  }
+  Int_t id_si2_low = 0, id_si2_high = -2;
+  if ( rec_high/10 < si2_low ) {
+    id_si2_low = -2;
+  }
+  else {
+    id_si2_high = encoder->DecodeChannelID(geoHandler->RecGlobalPositionToDetCh(global_pos, 1), id_temp);
   }
 
   //
@@ -59,7 +99,6 @@ void fit_energy_fwdcovered(const char* infile,
   auto& output_alphas = addValueContainer(OutputParameters, "Alpha");
 
   // fit
-  auto encoder = KoaMapEncoder::Instance();
   auto fitPeak = [&] ()
                  {
                    // config the search paramters
@@ -75,14 +114,35 @@ void fit_energy_fwdcovered(const char* infile,
 
                      Int_t det_id, ch_id;
                      ch_id = encoder->DecodeChannelID(id, det_id);
+                     auto cal_e = CalculatedEnergies[id];
 
                      if(id < ip_id )
+                       continue;
+
+                     if(det_id==0 && (ch_id < id_si1_low || ch_id > id_si1_high))
+                       continue;
+                     if(det_id==1 && (ch_id < id_si2_low || ch_id > id_si2_high))
                        continue;
 
                      //
                      TSpectrum s(search_maxpeaks);
                      Int_t npeaks;
-                     npeaks = s.Search(h1, 0.5, "", 0.3);
+                     if(cal_e < 1){
+                       h1->GetXaxis()->SetRangeUser(0.05, 2.5);
+                       npeaks = s.Search(h1, 0.1, "", 0.5);
+                     }
+                     else if (cal_e < 3) {
+                       h1->GetXaxis()->SetRangeUser(0.5, 4);
+                       npeaks = s.Search(h1, 0.1, "", 0.5);
+                     }
+                     else{
+                       if((cal_e-4) < 1)
+                         h1->GetXaxis()->SetRangeUser(1, CalculatedEnergies[id]+5);
+                       else
+                         h1->GetXaxis()->SetRangeUser(CalculatedEnergies[id]-4, CalculatedEnergies[id]+5);
+                       // h1->GetXaxis()->SetRangeUser(3,70);
+                       npeaks = s.Search(h1, 0.3, "", 0.5);
+                     }
 
                      // fit window in sigma
                      double fit_window[4]={0.04, 0.08, 0.12, 0.12};
@@ -181,6 +241,7 @@ void fit_energy_fwdcovered(const char* infile,
 
   //
   delete filein;
+  delete fgeo;
 
   //
   timer.Stop();

@@ -6,8 +6,8 @@ using namespace KoaUtility;
 
 void fit_tof(const char* infile,
              double mom = 2.2,
-             const char* dirname = "tof_spectrum",
-             const char* suffix = "tof",
+             const char* dirname = "cluster_tof_fwdhit",
+             const char* suffix = "cluster_tof_fwdhit",
              const char* geoFile = "geo_standard.root",
              int ip_ch = 12,
              double loffset = 0,
@@ -82,12 +82,12 @@ void fit_tof(const char* infile,
                      npeaks = s.Search(h1, 0.5, "", 0.3);
 
                      // fit window in sigma
-                     double fit_window[4]={1,2,3,2};
+                     double fit_window[4]={3,2,3,2};
 
                      if(npeaks>0) {
                        Double_t *xpeaks = s.GetPositionX();
                        PeakTofs.emplace(id, xpeaks[0]);
-                       auto result = h1->Fit("gaus", "qs", "", xpeaks[0]-3, xpeaks[0]+3);
+                       auto result = h1->Fit("gaus", "qs", "", xpeaks[0]-2*fit_window[det_id], xpeaks[0]+fit_window[det_id]);
 
                        // first fit to get rough estimation
                        auto sigma = result->Parameter(2);
