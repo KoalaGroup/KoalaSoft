@@ -14,7 +14,7 @@ void sumClusterVsTof(const char* filename,
   // std::cout << si1_id << " " << si2_id << std::endl;
 
   //
-  auto fin = TFile::Open(filename);
+  auto fin = TFile::Open(filename, "update");
   auto hdir = getDirectory(fin, dirname);
 
   auto histPtrs = getHistosByRecTdcChannelId<TH2D>(hdir,suffix);
@@ -50,11 +50,13 @@ void sumClusterVsTof(const char* filename,
   TString outfilename(filename);
   outfilename.ReplaceAll(".root","_TofE.root");
   auto fout = TFile::Open(outfilename.Data(), "update");
-  hdir = getDirectory(fout, dirname);
+  auto hdir_out = getDirectory(fout, dirname);
+  hdir_out->WriteTObject(hSi1, "", "WriteDelete");
+  hdir_out->WriteTObject(hSi2, "", "WriteDelete");
+  hdir_out->WriteTObject(h2all,"", "WriteDelete");
+
   hdir->WriteTObject(hSi1, "", "WriteDelete");
   hdir->WriteTObject(hSi2, "", "WriteDelete");
-  hdir->WriteTObject(h2all,"", "WriteDelete");
-
   //
   delete fin;
   delete fout;
