@@ -8,8 +8,8 @@ void filterClusterOnTofE(const char* filename,
                          const char* brName_cluster = "KoaRecCluster_Smear",
                          const char* cut_dirname = "cluster_vs_tof",
                          const char* fwdhitTreeName = "fwdhit_time",
-                         double low = -4, double high = 4,
-                         int amp_nbin = 500, double amp_low = 0, double amp_high = 10,
+                         double low = -3, double high = 3,
+                         int amp_nbin = 700, double amp_low = 0, double amp_high = 7,
                          int time_nbin = 1500, double time_low = 450, double time_high = 750
                          )
 {
@@ -63,6 +63,9 @@ void filterClusterOnTofE(const char* filename,
   auto h1map_energy = bookH1dByRecTdcChannelId("Energy",
                                             "Cluster Energy (after cut)",
                                             amp_nbin, amp_low, amp_high);
+  auto h1map_energy_all = bookH1dByRecTdcChannelId("Energy_All",
+                                                   "Cluster Energy (after cut)",
+                                                   amp_nbin, amp_low, amp_high);
 
   TH2D h2_tofe("h2_TofE", "Cluster Energy VS TOF (all strips); E (MeV); TOF (ns)",
                amp_nbin, amp_low, amp_high,
@@ -78,6 +81,8 @@ void filterClusterOnTofE(const char* filename,
                    300, time_low, time_high);
   TH1D h1_si1_energy("h1_Si1_Energy","Cluster Energy (Si1)",amp_nbin, amp_low, amp_high);
   TH1D h1_si2_energy("h1_Si2_Energy","Cluster Energy (Si2)",amp_nbin, amp_low, amp_high);
+  TH1D h1_si1_energy_all("h1_Si1_Energy_All","Cluster Energy (Si1)",amp_nbin, amp_low, amp_high);
+  TH1D h1_si2_energy_all("h1_Si2_Energy_All","Cluster Energy (Si2)",amp_nbin, amp_low, amp_high);
 
   // event loop
   auto encoder = KoaMapEncoder::Instance();
@@ -85,6 +90,24 @@ void filterClusterOnTofE(const char* filename,
   for(auto entry=0;entry<entries;entry++){
     tree->GetEntry(entry);
 
+    Int_t clusters = RecClusters->GetEntriesFast();
+    for (int i=0;i<clusters;i++){
+      KoaRecCluster* cluster = (KoaRecCluster*)RecClusters->At(i);
+      auto cluster_e = cluster->Energy()/1000.;
+
+      int cluster_id, det_id, ch_id;
+      ch_id = encoder->DecodeChannelID(cluster_id, det_id);
+      cluster_id = cluster->GetFirstChId();
+
+      if(det_id==0){
+        h1_si1_energy_all.Fill(cluster_e);
+      }
+      else if (det_id==1){
+        h1_si2_energy_all.Fill(cluster_e);
+      }
+
+      h1map_energy_all[cluster_id].Fill(cluster_e);
+    }
     //
     if (fwdhit_timestamp > 0) {
       Int_t clusters = RecClusters->GetEntriesFast();
@@ -156,6 +179,11 @@ void filterClusterOnTofE(const char* filename,
   writeHistos<TH1D>(energy_dir, h1map_energy);
   energy_dir->WriteTObject(&h1_si1_energy, "", "WriteDelete");
   energy_dir->WriteTObject(&h1_si2_energy, "", "WriteDelete");
+
+  auto energy_all_dir = getDirectory(fout, "Energy_All");
+  writeHistos<TH1D>(energy_all_dir, h1map_energy_all);
+  energy_all_dir->WriteTObject(&h1_si1_energy_all, "", "WriteDelete");
+  energy_all_dir->WriteTObject(&h1_si2_energy_all, "", "WriteDelete");
 
   //
   delete fout;
