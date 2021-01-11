@@ -102,6 +102,7 @@ void profile_TofE_Individual(const char* filename,
 
     auto xbins = hpfx->GetNbinsX();
     int gindex = 0;
+    double pre_sigma = 1.6;
     for(int i=1;i<=xbins;i++){
       auto evtnr = hpfx->GetBinEntries(i);
       auto x = hpfx->GetBinCenter(i);
@@ -121,8 +122,16 @@ void profile_TofE_Individual(const char* filename,
         sum_mean_squared[i] += y*y*evtnr;
         e_centers[i] = x;
 
-        gr_mean[id].SetPoint(gindex, x, y);
         gr_sigma[id].SetPoint(gindex, x, err);
+        gr_mean[id].SetPoint(gindex, x, y);
+
+        pre_sigma = err;
+        gindex++;
+      }
+      else if (evtnr>0){
+        gr_mean[id].SetPoint(gindex, x, y);
+        gr_sigma[id].SetPoint(gindex, x, pre_sigma);
+
         gindex++;
       }
     }

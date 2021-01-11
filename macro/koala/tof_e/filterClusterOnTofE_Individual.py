@@ -23,6 +23,15 @@ parser.add_argument("-s", "--suffix",
 parser.add_argument("-b", "--branch",
                     help="name of the branch containing the cluster",
                     default="KoaRecCluster_Smear")
+parser.add_argument("--mom",
+                    default='2.2',
+                    help="name of the file containing graphs for the cut")
+parser.add_argument("--rec_distance",
+                    default='90.4',
+                    help="name of the file containing graphs for the cut")
+parser.add_argument("--tof_offset",
+                    default='480',
+                    help="name of the file containing graphs for the cut")
 parser.add_argument("--cut_file",
                     help="name of the file containing graphs for the cut")
 parser.add_argument("--cut_dir",
@@ -48,7 +57,8 @@ list_files = batch.get_list(file_list, args.suffix, in_dir)
 list_fwd = batch.get_list(file_list, "_FwdHit.root", fwd_dir)
 
 for fin, ffwd in zip(list_files, list_fwd):
-    command = [exec_bin, macro, fin, args.cut_file, ffwd,
+    command = [exec_bin, macro, args.mom, args.rec_distance, args.tof_offset,
+               fin, args.cut_file, ffwd,
                args.branch, args.cut_dir, "fwdhit_time",
                args.low_thresh, args.high_thresh]
     print(command)
