@@ -18,7 +18,6 @@ void sumClusterVsTof(const char* filename,
   auto hdir = getDirectory(fin, dirname);
 
   auto histPtrs = getHistosByRecTdcChannelId<TH2D>(hdir,suffix);
-  auto h2all = (TH2D*)hdir->Get(Form("h2_%s",suffix));
   TH2D* hSi1 =nullptr;
   TH2D* hSi2 =nullptr;
 
@@ -47,8 +46,14 @@ void sumClusterVsTof(const char* filename,
   }
 
   //
+  auto h2all = (TH2D*)hdir->Get(Form("h2_%s",suffix));
+  if(!h2all){
+    h2all = (TH2D*)hSi1->Clone(Form("h2_%s",suffix));
+    h2all->Add(hSi2);
+  }
+
   TString outfilename(filename);
-  outfilename.ReplaceAll(".root","_TofE.root");
+  outfilename.ReplaceAll("_result.root","_TofE.root");
   auto fout = TFile::Open(outfilename.Data(), "update");
   auto hdir_out = getDirectory(fout, dirname);
   hdir_out->WriteTObject(hSi1, "", "WriteDelete");

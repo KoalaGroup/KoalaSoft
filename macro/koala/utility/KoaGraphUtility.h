@@ -9,6 +9,7 @@ namespace KoaUtility
   // book graphs by channel id
   Graphs bookGraphByChannelId(const char *gName, const char *gTitle,
                               int markerColor=kBlack, int markerStyle=8,
+                              double markerSize = 1.2,
                               bool IsRec = true
                               )
   {
@@ -36,7 +37,7 @@ namespace KoaUtility
       graphs[ChID].SetTitle(Form("%s_%d: %s", volName.Data(), ch + 1, gTitle));
       graphs[ChID].SetMarkerColor(markerColor);
       graphs[ChID].SetMarkerStyle(markerStyle);
-      graphs[ChID].SetMarkerSize(1.2);
+      graphs[ChID].SetMarkerSize(markerSize);
     }
 
     return graphs;
@@ -44,7 +45,8 @@ namespace KoaUtility
 
   // book graphs by rec channels with tdc connection
   Graphs bookGraphByRecTdcChannelId(const char *gName, const char *gTitle,
-                                    int markerColor=kBlack, int markerStyle=8
+                                    int markerColor=kBlack, int markerStyle=8,
+                                    double markerSize = 1.2
                                     )
   {
     Graphs graphs;
@@ -65,7 +67,7 @@ namespace KoaUtility
       graphs[ChID].SetTitle(Form("%s_%d: %s", volName.Data(), ch + 1, gTitle));
       graphs[ChID].SetMarkerColor(markerColor);
       graphs[ChID].SetMarkerStyle(markerStyle);
-      graphs[ChID].SetMarkerSize(1.2);
+      graphs[ChID].SetMarkerSize(markerSize);
     }
 
     return graphs;
