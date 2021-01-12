@@ -2,6 +2,7 @@
 
 using namespace KoaUtility;
 
+template<typename T>
 void sumHistos(const char* filename,
                const char* dirname = "Energy",
                const char* suffix = "Energy",
@@ -25,9 +26,9 @@ void sumHistos(const char* filename,
   auto fin = TFile::Open(filename, "update");
   auto hdir = getDirectory(fin, dirname);
 
-  auto histPtrs = getHistosByRecTdcChannelId<TH1D>(hdir,suffix);
-  TH1D* hSi1 =nullptr;
-  TH1D* hSi2 =nullptr;
+  auto histPtrs = getHistosByRecTdcChannelId<T>(hdir,suffix);
+  T* hSi1 =nullptr;
+  T* hSi2 =nullptr;
 
   for(auto item: histPtrs){
     auto id = item.first;
@@ -40,7 +41,7 @@ void sumHistos(const char* filename,
        id <= si1_id_high
        ){
       if(!hSi1)
-        hSi1 = (TH1D*)hist->Clone(Form("h1_Si1_%s_%s",suffix, suffix_out));
+        hSi1 = (T*)hist->Clone(Form("h_Si1_%s_%s",suffix, suffix_out));
       else
         hSi1->Add(hist);
     }
@@ -49,7 +50,7 @@ void sumHistos(const char* filename,
              id <= si2_id_high
              ){
       if(!hSi2)
-        hSi2 = (TH1D*)hist->Clone(Form("h2_Si2_%s_%s",suffix, suffix_out));
+        hSi2 = (T*)hist->Clone(Form("h_Si2_%s_%s",suffix, suffix_out));
       else
         hSi2->Add(hist);
     }

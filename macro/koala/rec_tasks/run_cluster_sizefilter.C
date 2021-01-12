@@ -9,7 +9,7 @@ void run_cluster_sizefilter(const char* data,
                             const char* param_file,
                             const char* out_directory = "./",
                             const char* suffix = "_sizefilter.root",
-                            const char* clustersize_file = "cluster_size.txt"
+                            int size = 2
                             )
 {
   // ----    Debug option   -------------------------------------------------
@@ -40,7 +40,7 @@ void run_cluster_sizefilter(const char* data,
   TString dir = getenv("VMCWORKDIR");
 
   TString param_dir = dir+"/parameters/";
-  TString clusterSizeFile = param_dir + clustersize_file;
+  // TString clusterSizeFile = param_dir + clustersize_file;
 
   // -----   Run   --------------------------------------------------------
   FairRunAna *fRun= new FairRunAna();
@@ -60,7 +60,7 @@ void run_cluster_sizefilter(const char* data,
   clusterSizeFilter->SetOutputClusterName("KoaRecCluster_SizeFilter");
   clusterSizeFilter->SaveOutputCluster(kTRUE);
   // clusterSizeFilter->SetSizeParaFile(clusterSizeFile.Data());
-  clusterSizeFilter->SetSizeParameter(4);
+  clusterSizeFilter->SetSizeParameter(size);
   fRun->AddTask(clusterSizeFilter);
 
   fRun->Init();

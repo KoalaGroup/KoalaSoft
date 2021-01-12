@@ -11,6 +11,15 @@ double tof_alpha_imp(double* x, double *p){
   return tof_rec-tof_fwd;
 }
 
+double tof_energy_imp(double* x, double *p){
+  KoaElasticCalculator calculator(p[0], p[1], p[2]);
+
+  double alpha = calculator.GetAlphaByEnergy(x[0]);
+  double tof_rec = calculator.GetRecTOFByAlpha(alpha);
+  double tof_fwd = calculator.GetFwdTOFByAlpha(alpha);
+  return tof_rec-tof_fwd;
+}
+
 void filterClusterOnTofE_Individual(double mom,
                                     double rec_distance,
                                     double tof_offset,
@@ -81,6 +90,17 @@ void filterClusterOnTofE_Individual(double mom,
                                                      "Cluster 1/E VS TOF; 1/E (MeV); TOF (ns)",
                                                      100, 0.1, 10.1,
                                                      300, time_low, time_high);
+
+  auto h2map_tofe_tof_correct = bookH2dByRecTdcChannelId("TofE_TofCorrected",
+                                                         "Cluster Energy VS Corrected-TOF; E (MeV); Corrected TOF (ns)",
+                                                         amp_nbin, amp_low, amp_high,
+                                                         time_nbin, tof_offset-(time_high-time_low)/2.,
+                                                         tof_offset+(time_high-time_low)/2.);
+  auto h2map_tofe_e_correct = bookH2dByRecTdcChannelId("TofE_ECorrected",
+                                                       "Corrected Cluster Energy VS TOF; Corrected E (MeV); TOF (ns)",
+                                                       amp_nbin, (amp_low-amp_high)/2., (amp_high-amp_low)/2.,
+                                                       time_nbin, time_low, time_high);
+
   auto h1map_tof = bookH1dByRecTdcChannelId("Tof",
                                             "Cluster TOF (after cut)",
                                             time_nbin, time_low, time_high);
@@ -97,6 +117,9 @@ void filterClusterOnTofE_Individual(double mom,
   auto h1map_z_tof = bookH1dByRecTdcChannelId("Z_Tof",
                                           "Z-position based on TOF (after cut);Z (mm)",
                                           500, 0, 50);
+  // auto h1map_length = bookH1dByRecTdcChannelId("Length",
+                                              // "TOF-E curve length (after cut);Lenght (mm)",
+                                              // 1000, 0, 500);
   TH2D h2_tofe("h2_TofE", "Cluster Energy VS TOF (all strips); E (MeV); TOF (ns)",
                amp_nbin, amp_low, amp_high,
                time_nbin, time_low, time_high);
@@ -123,8 +146,9 @@ void filterClusterOnTofE_Individual(double mom,
   // event loop
   auto encoder = KoaMapEncoder::Instance();
   KoaElasticCalculator calculator(mom, rec_distance, 460);
-  double alpha_low = calculator.GetAlphaByEnergy(0.03);
-  double alpha_high = calculator.GetAlphaByEnergy(7.03);
+  double e_low = 0.03, e_high = 7.03;
+  double alpha_low = calculator.GetAlphaByEnergy(e_low);
+  double alpha_high = calculator.GetAlphaByEnergy(e_high);
   TF1 *f_tof_alpha = new TF1("f_tof_alpha", tof_alpha_imp, alpha_low, alpha_high, 3);
   f_tof_alpha->SetParName(0, "Beam Momentum (GeV)");
   f_tof_alpha->SetParameter(0, mom);
@@ -133,6 +157,21 @@ void filterClusterOnTofE_Individual(double mom,
   f_tof_alpha->SetParName(2, "Fwd Distance (cm)");
   f_tof_alpha->SetParameter(2, 460);
   f_tof_alpha->SetNpx(1400);
+
+  TF1 *f_tof_energy = new TF1("f_tof_energy", tof_energy_imp, e_low, e_high, 3);
+  f_tof_energy->SetParName(0, "Beam Momentum (GeV)");
+  f_tof_energy->SetParameter(0, mom);
+  f_tof_energy->SetParName(1, "Recoil Distance (cm)");
+  f_tof_energy->SetParameter(1, rec_distance);
+  f_tof_energy->SetParName(2, "Fwd Distance (cm)");
+  f_tof_energy->SetParameter(2, 460);
+  f_tof_energy->SetNpx(1400);
+
+  // auto derivative_length_energy = [&](double* x, double* p){
+  //                                   double der = f_tof_energy->Derivative(x[0], 0, 0.0001);
+  //                                   return TMath::Sqrt(der*der+1);
+  //                                 };
+  // TF1 *fderivative_length_energy = new TF1("fderivative_length_energy", derivative_length_energy, 0.1, e_high, 0);
 
   Long_t entries = tree->GetEntries();
   for(auto entry=0;entry<entries;entry++){
@@ -173,7 +212,11 @@ void filterClusterOnTofE_Individual(double mom,
         auto cluster_t = cluster->Time();
         auto tof = cluster_t - fwdhit_timestamp;
         auto alpha = f_tof_alpha->GetX(tof - tof_offset);
-        auto cluster_z_tof = calculator.GetRecZByEnergy(calculator.GetEnergyByAlpha(alpha));
+        auto calc_e = calculator.GetEnergyByAlpha(alpha);
+        auto cluster_z_tof = calculator.GetRecZByEnergy(calc_e);
+        auto calc_tof = f_tof_energy->Eval(cluster_e);
+
+        // auto length = fderivative_length_energy->Integral(0.1, cluster_e);
         auto tof_low = gr_down[cluster_id].Eval(cluster_e);
         auto tof_high = gr_up[cluster_id].Eval(cluster_e);
         h2map_tofe_inv_all[cluster_id].Fill(1/cluster_e, tof);
@@ -194,7 +237,10 @@ void filterClusterOnTofE_Individual(double mom,
         }
         else{
           h2map_tofe[cluster_id].Fill(cluster_e, tof);
+          h2map_tofe_tof_correct[cluster_id].Fill(cluster_e, tof-calc_tof);
+          h2map_tofe_e_correct[cluster_id].Fill(cluster_e - calc_e, tof);
           h2_tofe.Fill(cluster_e, tof);
+
           if(det_id==0){
             h2_si1_tofe.Fill(cluster_e, tof);
             h1_si1_energy.Fill(cluster_e);
@@ -206,8 +252,10 @@ void filterClusterOnTofE_Individual(double mom,
 
           h1map_tof[cluster_id].Fill(tof);
           h1map_energy[cluster_id].Fill(cluster_e);
+          h1map_energy[cluster_id].Fill(cluster_e);
           h1map_z[cluster_id].Fill(cluster_z);
           h1map_z_tof[cluster_id].Fill(cluster_z_tof);
+          // h1map_length[cluster_id].Fill(length);
         }
       }
     }
@@ -224,6 +272,12 @@ void filterClusterOnTofE_Individual(double mom,
   tof_e_dir->WriteTObject(&h2_tofe, "", "WriteDelete");
   tof_e_dir->WriteTObject(&h2_si1_tofe, "", "WriteDelete");
   tof_e_dir->WriteTObject(&h2_si2_tofe, "", "WriteDelete");
+
+  auto tof_e_tofcorr_dir = getDirectory(fout, Form("TofE_TofCorrected_Individual_%.1f_%.1f", low, high));
+  writeHistos<TH2D>(tof_e_tofcorr_dir, h2map_tofe_tof_correct);
+
+  auto tof_e_ecorr_dir = getDirectory(fout, Form("TofE_ECorrected_Individual_%.1f_%.1f", low, high));
+  writeHistos<TH2D>(tof_e_ecorr_dir, h2map_tofe_e_correct);
 
   auto tof_einv_dir = getDirectory(fout, Form("TofE_inv_Individual_%.1f_%.1f", low, high));
   writeHistos<TH2D>(tof_einv_dir, h2map_tofe_inv);
@@ -251,6 +305,8 @@ void filterClusterOnTofE_Individual(double mom,
   auto z_tof_dir = getDirectory(fout, Form("Z_Tof_Individual_%.1f_%.1f", low, high));
   writeHistos<TH1D>(z_tof_dir, h1map_z_tof);
 
+  // auto length_dir = getDirectory(fout, Form("Length_Individual_%.1f_%.1f", low, high));
+  // writeHistos<TH1D>(length_dir, h1map_length);
   //
   delete fout;
   delete fcluster;
