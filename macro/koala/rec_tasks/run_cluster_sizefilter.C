@@ -7,6 +7,7 @@
  ********************************************************************************/
 void run_cluster_sizefilter(const char* data,
                             const char* param_file,
+                            const char* branchName = "KoaRecCluster_ThresholdFilter",
                             const char* out_directory = "./",
                             const char* suffix = "_sizefilter.root",
                             int size = 2
@@ -56,7 +57,7 @@ void run_cluster_sizefilter(const char* data,
 
   // 8. filter out clusters with number of digis larger than a threshold
   KoaRecClusterSizeFilter* clusterSizeFilter = new KoaRecClusterSizeFilter();
-  clusterSizeFilter->SetInputClusterName("KoaRecCluster_ThresholdFilter");
+  clusterSizeFilter->SetInputClusterName(branchName);
   clusterSizeFilter->SetOutputClusterName("KoaRecCluster_SizeFilter");
   clusterSizeFilter->SaveOutputCluster(kTRUE);
   // clusterSizeFilter->SetSizeParaFile(clusterSizeFile.Data());

@@ -96,10 +96,20 @@ void filterClusterOnTofE_Individual(double mom,
                                                          amp_nbin, amp_low, amp_high,
                                                          time_nbin, tof_offset-(time_high-time_low)/2.,
                                                          tof_offset+(time_high-time_low)/2.);
+  auto h2map_tofe_tof_correct_all = bookH2dByRecTdcChannelId("TofE_TofCorrected_All",
+                                                             "Cluster Energy VS Corrected-TOF; E (MeV); Corrected TOF (ns)",
+                                                             amp_nbin, amp_low, amp_high,
+                                                             time_nbin, tof_offset-(time_high-time_low)/2.,
+                                                             tof_offset+(time_high-time_low)/2.);
   auto h2map_tofe_e_correct = bookH2dByRecTdcChannelId("TofE_ECorrected",
                                                        "Corrected Cluster Energy VS TOF; Corrected E (MeV); TOF (ns)",
                                                        amp_nbin, (amp_low-amp_high)/2., (amp_high-amp_low)/2.,
                                                        time_nbin, time_low, time_high);
+  auto h2map_tofe_e_correct_all = bookH2dByRecTdcChannelId("TofE_ECorrected_All",
+                                                           "Corrected Cluster Energy VS TOF; Corrected E (MeV); TOF (ns)",
+                                                           amp_nbin, (amp_low-amp_high)/2., (amp_high-amp_low)/2.,
+                                                           time_nbin, time_low, time_high);
+
 
   auto h1map_tof = bookH1dByRecTdcChannelId("Tof",
                                             "Cluster TOF (after cut)",
@@ -107,6 +117,9 @@ void filterClusterOnTofE_Individual(double mom,
   auto h1map_energy = bookH1dByRecTdcChannelId("Energy",
                                             "Cluster Energy (after cut)",
                                             amp_nbin, amp_low, amp_high);
+  auto h1map_energy_coincidence = bookH1dByRecTdcChannelId("Energy_Coincidence",
+                                               "Cluster Energy (after cut)",
+                                               amp_nbin, amp_low, amp_high);
   auto h1map_energy_all = bookH1dByRecTdcChannelId("Energy_All",
                                                    "Cluster Energy (after cut)",
                                                    amp_nbin, amp_low, amp_high);
@@ -220,6 +233,10 @@ void filterClusterOnTofE_Individual(double mom,
         auto tof_low = gr_down[cluster_id].Eval(cluster_e);
         auto tof_high = gr_up[cluster_id].Eval(cluster_e);
         h2map_tofe_inv_all[cluster_id].Fill(1/cluster_e, tof);
+        h2map_tofe_tof_correct_all[cluster_id].Fill(cluster_e, tof-calc_tof);
+        h2map_tofe_e_correct_all[cluster_id].Fill(cluster_e - calc_e, tof);
+
+        if(cluster_t > 0) h1map_energy_coincidence[cluster_id].Fill(cluster_e);
 
         if (tof > tof_high) {
           continue;
@@ -279,6 +296,12 @@ void filterClusterOnTofE_Individual(double mom,
   auto tof_e_ecorr_dir = getDirectory(fout, Form("TofE_ECorrected_Individual_%.1f_%.1f", low, high));
   writeHistos<TH2D>(tof_e_ecorr_dir, h2map_tofe_e_correct);
 
+  auto tof_e_tofcorr_all_dir = getDirectory(fout, Form("TofE_TofCorrected_Individual_All_%.1f_%.1f", low, high));
+  writeHistos<TH2D>(tof_e_tofcorr_all_dir, h2map_tofe_tof_correct_all);
+
+  auto tof_e_ecorr_all_dir = getDirectory(fout, Form("TofE_ECorrected_Individual_All_%.1f_%.1f", low, high));
+  writeHistos<TH2D>(tof_e_ecorr_all_dir, h2map_tofe_e_correct_all);
+
   auto tof_einv_dir = getDirectory(fout, Form("TofE_inv_Individual_%.1f_%.1f", low, high));
   writeHistos<TH2D>(tof_einv_dir, h2map_tofe_inv);
   writeHistos<TH2D>(tof_einv_dir, h2map_tofe_inv_all);
@@ -293,6 +316,9 @@ void filterClusterOnTofE_Individual(double mom,
   writeHistos<TH1D>(energy_dir, h1map_energy);
   energy_dir->WriteTObject(&h1_si1_energy, "", "WriteDelete");
   energy_dir->WriteTObject(&h1_si2_energy, "", "WriteDelete");
+
+  auto energy_coincidence_dir = getDirectory(fout, Form("Energy_Coincidence_Individual_%.1f_%.1f", low, high));
+  writeHistos<TH1D>(energy_coincidence_dir, h1map_energy_coincidence);
 
   auto energy_all_dir = getDirectory(fout, Form("Energy_All_Individual_%.1f_%.1f", low, high));
   writeHistos<TH1D>(energy_all_dir, h1map_energy_all);

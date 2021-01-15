@@ -71,7 +71,10 @@ InitStatus KoaRecClusterSmear::Init()
     LOG(error) << "No \'AdcToE_p1\' parameter found in the ADC parameter file";
     return kERROR;
   }
-  fBinWidth = it->second;
+  fAdcBinWidth = it->second;
+
+  // half width of TDC bin
+  fTdcBinWidth= fTdcBinWidth/2.;
 
   return kSUCCESS;
 }
@@ -112,9 +115,16 @@ void KoaRecClusterSmear::Exec(Option_t* /*option*/)
     auto out_cluster = new ((*fOutputClusters)[index++]) KoaRecCluster(det_id);
     for(Int_t iNrDigi = 0; iNrDigi < fNrDigits; iNrDigi++){
       digi->SetDetectorID(id_ptr[iNrDigi]);
-      digi->SetTimeStamp(timestamp_ptr[iNrDigi]);
 
-      auto width = fBinWidth[id_ptr[iNrDigi]]/2.;
+      if(timestamp_ptr[iNrDigi]>0){
+        auto t_smear = fRndEngine.Uniform(timestamp_ptr[iNrDigi]-fTdcBinWidth, timestamp_ptr[iNrDigi]+fTdcBinWidth);
+        digi->SetTimeStamp(t_smear);
+      }
+      else{
+        digi->SetTimeStamp(timestamp_ptr[iNrDigi]);
+      }
+
+      auto width = fAdcBinWidth[id_ptr[iNrDigi]]/2.;
       auto e_smear = fRndEngine.Uniform(energy_ptr[iNrDigi]-width, energy_ptr[iNrDigi]+width);
       digi->SetCharge(e_smear);
 

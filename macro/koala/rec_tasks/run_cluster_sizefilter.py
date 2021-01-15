@@ -18,6 +18,9 @@ parser.add_argument("-d","--directory",
 parser.add_argument("-p", "--para_dir",
                     default="./",
                     help="directory for parameter file")
+parser.add_argument("-b","--branch",
+                    default="KoaRecCluster_ThresholdFilter",
+                    help="directory where the output files are saved")
 parser.add_argument("-o","--output",
                     default="./",
                     help="directory where the output files are saved")
@@ -40,7 +43,8 @@ list_input = batch.get_list(args.infile, args.suffix, in_dir)
 list_para = batch.get_list(args.infile, "_param.root", para_dir)
 
 for fin, fpara in zip(list_input, list_para):
-    command = [exec_bin, macro, fin, fpara, out_dir, out_suffix, args.size_param]
+    command = [exec_bin, macro, fin, fpara, args.branch,
+               out_dir, out_suffix, args.size_param]
     print(command)
     process = subprocess.Popen(command)
     process.wait()

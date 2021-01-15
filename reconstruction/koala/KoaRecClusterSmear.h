@@ -65,6 +65,9 @@ public:
   void SetAdcParaFile(const char* name) {
     fAdcParaFile = name;
   }
+  void SetTdcResolution(double value) {
+    fTdcBinWidth = value;
+  }
 
  private:
   // Input digit branch name
@@ -85,8 +88,9 @@ public:
   std::string fAdcParaFile = "";
 
   // An array of final thresholds to be compared directly with data.
-  ValueContainer<double> fBinWidth;
+  ValueContainer<double> fAdcBinWidth;
   TRandom3 fRndEngine;
+  double fTdcBinWidth=8./256; // TDC resolution, default is 32 ps
 
   KoaRecClusterSmear(const KoaRecClusterSmear&);
   KoaRecClusterSmear operator=(const KoaRecClusterSmear&);
