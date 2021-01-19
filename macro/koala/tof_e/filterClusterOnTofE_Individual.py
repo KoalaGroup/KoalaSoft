@@ -30,7 +30,7 @@ parser.add_argument("--rec_distance",
                     default='90.4',
                     help="name of the file containing graphs for the cut")
 parser.add_argument("--tof_offset",
-                    default='480',
+                    default='478',
                     help="name of the file containing graphs for the cut")
 parser.add_argument("--cut_file",
                     help="name of the file containing graphs for the cut")

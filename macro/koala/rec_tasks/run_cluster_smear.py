@@ -30,6 +30,9 @@ parser.add_argument("-s","--suffix",
 parser.add_argument("--adc_param",
                     default="adc_calib_energy_huagen.txt",
                     help="file name of ADC calib parameters")
+parser.add_argument("--tdc_resolution",
+                    default="0.03125",
+                    help="TDC resolution in ns")
 
 args = parser.parse_args()
 
@@ -43,7 +46,7 @@ list_input = batch.get_list(args.infile, args.suffix, in_dir)
 list_para = batch.get_list(args.infile, "_param.root", para_dir)
 
 for fin, fpara in zip(list_input, list_para):
-    command = [exec_bin, macro, fin, fpara, args.branch, out_dir, out_suffix, args.adc_param]
+    command = [exec_bin, macro, fin, fpara, args.branch, out_dir, out_suffix, args.adc_param, args.tdc_resolution]
     print(command)
     process = subprocess.Popen(command)
     process.wait()

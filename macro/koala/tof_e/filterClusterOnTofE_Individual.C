@@ -118,18 +118,18 @@ void filterClusterOnTofE_Individual(double mom,
                                             "Cluster Energy (after cut)",
                                             amp_nbin, amp_low, amp_high);
   auto h1map_energy_coincidence = bookH1dByRecTdcChannelId("Energy_Coincidence",
-                                               "Cluster Energy (after cut)",
+                                               "Cluster Energy (Coincidence)",
                                                amp_nbin, amp_low, amp_high);
   auto h1map_energy_all = bookH1dByRecTdcChannelId("Energy_All",
-                                                   "Cluster Energy (after cut)",
+                                                   "Cluster Energy (All)",
                                                    amp_nbin, amp_low, amp_high);
   auto h1map_z = bookH1dByRecTdcChannelId("Z",
                                           "Z-position (after cut);Z (mm)",
-                                          500, 0, 50);
+                                          8000, 0, 80);
 
   auto h1map_z_tof = bookH1dByRecTdcChannelId("Z_Tof",
                                           "Z-position based on TOF (after cut);Z (mm)",
-                                          500, 0, 50);
+                                          8000, 0, 80);
   // auto h1map_length = bookH1dByRecTdcChannelId("Length",
                                               // "TOF-E curve length (after cut);Lenght (mm)",
                                               // 1000, 0, 500);
@@ -236,43 +236,39 @@ void filterClusterOnTofE_Individual(double mom,
         h2map_tofe_tof_correct_all[cluster_id].Fill(cluster_e, tof-calc_tof);
         h2map_tofe_e_correct_all[cluster_id].Fill(cluster_e - calc_e, tof);
 
-        if(cluster_t > 0) h1map_energy_coincidence[cluster_id].Fill(cluster_e);
-
-        if (tof > tof_high) {
-          continue;
-        }
-
-        if(tof < tof_low){
-          h2map_tofe_inv[cluster_id].Fill(1/cluster_e, tof);
-          h2_tofe_inv.Fill(1/cluster_e, tof);
-          if(det_id==0){
-            h2_si1_tofe_inv.Fill(1/cluster_e, tof);
+        if(cluster_t > 0){
+          h1map_energy_coincidence[cluster_id].Fill(cluster_e);
+          if(tof < tof_low){
+            h2map_tofe_inv[cluster_id].Fill(1/cluster_e, tof);
+            h2_tofe_inv.Fill(1/cluster_e, tof);
+            if(det_id==0){
+              h2_si1_tofe_inv.Fill(1/cluster_e, tof);
+            }
+            else if (det_id==1){
+              h2_si2_tofe_inv.Fill(1/cluster_e, tof);
+            }
           }
-          else if (det_id==1){
-            h2_si2_tofe_inv.Fill(1/cluster_e, tof);
-          }
-        }
-        else{
-          h2map_tofe[cluster_id].Fill(cluster_e, tof);
-          h2map_tofe_tof_correct[cluster_id].Fill(cluster_e, tof-calc_tof);
-          h2map_tofe_e_correct[cluster_id].Fill(cluster_e - calc_e, tof);
-          h2_tofe.Fill(cluster_e, tof);
+          else{
+            h2map_tofe[cluster_id].Fill(cluster_e, tof);
+            h2map_tofe_tof_correct[cluster_id].Fill(cluster_e, tof-calc_tof);
+            h2map_tofe_e_correct[cluster_id].Fill(cluster_e - calc_e, tof);
+            h2_tofe.Fill(cluster_e, tof);
 
-          if(det_id==0){
-            h2_si1_tofe.Fill(cluster_e, tof);
-            h1_si1_energy.Fill(cluster_e);
-          }
-          else if (det_id==1){
-            h2_si2_tofe.Fill(cluster_e, tof);
-            h1_si2_energy.Fill(cluster_e);
-          }
+            if(det_id==0){
+              h2_si1_tofe.Fill(cluster_e, tof);
+              h1_si1_energy.Fill(cluster_e);
+            }
+            else if (det_id==1){
+              h2_si2_tofe.Fill(cluster_e, tof);
+              h1_si2_energy.Fill(cluster_e);
+            }
 
-          h1map_tof[cluster_id].Fill(tof);
-          h1map_energy[cluster_id].Fill(cluster_e);
-          h1map_energy[cluster_id].Fill(cluster_e);
-          h1map_z[cluster_id].Fill(cluster_z);
-          h1map_z_tof[cluster_id].Fill(cluster_z_tof);
-          // h1map_length[cluster_id].Fill(length);
+            h1map_tof[cluster_id].Fill(tof);
+            h1map_energy[cluster_id].Fill(cluster_e);
+            h1map_z[cluster_id].Fill(cluster_z);
+            h1map_z_tof[cluster_id].Fill(cluster_z_tof);
+            // h1map_length[cluster_id].Fill(length);
+          }
         }
       }
     }

@@ -48,19 +48,19 @@ void fit_TofE(const char* filename,
   }
 
   //
-  TF1 *f_tof_energy = new TF1("ffit_tof_energy", tof_energy_imp, e_low, e_high, 4);
+  TF1 *f_tof_energy = new TF1("f_tof_energy", tof_energy_imp, e_low, e_high, 4);
   f_tof_energy->SetParName(0, "Beam Momentum (GeV)");
   f_tof_energy->SetParameter(0, mom);
   f_tof_energy->SetParLimits(0, mom, mom);
   f_tof_energy->SetParName(1, "Recoil Distance (cm)");
   f_tof_energy->SetParameter(1, 90.4);
-  f_tof_energy->SetParLimits(1, 85, 95);
+  f_tof_energy->SetParLimits(1, 90, 91);
   f_tof_energy->SetParName(2, "Fwd Distance (cm)");
   f_tof_energy->SetParameter(2, 460);
-  f_tof_energy->SetParLimits(2, 440, 480);
+  f_tof_energy->SetParLimits(2, 455, 465);
   f_tof_energy->SetParName(3, "TOF offset (ns)");
   f_tof_energy->SetParameter(3, tof_offset);
-  f_tof_energy->SetParLimits(3, 460, 500);
+  f_tof_energy->SetParLimits(3, 470, 490);
   f_tof_energy->SetNpx(1400);
   dir->WriteTObject(f_tof_energy,"", "WriteDelete");
 
@@ -74,8 +74,8 @@ void fit_TofE(const char* filename,
   auto x = gr->GetX();
   auto y = gr->GetY();
   for(int i=0;i<npt;i++){
-    auto e_theory = f_tof_energy->GetX(y);
-    gr_ediff->SetPoint(i, e_theory, e_theory-x);
+    auto e_theory = f_tof_energy->GetX(y[i]);
+    gr_ediff->SetPoint(i, e_theory, e_theory-x[i]);
   }
   dir->WriteTObject(gr_ediff,"", "WriteDelete");
 
@@ -89,7 +89,7 @@ void fit_TofE(const char* filename,
   f_tof_energy->Draw("same");
   c.Print(Form("%s", pdffilename.Data()));
 
-  gr->Fit(f_tof_energy,"", "", 0.3,4);
+  gr->Fit(f_tof_energy,"", "", 0.3,1.6);
   gr->Draw("AP");
   f_tof_energy->Draw("same");
   c.Print(Form("%s", pdffilename.Data()));

@@ -10,7 +10,8 @@ void run_cluster_smear(const char* data,
                        const char* br_cluster,
                        const char* outdir,
                        const char* suffix = "_smear.root",
-                       const char* adcpara_file = "adc_calib_energy.txt"
+                       const char* adcpara_file = "adc_calib_energy.txt",
+                       double tdc_resolution = 8./256
                        )
 {
   // ----    Debug option   -------------------------------------------------
@@ -57,6 +58,7 @@ void run_cluster_smear(const char* data,
   clusterSmear->SetInputClusterName(br_cluster);
   clusterSmear->SetOutputClusterName("KoaRecCluster_Smear");
   clusterSmear->SetAdcParaFile(adcparaFile.Data());
+  clusterSmear->SetTdcResolution(tdc_resolution); // TDC resolution
   clusterSmear->SaveOutputCluster(kTRUE);
 
   fRun->AddTask(clusterSmear);

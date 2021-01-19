@@ -150,6 +150,7 @@ void resolution_TofE_Corrected(const char* filename,
 
   auto pf_e = h2_sum_e->ProfileY();
   pf_e->SetErrorOption("s");
+  pf_e->Rebin(5);
   npx = pf_e->GetNbinsX();
   gindex = 0;
   for(int i=1;i<=npx;i++){

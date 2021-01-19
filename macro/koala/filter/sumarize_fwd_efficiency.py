@@ -17,7 +17,7 @@ args = parser.parse_args()
 
 # open the output file
 if (args.f):
-    tb = pd.read_csv(args.infile, delim_whitespace=True, names=['trig1','total1', 'trig2','total2'])
+    tb = pd.read_csv(args.infile, delim_whitespace=True, names=['trig1','total1', 'eff1','trig2','total2','eff2'])
 else:
     tb = pd.read_csv(args.infile, delim_whitespace=True, names=['trig1','total1','eff1', 'trig2','total2','eff2'])
 
