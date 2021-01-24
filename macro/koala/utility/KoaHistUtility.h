@@ -346,6 +346,7 @@ std::map<Int_t, T*> getHistosByChannelId(TDirectory *hDir, const char* hName, bo
     if ( !hist ) {
       std::cerr << "Error: no histogram found " << name << std::endl;
     }
+    hist->SetDirectory(0);
     histoMap.emplace(ChID, hist);
   }
 
@@ -384,6 +385,7 @@ std::map<Int_t, T*> getHistosByRecTdcChannelId(TDirectory *hDir, const char* hNa
     if ( !hist ) {
       std::cerr << "Error: no histogram found " << name << std::endl;
     }
+    hist->SetDirectory(0);
     histoMap.emplace(ChID, hist);
   }
 
@@ -430,6 +432,7 @@ std::map<Int_t, T*> getHistosByDetectorId(TDirectory *hDir, const char* hName, b
     if ( !hist ) {
       std::cerr << "Error: no histogram found " << name << std::endl;
     }
+    hist->SetDirectory(0);
     histoMap.emplace(detector, hist);
   }
 
@@ -472,6 +475,7 @@ T* getHisto(TDirectory *hDir, const char* hName, const char* sensorName, int str
   if ( !hist ) {
     std::cerr << "Error: no histogram found " << name << std::endl;
   }
+  hist->SetDirectory(0);
 
   return hist;
 }
