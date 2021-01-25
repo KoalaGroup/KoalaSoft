@@ -53,6 +53,9 @@ void substract_bkg_withEnergyRange(
   auto hsub = bookH1dByRecTdcChannelId("nobkg",
                                        Form("Substract Bkg Spectrum based on Si1_%d", ref_ch),
                                        xbins, xlow, xup);
+  auto hdiv = bookH1dByRecTdcChannelId("divide",
+                                       Form("Divide Bkg Spectrum based on Si1_%d", ref_ch),
+                                       xbins, xlow, xup);
 
   // substract the ref bkg spectrum
   auto href = (TH1D*)h1s[ref_id]->Clone("href");
@@ -60,6 +63,9 @@ void substract_bkg_withEnergyRange(
     auto id = item.first;
     hsub[id].Add(h1s[id], href, 1, -scale_factor[id]);
     hsub[id].GetXaxis()->SetRangeUser(0.12, xup);
+
+    hdiv[id].Divide(h1s[id], href, 1, scale_factor[id]);
+    hdiv[id].GetXaxis()->SetRangeUser(0.12, xup);
   }
 
   //
@@ -68,10 +74,15 @@ void substract_bkg_withEnergyRange(
   auto fout = TFile::Open(outfilename, "update");
   auto dir_out = getDirectory(fout, Form("no_bkg_withEnergyRange_low%.2f_high%.2f", e_low, e_high));
   writeHistos<TH1D>(dir_out, hsub);
+  dir_out = getDirectory(fout, Form("divide_bkg_withEnergyRange_low%.2f_high%.2f", e_low, e_high));
+  writeHistos<TH1D>(dir_out, hdiv);
 
   TString pdffilename(filename);
   pdffilename.ReplaceAll(".root", Form("_NoBkgWithEnergyRange_low%.2f_high%.2f.pdf", e_low, e_high));
   printHistos<TH1D>(hsub, pdffilename.Data());
+
+  pdffilename.ReplaceAll("NoBkg", "DivideBkg");
+  printHistos<TH1D>(hdiv, pdffilename.Data(), "", true);
 
   //
   delete fin, fout;
