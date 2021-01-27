@@ -116,20 +116,20 @@ void filterClusterOnTofE_Individual(double mom,
                                             time_nbin, time_low, time_high);
   auto h1map_energy = bookH1dByRecTdcChannelId("Energy",
                                             "Cluster Energy (after cut)",
-                                            amp_nbin, amp_low, amp_high);
+                                            8000, 0, 8);
   auto h1map_energy_coincidence = bookH1dByRecTdcChannelId("Energy_Coincidence",
                                                "Cluster Energy (Coincidence)",
-                                               amp_nbin, amp_low, amp_high);
+                                               8000, 0, 8);
   auto h1map_energy_all = bookH1dByRecTdcChannelId("Energy_All",
                                                    "Cluster Energy (All)",
-                                                   amp_nbin, amp_low, amp_high);
-  auto h1map_z = bookH1dByRecTdcChannelId("Z",
-                                          "Z-position (after cut);Z (mm)",
-                                          8000, 0, 80);
+                                                   8000, 0, 8);
+  // auto h1map_z = bookH1dByRecTdcChannelId("Z",
+  //                                         "Z-position (after cut);Z (mm)",
+  //                                         8000, 0, 80);
 
-  auto h1map_z_tof = bookH1dByRecTdcChannelId("Z_Tof",
-                                          "Z-position based on TOF (after cut);Z (mm)",
-                                          8000, 0, 80);
+  // auto h1map_z_tof = bookH1dByRecTdcChannelId("Z_Tof",
+  //                                         "Z-position based on TOF (after cut);Z (mm)",
+  //                                         8000, 0, 80);
   // auto h1map_length = bookH1dByRecTdcChannelId("Length",
                                               // "TOF-E curve length (after cut);Lenght (mm)",
                                               // 1000, 0, 500);
@@ -265,8 +265,8 @@ void filterClusterOnTofE_Individual(double mom,
 
             h1map_tof[cluster_id].Fill(tof);
             h1map_energy[cluster_id].Fill(cluster_e);
-            h1map_z[cluster_id].Fill(cluster_z);
-            h1map_z_tof[cluster_id].Fill(cluster_z_tof);
+            // h1map_z[cluster_id].Fill(cluster_z);
+            // h1map_z_tof[cluster_id].Fill(cluster_z_tof);
             // h1map_length[cluster_id].Fill(length);
           }
         }
@@ -321,11 +321,11 @@ void filterClusterOnTofE_Individual(double mom,
   energy_all_dir->WriteTObject(&h1_si1_energy_all, "", "WriteDelete");
   energy_all_dir->WriteTObject(&h1_si2_energy_all, "", "WriteDelete");
 
-  auto z_dir = getDirectory(fout, Form("Z_Individual_%.1f_%.1f", low, high));
-  writeHistos<TH1D>(z_dir, h1map_z);
+  // auto z_dir = getDirectory(fout, Form("Z_Individual_%.1f_%.1f", low, high));
+  // writeHistos<TH1D>(z_dir, h1map_z);
 
-  auto z_tof_dir = getDirectory(fout, Form("Z_Tof_Individual_%.1f_%.1f", low, high));
-  writeHistos<TH1D>(z_tof_dir, h1map_z_tof);
+  // auto z_tof_dir = getDirectory(fout, Form("Z_Tof_Individual_%.1f_%.1f", low, high));
+  // writeHistos<TH1D>(z_tof_dir, h1map_z_tof);
 
   // auto length_dir = getDirectory(fout, Form("Length_Individual_%.1f_%.1f", low, high));
   // writeHistos<TH1D>(length_dir, h1map_length);

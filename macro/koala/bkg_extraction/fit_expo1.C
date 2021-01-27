@@ -15,11 +15,11 @@ void fit_expo1(
   auto h1s = getHistosByRecTdcChannelId<TH1D>(hdir, suffix);
 
   // rebin
-  int rebin = 5;
-  for(auto item: h1s){
-    auto hist = item.second;
-    hist->Rebin(rebin);
-  }
+  // int rebin = 5;
+  // for(auto item: h1s){
+  //   auto hist = item.second;
+  //   hist->Rebin(rebin);
+  // }
 
   // book output histograms
   auto htemp = h1s[0];
@@ -35,7 +35,7 @@ void fit_expo1(
   auto& output_p0 = addValueContainer(OutputParameters, "Expo_p0");
   auto& output_p1 = addValueContainer(OutputParameters, "Expo_lambda");
 
-  double fit_low = 0.12, fit_high = 0.25;
+  double fit_low = 0.15, fit_high = 0.22;
   for(auto item: h1s){
     auto id = item.first;
     auto hist = item.second;
@@ -63,7 +63,7 @@ void fit_expo1(
   TString outfilename(filename);
   outfilename.ReplaceAll(".root","_bkg.root");
   auto fout = TFile::Open(outfilename, "update");
-  auto dir_out = getDirectory(fout, "no_expo");
+  auto dir_out = getDirectory(fout, "no_expo1");
   writeHistos<TH1D>(dir_out, hsub);
 
   TString pdffilename(filename);
