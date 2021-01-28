@@ -10,17 +10,14 @@ using namespace std;
 //////////////////////
 void rf_histpdf_cb2_batch(const char* infile,
                           const char* bkg_filename,
-                          Double_t mom = 2.6,
                           const char* configFile = "./rf_histpdf_cb2_config.txt",
-                          const char* geoFile="../calib_para/geo_standard.root",
                           const char* dirname = "Energy_All_Individual_-5.0_5.0",
                           const char* suffix = "Energy_All",
                           const char* bkg_dirname = "Energy_All_NoElastic",
                           const char* bkg_suffix = "noelastic",
                           int si1_ch_low = 28, int si1_ch_high = 30,
                           int si2_ch_low = 2, int si2_ch_high = 4,
-                          int ip_ch = 13,
-                          double zoffset_si1 = 0, double zoffset_si2 = 0, double zoffset_ge1 = 0, double zoffset_ge2 = 0
+                          int ip_ch = 13
                           )
 
 {
@@ -36,25 +33,6 @@ void rf_histpdf_cb2_batch(const char* infile,
   // Interaction Point: the ecoded id of the first channel to fit
   Int_t ip_id = encoder->EncodeChannelID(0,ip_ch);
 
-  // elastic scattering kinematic calculator
-  auto calculator = new KoaElasticCalculator(mom);
-
-  // Detector position correction applied to imput geometry model
-  // double zoffset[4] = {0.18, 0.13, 0.12, 0.12}; // in cm
-  double zoffset[4] = {zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2}; // in cm
-  double yoffset[4] = {0, 0, 0, 0}; // in cm
-
-  // Retrieve the strips/channels z-pos, alpha, expected-energy
-  auto Positions = getStripGlobalPosition(geoFile,zoffset);
-  auto Alphas = getStripAlphas(geoFile,yoffset,zoffset);
-  auto CalculatedEnergies = getChannelEnergies(mom, geoFile,yoffset,zoffset);
-  auto ChannelAlphas = getChannelAlphas(geoFile, yoffset, zoffset);
-
-  // Retrieve the map from ch id to strip ids. Some ch may correspond to multiple strips
-  auto geoHandler = getGeometryHandler(geoFile);
-  auto ChToStripMap = geoHandler->GetChIdToStripIds();
-  // delete geoHandler;
-
   ////////////////////////////////////////
   // Read in the fitting config params
   ////////////////////////////////////////
@@ -64,6 +42,7 @@ void rf_histpdf_cb2_batch(const char* infile,
   ValueContainer<double> cb_sigma;
   ValueContainer<double> cb_alpha1, cb_n1;
   ValueContainer<double> cb_alpha2, cb_n2;
+  ValueContainer<double> elastic_evt;
 
   auto read_config = [&]() {
                        auto fit_params = readParameterList<double>(configFile);
@@ -123,6 +102,13 @@ void rf_histpdf_cb2_batch(const char* infile,
                          return;
                        }
                        cb_n2 = it->second;
+
+                       it = findValueContainer(fit_params, "EvtNr");
+                       if( it == fit_params.end() ) {
+                         cout << "EvtNr not available in config file: " << configFile << endl;
+                         return;
+                       }
+                       elastic_evt = it->second;
                      };
 
   read_config();
@@ -178,6 +164,7 @@ void rf_histpdf_cb2_batch(const char* infile,
   auto& output_cb_alpha2 = addValueContainer(ChannelParams, "CB_alpha2");
   auto& output_cb_n1 = addValueContainer(ChannelParams, "CB_n1");
   auto& output_cb_n2 = addValueContainer(ChannelParams, "CB_n2");
+  auto& output_chi2ndf = addValueContainer(ChannelParams, "chi2/ndf");
 
   // Map containers for class objects
   std::map<Int_t, RooWorkspace> ws;
@@ -209,7 +196,7 @@ void rf_histpdf_cb2_batch(const char* infile,
                              else if(volName == "Si2") hbkg_ref = hbkg_si2;
 
                              // ignore channels before IP or un-physical region
-                             if ( id < ip_id || ChannelAlphas[id] < 0 )
+                             if ( id < ip_id )
                                continue;
 
                              // ignore channels on the edges, partly-deposit and malfuntioning
@@ -236,6 +223,7 @@ void rf_histpdf_cb2_batch(const char* infile,
                              auto bin_low = hist->GetXaxis()->FindBin(0.05);
                              auto bin_high = hist->GetXaxis()->FindBin(8);
                              double ntotal = hist->Integral(bin_low, bin_high);
+                             std::cout << "Integral of total events: " << ntotal << std::endl;
 
                              /**********************************************************************/
                              // Define the workspace
@@ -253,6 +241,7 @@ void rf_histpdf_cb2_batch(const char* infile,
                                                         rg_low[id], rg_high[id],
                                                         cb_mean[id],
                                                         cb_sigma[id], cb_alpha1[id], cb_alpha2[id], cb_n1[id], cb_n2[id],
+                                                        elastic_evt[id],
                                                         ntotal);
                              w.Print();
                              std::cout << "Fit channel: " << volName.Data() << "_" << ch+1 << std::endl;
@@ -263,8 +252,7 @@ void rf_histpdf_cb2_batch(const char* infile,
 
                              // set init value for elastic peak centers
                              // RooRealVar* cb_m0 = w.var("cb_m0");
-                             // cb_m0->setVal(CalculatedEnergies[id]);
-                             std::cout << "Mean Energy: " << CalculatedEnergies[id] << std::endl;
+                             std::cout << "Peak Energy: " << cb_mean[id] << std::endl;
 
                              // init and fill in the data set
                              std::cout << "Import data: " << volName.Data() << "_" << ch+1 << std::endl;
@@ -290,7 +278,8 @@ void rf_histpdf_cb2_batch(const char* infile,
                              // model.paramOn(frame, Layout(0.55));
 
                              // Get chi2
-                             auto chi2_over_ndf = frame->chiSquare(7);
+                             auto chi2_over_ndf = frame->chiSquare(8);
+                             output_chi2ndf.emplace(id, chi2_over_ndf);
 
                              // Get residual
                              RooHist *hpull = frame->pullHist();
@@ -402,7 +391,7 @@ void rf_histpdf_cb2_batch(const char* infile,
 
     // hDirOut->WriteTObject(&w, "", "WriteDelete");
     hDirOut->WriteTObject(&canvas[id], "", "WriteDelete");
-    // hDirOut->WriteTObject(&rf_result[id], "", "WriteDelete");
+    hDirOut->WriteTObject(&rf_result[id], "", "WriteDelete");
   }
 
   ////////////////////////////////////////

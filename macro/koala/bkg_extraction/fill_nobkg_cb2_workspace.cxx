@@ -3,32 +3,32 @@
 
 using namespace RooFit;
 
-void fill_histpdf_cb2_workspace(RooWorkspace& ws,
-                                TH1D*  hbkg,
-                                double range_low = 0.75,
-                                double range_high = 16,
-                                double param_cb_m0 = 0.8,
-                                double param_cb_sigma = 0.15,
-                                double param_cb_alpha1 = 1.58,
-                                double param_cb_alpha2 = -2.58,
-                                double param_cb_n1 = 4,
-                                double param_cb_n2 = 9,
-                                double nelastic = 10000,
-                                double ntotal = 100
-                                )
+void fill_nobkg_cb2_workspace(RooWorkspace& ws,
+                              double param_cb_m0 = 0.8,
+                              double param_cb_sigma = 0.15,
+                              double param_cb_alpha1 = 1.58,
+                              double param_cb_alpha2 = -2.58,
+                              double param_cb_n1 = 4,
+                              double param_cb_n2 = 9,
+                              double ntotal = 100
+                              )
 {
   /*********************************************************************************************************/
   // Define the x-axis: recoil energy in MeV [0, max_energy]
   /*********************************************************************************************************/
-  RooRealVar energy("energy", "Energy (MeV)", 0.1, 8);
+  double range_low = param_cb_m0 - param_cb_sigma*2.5;
+  double range_high = param_cb_m0 + param_cb_sigma*5;
+  double draw_low = range_low - param_cb_sigma*4;
+  double draw_high = range_high + param_cb_sigma*2;
+  if(range_low < 0.2) {
+    range_low = 0.2;
+  }
+  if(draw_low < 0.2) {
+    draw_low = 0.2;
+  }
+  RooRealVar energy("energy", "Energy (MeV)", draw_low, draw_high);
   energy.setRange("fitRange", range_low, range_high);
-
-  /*********************************************************************************************************/
-  // Background model: frac_mip * bkg_mip + frac_expo1 * bkg_expo1 + (1-frac_mip-frac_expo1) * bkg_expo2
-  /*********************************************************************************************************/
-  RooDataHist dh_bkg("dh_bkg", "Background Histogram", energy, Import(*hbkg));
-  RooHistPdf bkg_model("bkg_model", "Bkg Model based on histogram background template", energy, energy, dh_bkg);
-  ws.import(bkg_model);
+  energy.setRange("drawRange", draw_low, draw_high);
 
   /*********************************************************************************************************/
   // Elastic model: multiple CB2Shape (double-sided Crystal Ball Function)
@@ -44,5 +44,5 @@ void fill_histpdf_cb2_workspace(RooWorkspace& ws,
   ws.import(elastic_model);
 
   //
-  ws.factory(Form( "SUM::model(nbkg[%.1f,%f,%f]*bkg_model,nelastic[%.1f,%f,%f]*elastic_model)",ntotal,0.3*ntotal, 2*ntotal,nelastic ,0.5*nelastic,10*nelastic));
+  ws.factory(Form( "SUM::model(nelastic[%.1f,%f,%f]*elastic_model)",ntotal,0.5*ntotal,10*ntotal));
 }
