@@ -57,16 +57,16 @@ void apply_permutation_in_place(
 }
 
 //////////////////////
-void rf_only_cb2_batch(const char* infile,
-                       const char* configFile = "./rf_only_cb2_config.txt",
-                       bool useGeometry = true,
-                       Double_t mom = 2.6,
-                       const char* geoFile="../calib_para/geo_standard.root",
-                       const char* strip_configFile = "./rf_only_cb2_strips_config.txt",
-                       const char* dirname = "no_mip_Ge1Ge2",
-                       const char* suffix = "nomip",
-                       double zoffset_si1 = 0.18, double zoffset_si2 = 0.13, double zoffset_ge1 = 0.12, double zoffset_ge2 = 0.12
-                       )
+void rf_only_cb2_ge1ge2(const char* infile,
+                        const char* configFile = "./rf_only_cb2_config.txt",
+                        const char* strip_configFile = "./rf_only_cb2_strips_config.txt",
+                        const char* geoFile="../calib_para/geo_standard.root",
+                        const char* dirname = "no_mip_Ge1Ge2",
+                        const char* suffix = "nomip",
+                        bool useGeometry = false,
+                        Double_t mom = 2.6,
+                        double zoffset_si1 = 0.18, double zoffset_si2 = 0.13, double zoffset_ge1 = 0.12, double zoffset_ge2 = 0.12
+                        )
 
 {
   TStopwatch timer;
@@ -78,9 +78,6 @@ void rf_only_cb2_batch(const char* infile,
   // Map encoder
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
   int tdc_id = encoder->EncodeChannelID(1,37);
-
-  // elastic scattering kinematic calculator
-  auto calculator = new KoaElasticCalculator(mom);
 
   // Retrieve the map from ch id to strip ids. Some ch may correspond to multiple strips
   auto geoHandler = getGeometryHandler(geoFile);
@@ -511,7 +508,6 @@ void rf_only_cb2_batch(const char* infile,
   // Clean up
   ////////////////////////////////////////
   delete filein;
-  // delete calculator;
 
   //
   timer.Stop();
