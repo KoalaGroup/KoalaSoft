@@ -11,8 +11,7 @@ using namespace std;
 void rf_nobkg_cb2_batch(const char* infile,
                         const char* configFile = "./rf_nobkg_config.txt",
                         const char* dirname = "Energy_All_no_seperateBkg_withEnergyRange_low0.12_high0.18",
-                        const char* suffix = "nobkg",
-                        int ip_ch = 13
+                        const char* suffix = "nobkg"
                         )
 
 {
@@ -25,14 +24,10 @@ void rf_nobkg_cb2_batch(const char* infile,
   // Map encoder
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
 
-  // Interaction Point: the ecoded id of the first channel to fit
-  Int_t ip_id = encoder->EncodeChannelID(0,ip_ch);
-
   ////////////////////////////////////////
   // Read in the fitting config params
   ////////////////////////////////////////
 
-  ValueContainer<double> rg_low, rg_high;
   ValueContainer<double> cb_mean;
   ValueContainer<double> cb_sigma;
   ValueContainer<double> cb_alpha1, cb_n1;
@@ -41,21 +36,7 @@ void rf_nobkg_cb2_batch(const char* infile,
   auto read_config = [&]() {
                        auto fit_params = readParameterList<double>(configFile);
 
-                       auto it = findValueContainer(fit_params, "Range_low");
-                       if( it == fit_params.end() ) {
-                         cout << "Range_low not available in config file: " << configFile << endl;
-                         return;
-                       }
-                       rg_low = it->second;
-
-                       it = findValueContainer(fit_params, "Range_high");
-                       if( it == fit_params.end() ) {
-                         cout << "Range_high not available in config file: " << configFile << endl;
-                         return;
-                       }
-                       rg_high = it->second;
-
-                       it = findValueContainer(fit_params, "CB_mean");
+                       auto it = findValueContainer(fit_params, "CB_mean");
                        if( it == fit_params.end() ) {
                          cout << "CB_mean not available in config file: " << configFile << endl;
                          return;
@@ -107,12 +88,9 @@ void rf_nobkg_cb2_batch(const char* infile,
   auto filein = TFile::Open(infile_name,"Update");
 
   // naming pattern
-  TString hdir_name(dirname);
-  TString hname_suffix(suffix);
-
   HistoPtr1D h1s_ptr;
-  auto hdir_energy = getDirectory(filein, hdir_name.Data());
-  h1s_ptr = getHistosByRecTdcChannelId<TH1D>(hdir_energy, hname_suffix.Data());
+  auto hdir_energy = getDirectory(filein, dirname);
+  h1s_ptr = getHistosByRecTdcChannelId<TH1D>(hdir_energy, suffix);
 
   ////////////////////////////////////////
   // Fitting with CB2Shape based on number
@@ -121,14 +99,15 @@ void rf_nobkg_cb2_batch(const char* infile,
 
   // Map containers for fitting results, with channel id as key
   ParameterList<double> ChannelParams;
-  auto& output_evt = addValueContainer(ChannelParams, "EvtNr");
-  auto& output_evt_err = addValueContainer(ChannelParams, "Err(EvtNr)");
-  auto& output_avg_mean = addValueContainer(ChannelParams, "Mean(Avg)");
-  auto& output_avg_sigma = addValueContainer(ChannelParams, "Sigma(Avg)");
+  auto& output_avg_mean = addValueContainer(ChannelParams, "CB_mean");
+  auto& output_avg_sigma = addValueContainer(ChannelParams, "CB_sigma");
   auto& output_cb_alpha1 = addValueContainer(ChannelParams, "CB_alpha1");
   auto& output_cb_alpha2 = addValueContainer(ChannelParams, "CB_alpha2");
   auto& output_cb_n1 = addValueContainer(ChannelParams, "CB_n1");
   auto& output_cb_n2 = addValueContainer(ChannelParams, "CB_n2");
+  auto& output_evt = addValueContainer(ChannelParams, "EvtNr");
+  auto& output_evt_err = addValueContainer(ChannelParams, "Err(EvtNr)");
+  auto& output_evt_nofit = addValueContainer(ChannelParams, "EvtNr(NoFit)");
   auto& output_chi2ndf = addValueContainer(ChannelParams, "chi2/ndf");
 
   // Map containers for class objects
@@ -140,10 +119,10 @@ void rf_nobkg_cb2_batch(const char* infile,
                        {
                          // Print Canvases to PDF
                          TString outfile_pdf(infile_name);
-                         outfile_pdf.ReplaceAll(".root", Form("_%s_fitted_CB2Shape.pdf", hdir_name.Data()));
+                         outfile_pdf.ReplaceAll(".root", Form("_%s_FitOnlyCB2.pdf", dirname));
 
-                         TCanvas *can = new TCanvas("canvas","Fitting using CB2Shape", 1500, 500);
-                         can->Divide(3,1);
+                         TCanvas *can = new TCanvas("canvas","Fitting using CB2Shape", 1000, 1000);
+                         can->Divide(2,2);
                          can->Print(Form("%s[",outfile_pdf.Data()));
 
                          // loop through all hists
@@ -166,14 +145,14 @@ void rf_nobkg_cb2_batch(const char* infile,
                                )
                              continue;
 
-                           auto search = rg_low.find(id);
-                           if(search == rg_low.end()) continue;
+                           auto search = cb_mean.find(id);
+                           if(search == cb_mean.end()) continue;
 
                            /**********************************************************************/
                            // Histogram preparation
                            /**********************************************************************/
                            // rebin
-                           hist->Rebin(5);
+                           hist->Rebin(4);
 
                            // set range
                            double ig_low = cb_mean[id]-9*cb_sigma[id];
@@ -241,10 +220,14 @@ void rf_nobkg_cb2_batch(const char* infile,
                            // Get residual
                            RooHist *hpull = frame->pullHist();
                            hpull->SetMarkerSize(0.5);
+                           RooHist *hresid = frame->residHist();
+                           hresid->SetMarkerSize(0.5);
 
                            // Add pull histo to frame2
                            RooPlot *frame2 = energy->frame(Title("Pull Distribution"));
                            frame2->addPlotable(hpull, "P");
+                           RooPlot *frame3 = energy->frame(Title("Residual Distribution"));
+                           frame3->addPlotable(hresid, "P");
 
                            // Get correlation matrix of the floating parameters
                            TH2 *hcorr = r->correlationHist();
@@ -254,8 +237,8 @@ void rf_nobkg_cb2_batch(const char* infile,
                                           std::forward_as_tuple(id),
                                           std::forward_as_tuple(Form("c_%s_%d",volName.Data(),ch+1),
                                                                 Form("Double-sided CrystalBall Fitting"),
-                                                                1500, 500));
-                           canvas[id].Divide(3,1);
+                                                                1000, 1000));
+                           canvas[id].Divide(2,2);
                            canvas[id].cd(1);
                            gPad->SetLeftMargin(0.15);
                            frame->GetYaxis()->SetTitleOffset(1.8);
@@ -263,8 +246,6 @@ void rf_nobkg_cb2_batch(const char* infile,
 
                            canvas[id].cd(2);
                            gPad->SetLeftMargin(0.1);
-                           // gPad->SetRightMargin(0.);
-                           // frame2->GetYaxis()->SetTitleOffset(1.4);
                            frame2->Draw();
 
                            canvas[id].cd(3);
@@ -272,6 +253,10 @@ void rf_nobkg_cb2_batch(const char* infile,
                            hcorr->GetYaxis()->SetTitleOffset(1.4);
                            gStyle->SetOptStat(0);
                            hcorr->Draw("colz");
+
+                           canvas[id].cd(4);
+                           gPad->SetLeftMargin(0.1);
+                           frame3->Draw();
 
                            // for printing to pdf file
                            can->cd(1);
@@ -282,8 +267,6 @@ void rf_nobkg_cb2_batch(const char* infile,
 
                            can->cd(2);
                            gPad->SetLeftMargin(0.1);
-                           // gPad->SetRightMargin(0.);
-                           // frame2->GetYaxis()->SetTitleOffset(1.4);
                            frame2->Draw();
 
                            can->cd(3);
@@ -291,6 +274,10 @@ void rf_nobkg_cb2_batch(const char* infile,
                            hcorr->GetYaxis()->SetTitleOffset(1.4);
                            gStyle->SetOptStat(0);
                            hcorr->Draw("colz");
+
+                           can->cd(4);
+                           gPad->SetLeftMargin(0.1);
+                           frame3->Draw();
 
                            can->Print(Form("%s",outfile_pdf.Data()));
 
@@ -321,6 +308,11 @@ void rf_nobkg_cb2_batch(const char* infile,
                            tmp = w.var("cb_n2");
                            output_cb_n2.emplace(id, tmp->getVal());
 
+                           bin_low = hist->GetXaxis()->FindBin(output_avg_mean[id]-7*output_avg_sigma[id]);
+                           bin_high = hist->GetXaxis()->FindBin(output_avg_mean[id]+7*output_avg_sigma[id]);
+                           ntotal = hist->Integral(bin_low, bin_high);
+                           output_evt_nofit.emplace(id, ntotal);
+
                            std::cout << "End Fit channel: " << volName.Data() << "_" << ch+1 << std::endl;
                          }
 
@@ -334,9 +326,7 @@ void rf_nobkg_cb2_batch(const char* infile,
   ////////////////////////////////////////
   // Save Workspaces and RooFitResult to ROOT file, with one directory for each channel
   ////////////////////////////////////////
-  TString outdir_name = hdir_name;
-  outdir_name.Append("_fitted_CB2Shape");
-  auto hDirOut = getDirectory(filein, outdir_name.Data());
+  auto hDirOut = getDirectory(filein, Form("%s_FitOnlyCB2", dirname));
 
   for(auto& item : ws){
     auto id = item.first;
@@ -351,7 +341,7 @@ void rf_nobkg_cb2_batch(const char* infile,
   // Save Parameters to TXT
   ////////////////////////////////////////
   TString outfile_channel_txt(infile_name);
-  outfile_channel_txt.ReplaceAll(".root", Form("_%s_fitted_CB2Shape_Channels.txt", hdir_name.Data()));
+  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitOnlyCB2.txt", dirname));
   printValueList<double>(ChannelParams, outfile_channel_txt.Data());
 
   ////////////////////////////////////////

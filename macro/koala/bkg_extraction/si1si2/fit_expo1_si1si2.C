@@ -4,11 +4,12 @@
 
 using namespace KoaUtility;
 
-void fit_expo1(
-               const char* filename,
-               const char* dirname = "rec_cluster_energy_FirstHit",
-               const char* suffix = "cluster_energy_firstHit"
-)
+void fit_expo1_si1si2(
+                      const char* filename,
+                      const char* bkg_filename,
+                      const char* dirname = "rec_cluster_energy_FirstHit",
+                      const char* suffix = "cluster_energy_firstHit"
+                      )
 {
   auto fin = TFile::Open(filename);
   auto hdir = getDirectory(fin, dirname);
@@ -60,20 +61,19 @@ void fit_expo1(
   }
 
   //
-  TString outfilename(filename);
-  outfilename.ReplaceAll(".root","_bkg.root");
+  TString outfilename(bkg_filename);
   auto fout = TFile::Open(outfilename, "update");
-  auto dir_out = getDirectory(fout, "no_expo1");
+  auto dir_out = getDirectory(fout, "no_expo1_Si1Si2");
   writeHistos<TH1D>(dir_out, hsub);
 
-  TString pdffilename(filename);
-  pdffilename.ReplaceAll(".root", "_BkgNoExpo.pdf");
+  TString pdffilename(bkg_filename);
+  pdffilename.ReplaceAll(".root", "_BkgNoExpo_Si1Si2.pdf");
   printHistos<TH1D>(hsub, pdffilename.Data());
-  pdffilename.ReplaceAll("_BkgNoExpo.pdf","_BkgExpoFit.pdf");
+  pdffilename.ReplaceAll("_BkgNoExpo","_BkgExpoFit");
   printHistos<TH1D*>(h1s, pdffilename.Data(), "", true);
 
-  TString outfile_txt(filename);
-  outfile_txt.ReplaceAll(".root","_BkgExpoFit.txt");
+  TString outfile_txt(bkg_filename);
+  outfile_txt.ReplaceAll(".root","_BkgExpoFit_Si1Si2.txt");
   printValueList<double>(OutputParameters, outfile_txt.Data());
 
   //

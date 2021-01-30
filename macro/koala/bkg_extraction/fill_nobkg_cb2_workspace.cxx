@@ -16,12 +16,12 @@ void fill_nobkg_cb2_workspace(RooWorkspace& ws,
   /*********************************************************************************************************/
   // Define the x-axis: recoil energy in MeV [0, max_energy]
   /*********************************************************************************************************/
-  double range_low = param_cb_m0 - param_cb_sigma*2.5;
-  double range_high = param_cb_m0 + param_cb_sigma*5;
+  double range_low = param_cb_m0 - param_cb_sigma*2;
+  double range_high = param_cb_m0 + param_cb_sigma*4;
   double draw_low = range_low - param_cb_sigma*4;
   double draw_high = range_high + param_cb_sigma*2;
   if(range_low < 0.2) {
-    range_low = 0.2;
+    range_low = 0.4;
   }
   if(draw_low < 0.2) {
     draw_low = 0.2;
