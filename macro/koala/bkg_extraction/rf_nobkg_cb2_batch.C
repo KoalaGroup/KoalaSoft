@@ -232,6 +232,9 @@ void rf_nobkg_cb2_batch(const char* infile,
                            // Get correlation matrix of the floating parameters
                            TH2 *hcorr = r->correlationHist();
 
+                           // if(cb_mean[id] <= 1.2)
+                           //   model->plotOn(frame, Components("coulomb_model"), LineStyle(kDashed), LineColor(kGreen), Range("drawRange"));
+
                            // Draw all frames on a canvas
                            canvas.emplace(std::piecewise_construct,
                                           std::forward_as_tuple(id),

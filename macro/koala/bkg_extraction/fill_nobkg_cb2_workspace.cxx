@@ -26,6 +26,7 @@ void fill_nobkg_cb2_workspace(RooWorkspace& ws,
   if(draw_low < 0.2) {
     draw_low = 0.2;
   }
+
   RooRealVar energy("energy", "Energy (MeV)", draw_low, draw_high);
   energy.setRange("fitRange", range_low, range_high);
   energy.setRange("drawRange", draw_low, draw_high);
@@ -45,4 +46,15 @@ void fill_nobkg_cb2_workspace(RooWorkspace& ws,
 
   //
   ws.factory(Form( "SUM::model(nelastic[%.1f,%f,%f]*elastic_model)",ntotal,0.5*ntotal,10*ntotal));
+  // if( param_cb_m0 > 1.2 ) {
+  //   ws.factory(Form( "SUM::model(nelastic[%.1f,%f,%f]*elastic_model)",ntotal,0.5*ntotal,10*ntotal));
+  // }
+  // else {
+  //   RooRealVar frac_coul("frac_coul", "frac_coul", 6.2e-6);
+  //   RooGenericPdf coulomb_model("coulomb_model", "coulomb_model", "@1/TMath::Power(0.002*0.938*@0,2)/TMath::Power(1+TMath::Abs(0.002*0.938*@0)/0.71,8)", RooArgList(energy, frac_coul));
+  //   // coulomb_model.Print();
+  //   ws.import(coulomb_model);
+
+  //   ws.factory(Form( "SUM::model(nelastic[%.1f,%f,%f]*elastic_model, ncoulomb[%f,0,%f]*coulomb_model)",ntotal,0.5*ntotal,2*ntotal, 0.2*ntotal, 0.5*ntotal));
+  // }
 }
