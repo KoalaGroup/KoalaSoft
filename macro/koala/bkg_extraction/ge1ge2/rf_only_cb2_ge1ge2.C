@@ -190,6 +190,7 @@ void rf_only_cb2_ge1ge2(const char* infile,
   auto& output_cb_n1 = addValueContainer(ChannelParams, "CB_n1");
   auto& output_cb_n2 = addValueContainer(ChannelParams, "CB_n2");
   auto& output_evt = addValueContainer(ChannelParams, "EvtNr");
+  auto& output_evt_nofit = addValueContainer(ChannelParams, "EvtNr(NoFit)");
   auto& output_chi2ndf = addValueContainer(ChannelParams, "chi2/ndf");
 
   // Map containers for class objects
@@ -469,6 +470,13 @@ void rf_only_cb2_ge1ge2(const char* infile,
                           output_cb_n1.emplace(id, tmp->getVal());
                           tmp = w.var("cb_n2");
                           output_cb_n2.emplace(id, tmp->getVal());
+
+                          // count the events by integration
+                          bin_low = hist->GetXaxis()->FindBin(means[0]-7*sigmas[0]);
+                          bin_high = hist->GetXaxis()->FindBin(means[nr_strips-1]+7*sigmas[nr_strips-1]);
+                          ntotal = hist->Integral(bin_low, bin_high);
+                          output_evt_nofit.emplace(id, ntotal);
+
                           std::cout << "End Fit channel: " << volName.Data() << "_" << ch+1 << std::endl;
                         }
 

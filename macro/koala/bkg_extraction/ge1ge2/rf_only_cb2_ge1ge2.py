@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 import subprocess
+from shutil import copyfile
 
 vmc_dir = os.environ['VMCWORKDIR']
 macro_dir = os.path.dirname(os.path.realpath(__file__))
@@ -29,7 +30,6 @@ parser.add_argument("--suffix",
                     default="nomip",
                     help="Suffix of the spectrums' name")
 parser.add_argument("--mom",
-                    type = float,
                     help="Beam momentum. Must be provided when no strip configuration is provided")
 parser.add_argument("--iterate_nr",
                     type = int,
@@ -45,12 +45,18 @@ f_strip_config = os.path.expanduser(args.infile.replace('.root', f'_{args.direct
 f_geometry = os.path.expanduser(args.geo_file)
 it_nr = args.iterate_nr
 
+## create directory to contain the text results from each iteration
+dir_output = os.path.expanduser(args.infile.replace('.root', f'_{args.directory}_FitOnlyCB2'))
+os.makedirs(dir_output, exist_ok=True)
 
 ## the first iteration use the command line config files
 print(f'Init fit...')
 init_channel_config = os.path.expanduser(args.channel_config)
+copyfile(init_channel_config, os.path.join(dir_output,'channels_0.txt'))
+
 if args.strip_config is not None:
     init_strip_config = os.path.expanduser(args.strip_config)
+    copyfile(init_strip_config, os.path.join(dir_output,'strips_0.txt'))
     command = [exec_bin, macro, f_spectrum, init_channel_config, init_strip_config,
                f_geometry, args.directory, args.suffix]
     print(command)
@@ -66,6 +72,9 @@ else:
     process = subprocess.Popen(command)
     process.wait()
 
+copyfile(f_strip_config, os.path.join(dir_output,'strips_1.txt'))
+copyfile(f_channel_config, os.path.join(dir_output,'channels_1.txt'))
+
 ## iteration using the output fit parameters as configuration for the next iteration of fit
 for i in range(it_nr):
     print(f'Iterate {i+1}:')
@@ -74,3 +83,8 @@ for i in range(it_nr):
     print(command)
     process = subprocess.Popen(command)
     process.wait()
+
+    copyfile(f_strip_config, os.path.join(dir_output,f'strips_{i+2}.txt'))
+    copyfile(f_channel_config, os.path.join(dir_output,f'channels_{i+2}.txt'))
+
+print(f'In total: {it_nr} iteration completed!')
