@@ -1,72 +1,17 @@
 #include "KoaHistUtility.h"
 #include "KoaGeometryUtility.h"
-#include "KoaGraphUtility.h"
-#include "fill_only_cb2_workspace_ge1ge2.cxx"
+#include "fill_only_cb2_workspace_si2.cxx"
 
 using namespace KoaUtility;
 using namespace RooFit;
 using namespace std;
 
-// sort multiple vectors together
-template <typename T, typename Compare>
-std::vector<std::size_t> sort_permutation(
-    const std::vector<T>& vec,
-    Compare compare)
-{
-  std::vector<std::size_t> p(vec.size());
-  std::iota(p.begin(), p.end(), 0);
-  std::sort(p.begin(), p.end(),
-            [&](std::size_t i, std::size_t j){ return compare(vec[i], vec[j]); });
-  return p;
-}
-
-template <typename T>
-std::vector<T> apply_permutation(
-    const std::vector<T>& vec,
-    const std::vector<std::size_t>& p)
-{
-  std::vector<T> sorted_vec(vec.size());
-  std::transform(p.begin(), p.end(), sorted_vec.begin(),
-                 [&](std::size_t i){ return vec[i]; });
-  return sorted_vec;
-}
-
-template <typename T>
-void apply_permutation_in_place(
-    std::vector<T>& vec,
-    const std::vector<std::size_t>& p)
-{
-  std::vector<bool> done(vec.size());
-  for (std::size_t i = 0; i < vec.size(); ++i)
-  {
-    if (done[i])
-    {
-      continue;
-    }
-    done[i] = true;
-    std::size_t prev_j = i;
-    std::size_t j = p[i];
-    while (i != j)
-    {
-      std::swap(vec[prev_j], vec[j]);
-      done[j] = true;
-      prev_j = j;
-      j = p[j];
-    }
-  }
-}
-
 //////////////////////
-void rf_only_cb2_ge1ge2(const char* infile,
-                        const char* configFile = "./rf_only_cb2_config.txt",
-                        const char* strip_configFile = "./rf_only_cb2_strips_config.txt",
-                        const char* geoFile="../calib_para/geo_standard.root",
-                        const char* dirname = "no_mip_Ge1Ge2",
-                        const char* suffix = "nomip",
-                        bool useGeometry = false,
-                        Double_t mom = 2.6,
-                        double zoffset_si1 = 0.18, double zoffset_si2 = 0.13, double zoffset_ge1 = 0.12, double zoffset_ge2 = 0.12
-                        )
+void rf_only_cb2_si2(const char* infile,
+                     const char* configFile = "./rf_only_cb2_config_si2.txt",
+                     const char* dirname = "rec_cluster_energy_FirstHit",
+                     const char* suffix = "cluster_energy_firstHit"
+                     )
 
 {
   TStopwatch timer;
@@ -78,29 +23,6 @@ void rf_only_cb2_ge1ge2(const char* infile,
   // Map encoder
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
   int tdc_id = encoder->EncodeChannelID(1,37);
-
-  // Retrieve the map from ch id to strip ids. Some ch may correspond to multiple strips
-  auto geoHandler = getGeometryHandler(geoFile);
-  auto ChToStripMap = geoHandler->GetChIdToStripIds();
-  // delete geoHandler;
-
-  // get strip-mapped mean init values
-  ValueContainer<double> strip_mean;
-  if(useGeometry) {
-    double zoffset[4] = {zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2}; // in cm
-    double yoffset[4] = {0, 0, 0, 0}; // in cm
-    strip_mean = getStripEnergies(mom, geoFile,yoffset,zoffset);
-  }
-  else {
-    auto strip_params = readParameterList<double>(strip_configFile);
-
-    auto it = findValueContainer(strip_params, "Mean");
-    if( it == strip_params.end() ) {
-      cout << "Mean not available in config file: " << strip_configFile << endl;
-      return;
-    }
-    strip_mean = it->second;
-  }
 
   ////////////////////////////////////////
   // Read in the fitting config params
@@ -166,20 +88,14 @@ void rf_only_cb2_ge1ge2(const char* infile,
   auto filein = TFile::Open(infile_name,"Update");
 
   // naming pattern
+  HistoPtr1D h1s_ptr;
   auto hdir_energy = getDirectory(filein, dirname);
-  auto h1s_ptr = getHistosByChannelId<TH1D>(hdir_energy, suffix);
+  h1s_ptr = getHistosByChannelId<TH1D>(hdir_energy, suffix);
 
   ////////////////////////////////////////
   // Fitting with CB2Shape based on number
   // of strips in each channel
   ////////////////////////////////////////
-
-  // Map containers for fitting results, with strip id as key
-  ParameterList<double> StripParams;
-  auto& output_init_mean = addValueContainer(StripParams, "Init_mean");
-  auto& output_mean = addValueContainer(StripParams, "Mean");
-  auto& output_sigma = addValueContainer(StripParams, "Sigma");
-  auto& output_stripevt = addValueContainer(StripParams, "EvtNr");
 
   // Map containers for fitting results, with channel id as key
   ParameterList<double> ChannelParams;
@@ -201,7 +117,7 @@ void rf_only_cb2_ge1ge2(const char* infile,
 
   auto fit_only_cb2 = [&] ()
                       {
-                        // Print Canvases to PDF
+                         // Print Canvases to PDF
                         TString outfile_pdf(infile_name);
                         outfile_pdf.ReplaceAll(".root", Form("_%s_FitOnlyCB2.pdf", dirname));
 
@@ -232,25 +148,22 @@ void rf_only_cb2_ge1ge2(const char* infile,
                           auto search = cb_mean.find(id);
                           if(search == cb_mean.end()) continue;
 
-                          // retrieve the number of strips in the channel
-                          auto strip_ids = ChToStripMap[id];
-                          auto nr_strips = strip_ids.size();
-                          auto rg_low = cb_mean[id]-9*cb_sigma[id];
-                          auto rg_high = cb_mean[id]+7*cb_sigma[id];
-
                           /**********************************************************************/
-                          // Histogram preparation
-                          /**********************************************************************/
-                          // rebin
+                           // Histogram preparation
+                           /**********************************************************************/
+                           // rebin
                           if( tdc_id >= id)
-                            hist->Rebin(5);
+                            hist->Rebin(10);
                           else
-                            hist->Rebin(3);
+                            hist->Rebin(2);
 
-                          // get the observed events in fit range
-                          auto bin_low = hist->GetXaxis()->FindBin(rg_low);
-                          auto bin_high = hist->GetXaxis()->FindBin(rg_high);
-                          int ntotal = hist->Integral(bin_low, bin_high);
+                           // get the observed events in fit range
+                          double ig_low = cb_mean[id]-9*cb_sigma[id];
+                          double ig_high = cb_mean[id]+7*cb_sigma[id];
+
+                          auto bin_low = hist->GetXaxis()->FindBin(ig_low);
+                          auto bin_high = hist->GetXaxis()->FindBin(ig_high);
+                          double ntotal = hist->Integral(bin_low, bin_high);
 
                           /**********************************************************************/
                           // Define the workspace
@@ -263,27 +176,18 @@ void rf_only_cb2_ge1ge2(const char* infile,
                                                            Form("RooWorkspace of %s_%d", volName.Data(), ch+1)));
                           RooWorkspace& w = ws[id];
 
-                          fill_only_cb2_workspace(w,
-                                                  nr_strips,
-                                                  cb_mean[id],
-                                                  cb_sigma[id], cb_alpha1[id], cb_alpha2[id], cb_n1[id], cb_n2[id],
-                                                  ntotal);
+                          fill_only_cb2_workspace_si2(w,
+                                                      cb_mean[id],
+                                                      cb_sigma[id], cb_alpha1[id], cb_alpha2[id], cb_n1[id], cb_n2[id],
+                                                      ntotal);
+                          w.Print();
                           std::cout << "Fit channel: " << volName.Data() << "_" << ch+1 << std::endl;
 
                           // retrieve vars and p.d.fs from workspace
                           RooRealVar* energy = w.var("energy");
-
                           auto model = w.pdf("model");
 
-                          // set init value for elastic peak centers
-                          double strip_sigma = cb_sigma[id]/TMath::Sqrt(nr_strips);
-                          for(int i=0;i<nr_strips;i++){
-                            RooRealVar* cb_m0 = w.var(Form("cb_m0_%d",i+1));
-                            cb_m0->setVal(strip_mean[strip_ids[i]]);
-                            cb_m0->setRange(strip_mean[strip_ids[i]]-3*strip_sigma,
-                                            strip_mean[strip_ids[i]]+3*strip_sigma);
-                            std::cout << "strip_mean: " << strip_mean[strip_ids[i]] << std::endl;
-                          }
+                          std::cout << "Peak Energy: " << cb_mean[id] << std::endl;
 
                           // init and fill in the data set
                           std::cout << "Import data: " << volName.Data() << "_" << ch+1 << std::endl;
@@ -306,10 +210,10 @@ void rf_only_cb2_ge1ge2(const char* infile,
                           dh.plotOn(frame, MarkerSize(0.5));
                           model->plotOn(frame, VisualizeError(*r));
                           model->plotOn(frame, Range("drawRange"), LineColor(kBlue));
-                          // model.paramOn(frame, Layout(0.55));
 
                           // Get chi2
-                          auto chi2_over_ndf = frame->chiSquare(5+nr_strips);
+                          auto chi2_over_ndf = frame->chiSquare(6);
+                          output_chi2ndf.emplace(id, chi2_over_ndf);
 
                           // Get residual
                           RooHist *hpull = frame->pullHist();
@@ -317,35 +221,14 @@ void rf_only_cb2_ge1ge2(const char* infile,
                           RooHist *hresid = frame->residHist();
                           hresid->SetMarkerSize(0.5);
 
-                          // Get correlation matrix of the floating parameters
-                          TH2 *hcorr = r->correlationHist();
-
-                          // Add other components to the frame
-                          switch (nr_strips) {
-                          case 1: {
-                            model->plotOn(frame, Components("elastic_model"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
-                            break;
-                          }
-                          case 2: {
-                            model->plotOn(frame, Components("cb1"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
-                            model->plotOn(frame, Components("cb2"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
-                            break;
-                          }
-                          case 3: {
-                            model->plotOn(frame, Components("cb1"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
-                            model->plotOn(frame, Components("cb2"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
-                            model->plotOn(frame, Components("cb3"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
-                            break;
-                          }
-                          default:
-                            break;
-                          }
-
                           // Add pull histo to frame2
                           RooPlot *frame2 = energy->frame(Title("Pull Distribution"));
                           frame2->addPlotable(hpull, "P");
                           RooPlot *frame3 = energy->frame(Title("Residual Distribution"));
                           frame3->addPlotable(hresid, "P");
+
+                          // Get correlation matrix of the floating parameters
+                          TH2 *hcorr = r->correlationHist();
 
                           // Draw all frames on a canvas
                           canvas.emplace(std::piecewise_construct,
@@ -376,6 +259,7 @@ void rf_only_cb2_ge1ge2(const char* infile,
                           // for printing to pdf file
                           can->cd(1);
                           gPad->SetLeftMargin(0.15);
+                          // gPad->SetLogy();
                           frame->GetYaxis()->SetTitleOffset(1.8);
                           frame->Draw();
 
@@ -404,65 +288,14 @@ void rf_only_cb2_ge1ge2(const char* infile,
                                             std::forward_as_tuple(*r));
 
                           // fit params for each strip
+                          RooRealVar* mean  = w.var("cb_m0");
+                          RooRealVar* sigma = w.var("cb_sigma");
+                          output_avg_mean.emplace(id, mean->getVal());
+                          output_avg_sigma.emplace(id, sigma->getVal());
+
                           RooRealVar* nelastic = w.var("nelastic");
-
-                          std::vector<double> means, sigmas, mean_errs, sigma_errs, events;
-                          for(int i=0;i<nr_strips;i++){
-                            RooRealVar* mean  = w.var(Form("cb_m0_%d",i+1));
-                            RooRealVar* sigma = w.var("cb_sigma");
-
-                            means.emplace_back(mean->getVal());
-                            mean_errs.emplace_back(mean->getError());
-                            sigmas.emplace_back(sigma->getVal());
-                            sigma_errs.emplace_back(sigma->getError());
-                          }
-
-                          switch (nr_strips) {
-                          case 1: {
-                            events.emplace_back(nelastic->getVal());
-                            break;
-                          }
-                          default: {
-                            double last_frac = 1;
-                            for(int i = 0; i<(nr_strips-1); i++) {
-                              RooRealVar* var = w.var(Form("frac_cb%d",i+1));
-                              events.emplace_back(var->getVal()*nelastic->getVal());
-                              last_frac -= var->getVal();
-                            }
-                            events.emplace_back(last_frac*nelastic->getVal());
-                            break;
-                          }
-                          }
-
-                          // order the means as sequence
-                          auto p = sort_permutation<double>(means,
-                                                            [](double const& a, double const& b){return a < b;} );
-                          apply_permutation_in_place(means, p);
-                          apply_permutation_in_place(sigmas, p);
-                          apply_permutation_in_place(events, p);
-
-                          // save the fit values into output containers
-                          for(int i=0;i<nr_strips;i++){
-                            auto strip_id = strip_ids[i];
-
-                            output_init_mean.emplace(strip_id, strip_mean[strip_id]);
-                            output_mean.emplace(strip_id, means[i]);
-                            output_sigma.emplace(strip_id, sigmas[i]);
-                            output_stripevt.emplace(strip_id, events[i]);
-                          }
-
-                          // fit params for each channel
                           output_evt.emplace(id, nelastic->getVal());
                           output_evt_err.emplace(id, nelastic->getError());
-                          output_chi2ndf.emplace(id, chi2_over_ndf);
-
-                          output_avg_mean.emplace(id, TMath::Mean(means.begin(), means.end()));
-                          double avg_sigma = 0;
-                          for(auto item: sigmas){
-                            avg_sigma += item*item;
-                          }
-                          avg_sigma = TMath::Sqrt(avg_sigma);
-                          output_avg_sigma.emplace(id, avg_sigma);
 
                           RooRealVar* tmp = w.var("cb_alpha1");
                           output_cb_alpha1.emplace(id, tmp->getVal());
@@ -473,9 +306,8 @@ void rf_only_cb2_ge1ge2(const char* infile,
                           tmp = w.var("cb_n2");
                           output_cb_n2.emplace(id, tmp->getVal());
 
-                          // count the events by integration
-                          bin_low = hist->GetXaxis()->FindBin(means[0]-7*sigmas[0]);
-                          bin_high = hist->GetXaxis()->FindBin(means[nr_strips-1]+7*sigmas[nr_strips-1]);
+                          bin_low = hist->GetXaxis()->FindBin(output_avg_mean[id]-7*output_avg_sigma[id]);
+                          bin_high = hist->GetXaxis()->FindBin(output_avg_mean[id]+7*output_avg_sigma[id]);
                           ntotal = hist->Integral(bin_low, bin_high);
                           output_evt_nofit.emplace(id, ntotal);
 
@@ -506,12 +338,8 @@ void rf_only_cb2_ge1ge2(const char* infile,
   ////////////////////////////////////////
   // Save Parameters to TXT
   ////////////////////////////////////////
-  TString outfile_strip_txt(infile_name);
-  outfile_strip_txt.ReplaceAll(".root", Form("_%s_FitOnlyCB2_Strips.txt", dirname));
-  printValueList<double>(StripParams, outfile_strip_txt.Data());
-
   TString outfile_channel_txt(infile_name);
-  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitOnlyCB2_Channels.txt", dirname));
+  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitOnlyCB2.txt", dirname));
   printValueList<double>(ChannelParams, outfile_channel_txt.Data());
 
   ////////////////////////////////////////

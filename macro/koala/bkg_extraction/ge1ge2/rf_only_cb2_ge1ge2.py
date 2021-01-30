@@ -33,7 +33,7 @@ parser.add_argument("--mom",
                     help="Beam momentum. Must be provided when no strip configuration is provided")
 parser.add_argument("--iterate_nr",
                     type = int,
-                    default="10",
+                    default="12",
                     help="Iteration number")
 
 ## argument parsing

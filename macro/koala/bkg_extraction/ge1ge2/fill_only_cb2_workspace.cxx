@@ -2,16 +2,16 @@
 
 using namespace RooFit;
 
-void fill_only_cb2_workspace(RooWorkspace& ws,
-                             int stripNr = 1,
-                             double param_cb_mean = 0.15,
-                             double param_cb_sigma = 0.15,
-                             double param_cb_alpha1 = 1.58,
-                             double param_cb_alpha2 = -2.58,
-                             double param_cb_n1 = 4,
-                             double param_cb_n2 = 9,
-                             double ntotal = 100
-                             )
+void fill_only_cb2_workspace_ge1ge2(RooWorkspace& ws,
+                                    int stripNr = 1,
+                                    double param_cb_mean = 0.15,
+                                    double param_cb_sigma = 0.15,
+                                    double param_cb_alpha1 = 1.58,
+                                    double param_cb_alpha2 = -2.58,
+                                    double param_cb_n1 = 4,
+                                    double param_cb_n2 = 9,
+                                    double ntotal = 100
+                                    )
 {
   /*********************************************************************************************************/
   // Define the x-axis: recoil energy in MeV [0, max_energy]
