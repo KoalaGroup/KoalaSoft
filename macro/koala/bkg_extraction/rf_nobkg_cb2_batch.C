@@ -106,6 +106,7 @@ void rf_nobkg_cb2_batch(const char* infile,
   auto& output_cb_n1 = addValueContainer(ChannelParams, "CB_n1");
   auto& output_cb_n2 = addValueContainer(ChannelParams, "CB_n2");
   auto& output_evt = addValueContainer(ChannelParams, "EvtNr");
+  auto& output_avg_mean_err = addValueContainer(ChannelParams, "Err(CB_mean)");
   auto& output_evt_err = addValueContainer(ChannelParams, "Err(EvtNr)");
   auto& output_evt_nofit = addValueContainer(ChannelParams, "EvtNr(NoFit)");
   auto& output_chi2ndf = addValueContainer(ChannelParams, "chi2/ndf");
@@ -165,6 +166,8 @@ void rf_nobkg_cb2_batch(const char* infile,
                            // get the observed events in fit range
                            auto bin_low = hist->GetXaxis()->FindBin(cb_mean[id]-3*cb_sigma[id]);
                            auto bin_high = hist->GetXaxis()->FindBin(cb_mean[id]+5*cb_sigma[id]);
+                           if((cb_mean[id]-3*cb_sigma[id]) < 0.2)
+                             bin_low = hist->GetXaxis()->FindBin(0.2);
                            double ntotal = hist->Integral(bin_low, bin_high);
 
                            /**********************************************************************/
@@ -296,6 +299,7 @@ void rf_nobkg_cb2_batch(const char* infile,
                            RooRealVar* mean  = w.var("cb_m0");
                            RooRealVar* sigma = w.var("cb_sigma");
                            output_avg_mean.emplace(id, mean->getVal());
+                           output_avg_mean_err.emplace(id, mean->getError());
                            output_avg_sigma.emplace(id, sigma->getVal());
 
                            RooRealVar* nelastic = w.var("nelastic");
