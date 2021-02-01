@@ -6,13 +6,14 @@ using namespace RooFit;
 void fill_coulomb_cb2_workspace(RooWorkspace& ws,
                                 double range_low = 0.75,
                                 double range_high = 16,
+                                double param_cb_m0 = 0.8,
                                 double param_cb_sigma = 0.15,
                                 double param_cb_alpha1 = 1.58,
                                 double param_cb_alpha2 = -2.58,
                                 double param_cb_n1 = 4,
                                 double param_cb_n2 = 9,
-                                double frac_elastic = 0.9,
-                                int ntotal = 100
+                                double nelastic = 100,
+                                double nbkg = 100
                                 )
 {
   /*********************************************************************************************************/
@@ -33,16 +34,16 @@ void fill_coulomb_cb2_workspace(RooWorkspace& ws,
   /*********************************************************************************************************/
   // Elastic model: multiple CB2Shape (double-sided Crystal Ball Function)
   /*********************************************************************************************************/
-  RooRealVar cb_sigma("cb_sigma", "CrystallBall sigma", param_cb_sigma, 0.01, 1.0);
-  RooRealVar cb_alpha1("cb_alpha1", "CrystallBall leading turning point", param_cb_alpha1, 0, 2);
-  RooRealVar cb_n1("cb_n1", "CrystallBall trailing exponent", param_cb_n1, 1, 6);
-  RooRealVar cb_alpha2("cb_alpha2", "CrystallBall trailing turning point", param_cb_alpha2, 1, 3);
-  RooRealVar cb_n2("cb_n2", "CrystallBall tailing exponent", param_cb_n2, 3, 10);
-  RooRealVar cb_m0("cb_m0", "Peak of CrystalBall", range_low, range_high);
+  RooRealVar cb_m0("cb_m0", "Peak of CrystalBall", param_cb_m0 , 0.9*param_cb_m0, 1.1*param_cb_m0);
+  RooRealVar cb_sigma("cb_sigma", "CrystallBall sigma", param_cb_sigma, param_cb_sigma-0.01, param_cb_sigma+0.01);
+  RooRealVar cb_alpha1("cb_alpha1", "CrystallBall leading turning point", param_cb_alpha1, param_cb_alpha1-0.5, param_cb_alpha1+1);
+  RooRealVar cb_n1("cb_n1", "CrystallBall trailing exponent", param_cb_n1, param_cb_n1-1, param_cb_n1+3);
+  RooRealVar cb_alpha2("cb_alpha2", "CrystallBall trailing turning point", param_cb_alpha2, param_cb_alpha2-0.5, param_cb_alpha2+1.);
+  RooRealVar cb_n2("cb_n2", "CrystallBall tailing exponent", param_cb_n2, param_cb_n2-1, param_cb_n2+2);
 
   CB2Shape elastic_model("elastic_model", "Elastic Model", energy, cb_m0, cb_sigma, cb_alpha1, cb_n1, cb_alpha2, cb_n2);
   ws.import(elastic_model);
 
   //
-  ws.factory(Form( "SUM::model(nbkg[%.1f,0,%d]*bkg_model,nelastic[%.1f,0,%d]*elastic_model)",(1-frac_elastic)*ntotal,ntotal,frac_elastic*ntotal,ntotal ));
+  ws.factory(Form( "SUM::model(nbkg[%.1f,%f,%f]*bkg_model,nelastic[%.1f,%f,%f]*elastic_model)", 0.3*nbkg,0.1*nbkg, 10*nbkg, nelastic, 0.5*nelastic, 10*nelastic));
 }

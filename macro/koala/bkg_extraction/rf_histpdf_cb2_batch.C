@@ -239,7 +239,6 @@ void rf_histpdf_cb2_batch(const char* infile,
                              RooRealVar* energy = w.var("energy");
                              auto model = w.pdf("model");
 
-                             // set init value for elastic peak centers
                              // RooRealVar* cb_m0 = w.var("cb_m0");
                              std::cout << "Peak Energy: " << cb_mean[id] << std::endl;
 

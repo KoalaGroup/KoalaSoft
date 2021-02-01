@@ -1,18 +1,23 @@
 #include "KoaHistUtility.h"
 #include "KoaGeometryUtility.h"
 #include "KoaGraphUtility.h"
-#include "fill_coulomb_cb2_workspace.cxx"
+#include "fill_coulomb_histpdf_cb2_workspace.cxx"
 
 using namespace KoaUtility;
 using namespace RooFit;
 using namespace std;
 
 //////////////////////
-void rf_coulomb_cb2(const char* infile,
-                    const char* configFile = "./rf_cb2_config.txt",
-                    const char* dirname = "Energy_Individual_-5.0_5.0",
-                    const char* suffix = "Energy"
-                    )
+void rf_coulomb_histpdf_cb2(const char* infile,
+                            const char* bkg_filename,
+                            const char* configFile = "./rf_histpdf_cb2_config.txt",
+                            const char* dirname = "Energy_All_Individual_-5.0_5.0",
+                            const char* suffix = "Energy_All",
+                            const char* bkg_dirname = "Energy_All_NoElastic",
+                            const char* bkg_suffix = "noelastic",
+                            int si1_ch_low = 28, int si1_ch_high = 30,
+                            int si2_ch_low = 2, int si2_ch_high = 4
+                            )
 
 {
   TStopwatch timer;
@@ -115,6 +120,28 @@ void rf_coulomb_cb2(const char* infile,
   auto hdir_energy = getDirectory(filein, dirname);
   h1s_ptr = getHistosByRecTdcChannelId<TH1D>(hdir_energy, suffix);
 
+  // bkg reference histograms
+  auto filebkg = TFile::Open(bkg_filename);
+  auto hdir_bkg = getDirectory(filebkg, bkg_dirname);
+  auto hbkg = getHistosByRecTdcChannelId<TH1D>(hdir_bkg, bkg_suffix);
+  delete filebkg;
+
+  auto id = encoder->EncodeChannelID(0, si1_ch_low-1);
+  TH1D* hbkg_si1 = (TH1D*)hbkg[id]->Clone("hbkg_si1");
+  for(int i = si1_ch_low; i < si1_ch_high; i++){
+    auto id = encoder->EncodeChannelID(0, i);
+    hbkg_si1->Add(hbkg[id],1);
+  }
+  // hbkg_si1->Rebin(5);
+
+  id = encoder->EncodeChannelID(1, si2_ch_low-1);
+  TH1D* hbkg_si2 = (TH1D*)hbkg[id]->Clone("hbkg_si2");
+  for(int i = si2_ch_low; i < si2_ch_high; i++){
+    auto id = encoder->EncodeChannelID(1, i);
+    hbkg_si2->Add(hbkg[id],1);
+  }
+  // hbkg_si2->Rebin(5);
+
   ////////////////////////////////////////
   // Fitting with CB2Shape based on number
   // of strips in each channel
@@ -133,6 +160,7 @@ void rf_coulomb_cb2(const char* infile,
   auto& output_evt = addValueContainer(ChannelParams, "EvtNr");
   auto& output_avg_mean_err = addValueContainer(ChannelParams, "Err(CB_mean)");
   auto& output_evt_err = addValueContainer(ChannelParams, "Err(EvtNr)");
+  auto& output_evt_coulomb = addValueContainer(ChannelParams, "EvtNr(Coulomb)");
   auto& output_chi2ndf = addValueContainer(ChannelParams, "chi2/ndf");
 
   // Map containers for class objects
@@ -140,13 +168,13 @@ void rf_coulomb_cb2(const char* infile,
   std::map<Int_t, RooFitResult> rf_result;
   std::map<Int_t, TCanvas> canvas;
 
-  auto fit_coulomb_cb2 = [&] ()
+  auto fit_histpdf_cb2 = [&] ()
                          {
                            // Print Canvases to PDF
                            TString outfile_pdf(infile_name);
-                           outfile_pdf.ReplaceAll(".root", Form("_%s_FitCoulombCB2.pdf",dirname));
+                           outfile_pdf.ReplaceAll(".root", Form("_%s_FitHistPdfCB2.pdf",dirname));
 
-                           TCanvas *can = new TCanvas("canvas","Fitting using Coulomb+CB2Shape", 1000, 1000);
+                           TCanvas *can = new TCanvas("canvas","Fitting using HistPdf+CB2Shape", 1000, 1000);
                            can->Divide(2,2);
                            can->Print(Form("%s[",outfile_pdf.Data()));
 
@@ -158,6 +186,11 @@ void rf_coulomb_cb2(const char* infile,
                              TString volName;
                              Int_t ch = encoder->DecodeChannelID(id, volName);
                              volName.ReplaceAll("Sensor", "");
+
+                             // select different background template for Si1 and Si2
+                             TH1D* hbkg_ref = nullptr;
+                             if(volName == "Si1") hbkg_ref = hbkg_si1;
+                             else if(volName == "Si2") hbkg_ref = hbkg_si2;
 
                              // ignore channels on the edges, partly-deposit and malfuntioning
                              if (id == encoder->EncodeChannelID(0,47) ||
@@ -177,12 +210,10 @@ void rf_coulomb_cb2(const char* infile,
                              // Histogram preparation
                              /**********************************************************************/
                              // rebin
-                             hist->Rebin(4);
-
-                             // get the observed events in fit range
-                             auto bin_low = hist->GetXaxis()->FindBin(rg_low[id]);
-                             auto bin_high = hist->GetXaxis()->FindBin(rg_high[id]);
-                             int ntotal = hist->Integral(bin_low, bin_high);
+                             if(cb_mean[id] < 1)
+                               hist->Rebin(5);
+                             else
+                               hist->Rebin(10);
 
                              /**********************************************************************/
                              // Define the workspace
@@ -195,12 +226,13 @@ void rf_coulomb_cb2(const char* infile,
                                                               Form("RooWorkspace of %s_%d", volName.Data(), ch+1)));
                              RooWorkspace& w = ws[id];
 
-                             fill_coulomb_cb2_workspace(w, 
+                             // fill_histpdf_cb2_workspace(w,
+                             fill_coulomb_histpdf_cb2_workspace(w,
+                                                        hbkg_ref,
                                                         rg_low[id], rg_high[id],
                                                         cb_mean[id],
                                                         cb_sigma[id], cb_alpha1[id], cb_alpha2[id], cb_n1[id], cb_n2[id],
-                                                        elastic_evt[id],
-                                                        ntotal -elastic_evt[id]
+                                                        elastic_evt[id]
                                                         );
                              w.Print();
                              std::cout << "Fit channel: " << volName.Data() << "_" << ch+1 << std::endl;
@@ -209,6 +241,8 @@ void rf_coulomb_cb2(const char* infile,
                              RooRealVar* energy = w.var("energy");
                              auto model = w.pdf("model");
 
+                             // set init value for elastic peak centers
+                             // RooRealVar* cb_m0 = w.var("cb_m0");
                              std::cout << "Peak Energy: " << cb_mean[id] << std::endl;
 
                              // init and fill in the data set
@@ -216,6 +250,16 @@ void rf_coulomb_cb2(const char* infile,
 
                              RooDataHist dh("dh", Form("%s_%d", volName.Data(), ch+1), *energy, Import(*hist));
                              w.import(dh);
+
+                             // 
+                             auto& binning = energy->getBinning("fitRange");
+                             auto bin_low = hist->GetXaxis()->FindBin(binning.lowBound());
+                             auto bin_high = hist->GetXaxis()->FindBin(binning.highBound());
+                             double nbkg = hist->Integral(bin_low, bin_high)-elastic_evt[id];
+                             RooRealVar* n_bkg = w.var("nbkg");
+                             n_bkg->setVal(nbkg);
+                             n_bkg->setRange(0.2*nbkg, 2*nbkg);
+
 
                              /**********************************************************************/
                              // Fitting
@@ -229,9 +273,9 @@ void rf_coulomb_cb2(const char* infile,
                              // Drawing
                              /**********************************************************************/
                              RooPlot *frame = energy->frame(Title(Form( "Fitting of %s_%d", volName.Data(), ch+1 )));
-                             dh.plotOn(frame, MarkerSize(0.5));
+                             dh.plotOn(frame, MarkerSize(0.5), Range("drawRange"));
                              model->plotOn(frame, VisualizeError(*r));
-                             model->plotOn(frame, Range("fitRange"), LineColor(kBlue));
+                             model->plotOn(frame, Range("drawRange"), LineColor(kBlue));
                              // model.paramOn(frame, Layout(0.55));
 
                              // Get chi2
@@ -254,14 +298,15 @@ void rf_coulomb_cb2(const char* infile,
                              TH2 *hcorr = r->correlationHist();
 
                              // Add other components to the frame
-                             model->plotOn(frame, Components("bkg_model"), LineStyle(kDashed), LineColor(kGreen), Range(0, 60.));
-                             model->plotOn(frame, Components("elastic_model"), LineStyle(kDotted), LineColor(kRed), Range(0, 60.));
+                             model->plotOn(frame, Components("coulomb_model"), LineStyle(kSolid), LineColor(kGreen), Range("drawRange"));
+                             model->plotOn(frame, Components("bkg_model"), LineStyle(kDashed), LineColor(kGreen), Range("drawRange"));
+                             model->plotOn(frame, Components("elastic_model"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
 
                              // Draw all frames on a canvas
                              canvas.emplace(std::piecewise_construct,
                                             std::forward_as_tuple(id),
                                             std::forward_as_tuple(Form("c_%s_%d",volName.Data(),ch+1),
-                                                                  Form("Couloumb + Double-sided CrystalBall Fitting"),
+                                                                  Form("HistPdf + Double-sided CrystalBall Fitting"),
                                                                   1000, 1000));
                              canvas[id].Divide(2,2);
                              canvas[id].cd(1);
@@ -325,6 +370,9 @@ void rf_coulomb_cb2(const char* infile,
                              output_evt.emplace(id, nelastic->getVal());
                              output_evt_err.emplace(id, nelastic->getError());
 
+                             RooRealVar* ncoul = w.var("ncoul");
+                             output_evt_coulomb.emplace(id, ncoul->getVal());
+
                              RooRealVar* tmp = w.var("cb_alpha1");
                              output_cb_alpha1.emplace(id, tmp->getVal());
                              tmp = w.var("cb_alpha2");
@@ -345,12 +393,12 @@ void rf_coulomb_cb2(const char* infile,
                            delete can;
                          };
 
-  fit_coulomb_cb2();
+  fit_histpdf_cb2();
 
   ////////////////////////////////////////
   // Save Workspaces and RooFitResult to ROOT file, with one directory for each channel
   ////////////////////////////////////////
-  auto hDirOut = getDirectory(filein, Form("%s_FitCoulombCB2", dirname));
+  auto hDirOut = getDirectory(filein, Form("%s_FitHistPdfCB2", dirname));
 
   for(auto& item : ws){
     auto id = item.first;
@@ -365,14 +413,13 @@ void rf_coulomb_cb2(const char* infile,
   // Save Parameters to TXT
   ////////////////////////////////////////
   TString outfile_channel_txt(infile_name);
-  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitCoulombCB2.txt", dirname));
+  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitHistPdfCB2.txt", dirname));
   printValueList<double>(ChannelParams, outfile_channel_txt.Data());
 
   ////////////////////////////////////////
   // Clean up
   ////////////////////////////////////////
   delete filein;
-  // delete calculator;
 
   //
   timer.Stop();
