@@ -425,6 +425,7 @@ void rf_combined_cb2(const char* infile,
                               RooPlot *frame2 = energy->frame(Title("Pull Distribution"));
                               frame2->addPlotable(hpull, "P");
                               RooPlot *frame3 = energy->frame(Title("Residual Distribution"));
+                              frame3->addPlotable(hresid, "P");
 
                               // Draw all frames on a canvas
                               canvas.emplace(std::piecewise_construct,
