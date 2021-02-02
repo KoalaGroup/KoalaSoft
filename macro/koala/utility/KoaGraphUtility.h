@@ -74,11 +74,11 @@ namespace KoaUtility
   }
 
   // book graphs by sensor id
-  GraphPtrs bookGraphByRecDetectorId(const char *gName, const char *gTitle,
-                                  int markerStyle=8, double markerSize=1
-                                  )
+  Graphs bookGraphByRecDetectorId(const char *gName, const char *gTitle,
+                                 int markerStyle=8, double markerSize=1
+                                 )
   {
-    GraphPtrs graphs;
+    Graphs graphs;
 
     KoaMapEncoder *encoder = KoaMapEncoder::Instance();
     std::vector<int> ChIDs = encoder->GetRecTdcChIDs();
@@ -95,13 +95,13 @@ namespace KoaUtility
 
       graphs.emplace(std::piecewise_construct,
                      std::forward_as_tuple(detector),
-                     std::forward_as_tuple(new TGraph()));
+                     std::forward_as_tuple());
 
-      graphs[detector]->SetName(Form("gr_%s_%s", volName.Data(), gName));
-      graphs[detector]->SetTitle(Form("%s: %s", volName.Data(), gTitle));
-      graphs[detector]->SetMarkerColor(markerColor[detector-DetectorIdRange[0]]);
-      graphs[detector]->SetMarkerStyle(markerStyle);
-      graphs[detector]->SetMarkerSize(markerSize);
+      graphs[detector].SetName(Form("gr_%s_%s", volName.Data(), gName));
+      graphs[detector].SetTitle(Form("%s: %s", volName.Data(), gTitle));
+      graphs[detector].SetMarkerColor(markerColor[detector-DetectorIdRange[0]]);
+      graphs[detector].SetMarkerStyle(markerStyle);
+      graphs[detector].SetMarkerSize(markerSize);
     }
 
     return graphs;

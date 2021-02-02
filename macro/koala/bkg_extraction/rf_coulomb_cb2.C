@@ -177,7 +177,10 @@ void rf_coulomb_cb2(const char* infile,
                              // Histogram preparation
                              /**********************************************************************/
                              // rebin
-                             hist->Rebin(4);
+                             if(cb_mean[id] < 1.6)
+                               hist->Rebin(6);
+                             else
+                               hist->Rebin(20);
 
                              // get the observed events in fit range
                              auto bin_low = hist->GetXaxis()->FindBin(rg_low[id]);
@@ -229,7 +232,7 @@ void rf_coulomb_cb2(const char* infile,
                              // Drawing
                              /**********************************************************************/
                              RooPlot *frame = energy->frame(Title(Form( "Fitting of %s_%d", volName.Data(), ch+1 )));
-                             dh.plotOn(frame, MarkerSize(0.5));
+                             dh.plotOn(frame, MarkerSize(0.5), Range("fitRange"));
                              model->plotOn(frame, VisualizeError(*r));
                              model->plotOn(frame, Range("fitRange"), LineColor(kBlue));
                              // model.paramOn(frame, Layout(0.55));
@@ -254,8 +257,8 @@ void rf_coulomb_cb2(const char* infile,
                              TH2 *hcorr = r->correlationHist();
 
                              // Add other components to the frame
-                             model->plotOn(frame, Components("bkg_model"), LineStyle(kDashed), LineColor(kGreen), Range(0, 60.));
-                             model->plotOn(frame, Components("elastic_model"), LineStyle(kDotted), LineColor(kRed), Range(0, 60.));
+                             model->plotOn(frame, Components("bkg_model"), LineStyle(kDashed), LineColor(kGreen), Range("fitRange"));
+                             model->plotOn(frame, Components("elastic_model"), LineStyle(kDotted), LineColor(kRed), Range("fitRange"));
 
                              // Draw all frames on a canvas
                              canvas.emplace(std::piecewise_construct,

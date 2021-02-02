@@ -4,56 +4,16 @@
 using namespace KoaUtility;
 
 // this macro can only be used for two-body elastic scattering events
-void checkAcceptance(const char* primaryFile, // root file from simulation macro, containing MCTrack tree
-                     const char* geoFile = "../calib_para/geo_standard.root",
-                     long entries = -1) // the detector geometry to be checked
+void getFwdCoverageRatio(const char* primaryFile, // root file from simulation macro, containing MCTrack tree
+                         const char* geoFile = "../calib_para/geo_standard.root",
+                         int nbins = 300,
+                         double xlow = 0,
+                         double xhigh = 3,
+                         long entries = -1) // the detector geometry to be checked
 {
   //
   TStopwatch timer;
-  TH1::AddDirectory(false);
-
   using PointArray = std::vector<TVector3>;
-
-  // setup color scheme
-  init_KoaColors();
-  set_KoaPalette_Sunset(100);
-
-  // book histograms
-  // rec
-  Int_t nXbinRec = 350;
-  Double_t xLowRec = -5, xHighRec = 30; // in cm
-  Int_t nYbinRec = 200;
-  Double_t yLowRec = -10, yHighRec = 10; // in cm
-
-  TH2D* h2rec_acceptance = new TH2D("h2_Rec_Acceptance", "Recoil Detector Acceptance;Z (cm);Y (cm)",
-                                    nXbinRec, xLowRec, xHighRec,
-                                    nYbinRec, yLowRec, yHighRec);
-  TH2D* h2rec_hitmap = new TH2D("h2_Rec_Hitmap", "Recoil Detector Hitmap; Z(cm);Y (cm)",
-                                nXbinRec, xLowRec, xHighRec,
-                                nYbinRec, yLowRec, yHighRec);
-
-  // fwd
-  Int_t nXbinFwd = 1300;
-  Double_t xLowFwd = 0, xHighFwd = 65; // in cm
-  Int_t nYbinFwd = 800;
-  Double_t yLowFwd = -4, yHighFwd = 4; // in cm
-
-  TH2D* h2fwd_acceptance_1 = new TH2D("h2_Fwd_Acceptance_1", "Fwd_1 Detector Acceptance;X (cm);Y (cm)",
-                                      nXbinFwd, xLowFwd, xHighFwd,
-                                      nYbinFwd, yLowFwd, yHighFwd);
-  TH2D* h2fwd_acceptance_2 = new TH2D("h2_Fwd_Acceptance_2", "Fwd_2 Detector Acceptance;X (cm);Y (cm)",
-                                      nXbinFwd, xLowFwd, xHighFwd,
-                                      nYbinFwd, yLowFwd, yHighFwd);
-  TH2D* h2fwd_hitmap_1 = new TH2D("h2_Fwd_Hitmap_1", "Fwd_1 Detector Hitmap;X (cm);Y (cm)",
-                                  nXbinFwd, xLowFwd, xHighFwd,
-                                  nYbinFwd, yLowFwd, yHighFwd);
-  TH2D* h2fwd_hitmap_2 = new TH2D("h2_Fwd_Hitmap_2", "Fwd_2 Detector Hitmap;X (cm);Y (cm)",
-                                  nXbinFwd, xLowFwd, xHighFwd,
-                                  nYbinFwd, yLowFwd, yHighFwd);
-
-  // vertex
-  TH2D* h2vertex_xy = new TH2D("h2vertex_xy", "Primary Vertex;X(mm);Y(mm)",20,-10,10, 20,-10,10);
-  TH1D* h1vertex_z = new TH1D("h1vertex_z", "Primary Vertex;Z(mm)",40,-2,2);
 
   // get the boundaryPoints
   auto fgeo = TFile::Open(geoFile);
@@ -68,19 +28,17 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
   Int_t RecIdRange[2];
   encoder->GetRecDetIDRange(RecIdRange[0], RecIdRange[1]);
 
-  std::vector<TCutG> rec_cutg;
+  std::map<int, TCutG> rec_cutg;
   for(auto sensor : ROOT::TSeqI(RecIdRange[0],RecIdRange[1]+1)){
     TString volName = encoder->DetectorIDToVolName(sensor);
     volName.ReplaceAll("Sensor", "");
 
-    auto cutg = rec_cutg.emplace(rec_cutg.end(), Form("rec_cutg_%s", volName.Data()));
-    cutg->SetLineWidth(2);
-    cutg->SetLineColor(kRed);
+    rec_cutg[sensor].SetName(Form("rec_cutg_%s", volName.Data()));
     auto rec_boundaries = geoHandler->GetDetBoundaryPointsById(sensor);
     for ( auto point=0; point < 4; point++ ) {
-      cutg->SetPoint(point, rec_boundaries[point].z(), rec_boundaries[point].y());
+      rec_cutg[sensor].SetPoint(point, rec_boundaries[point].z(), rec_boundaries[point].y());
     }
-    cutg->SetPoint(4, rec_boundaries[0].z(), rec_boundaries[0].y());
+    rec_cutg[sensor].SetPoint(4, rec_boundaries[0].z(), rec_boundaries[0].y());
   }
 
   // fwd
@@ -95,8 +53,6 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
 
   PointArray fwd_boundaries_1 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[0]);
   PointArray fwd_boundaries_2 = geoHandler->GetDetBoundaryPointsById(FwdIdRange[1]);
-  // PointArray fwd_boundaries_1 {{3,-1,460},{3,1,460},{12,1,460},{12,-1,460}};
-  // PointArray fwd_boundaries_2 {{3,-1,480},{3,1,480},{12,1,480},{12,-1,480}};
 
   TCutG fwd_cutg_1("fwd_cutg_1"); fwd_cutg_1.SetLineWidth(2); fwd_cutg_1.SetLineColor(kRed);
   TCutG fwd_cutg_2("fwd_cutg_2"); fwd_cutg_2.SetLineWidth(2); fwd_cutg_2.SetLineColor(kRed);
@@ -106,6 +62,40 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
   }
   fwd_cutg_1.SetPoint(4, fwd_boundaries_1[0].x(), fwd_boundaries_1[0].y());
   fwd_cutg_2.SetPoint(4, fwd_boundaries_2[0].x(), fwd_boundaries_2[0].y());
+
+  // output txt paramaeters
+  ParameterList<long> CountsParameter;
+  auto& output_total = addValueContainer(CountsParameter, "Total");
+  auto& output_covered = addValueContainer(CountsParameter, "FwdCovered");
+
+  auto ChIDs = encoder->GetRecChIDs();
+  for(auto id: ChIDs) {
+    output_total.emplace(id, 0);
+    output_covered.emplace(id, 0);
+  }
+
+  //
+  auto h1_total = bookH1dByDetectorId("total","Event Counts (Total);E (MeV); EvtNr",
+                                      nbins, xlow, xhigh);
+  auto h1_covered = bookH1dByDetectorId("covered","Event Counts (Fwd Covered);E (MeV); EvtNr",
+                                         nbins, xlow, xhigh);
+
+  std::map<int, TEfficiency*> eff;
+  for(auto sensor : ROOT::TSeqI(RecIdRange[0],RecIdRange[1]+1)){
+    TString volName = encoder->DetectorIDToVolName(sensor);
+    volName.ReplaceAll("Sensor", "");
+
+    eff[sensor] = new TEfficiency(Form("ratio_%s",volName.Data()), Form("Ratio of Fwd-Covered Events (%s); E (MeV);Ratio", volName.Data()),
+                                  nbins, xlow, xhigh);
+    eff[sensor]->SetStatisticOption(TEfficiency::kFAC);
+    eff[sensor]->SetConfidenceLevel(0.95);
+    eff[sensor]->SetFillColor(kBlue);
+    eff[sensor]->SetFillStyle(3005);
+    eff[sensor]->SetMarkerColor(kBlue);
+    eff[sensor]->SetMarkerStyle(20);
+    eff[sensor]->SetMarkerSize(0.3);
+  }
+
 
   // input
   TFile* fPrimary = new TFile(primaryFile);
@@ -180,83 +170,62 @@ void checkAcceptance(const char* primaryFile, // root file from simulation macro
 
     // checking whether the hits are in acceptance and fill the histograms
     // rec
-    for( auto cutg : rec_cutg ) {
-      if ( cutg.IsInside(recoil_hit_z, recoil_hit_y) ) {
-        h2fwd_acceptance_1->Fill(fwd_hit_x_1, fwd_hit_y_1);
-        h2fwd_acceptance_2->Fill(fwd_hit_x_2, fwd_hit_y_2);
+    for( auto item : rec_cutg ) {
+      auto det_id = item.first;
+      auto& cutg = item.second;
 
-        h2rec_hitmap->Fill(recoil_hit_z, recoil_hit_y);
+      if ( cutg.IsInside(recoil_hit_z, recoil_hit_y) ) {
+        Double_t global[3], local[3];
+        global[0] = -rec_distance;
+        global[1] = recoil_hit_y;
+        global[2] = recoil_hit_z;
+        geoHandler->GlobalToLocal(global,local,det_id);
+
+        Int_t id = geoHandler->RecLocalPositionToDetCh(local,det_id);
+        auto e = (recoilParticle->GetEnergy()-recoilParticle->GetMass())*1e3;
+        h1_total[det_id].Fill(e);
+        output_total[id]++;
+        if ( fwd_cutg_1.IsInside(fwd_hit_x_1, fwd_hit_y_1)
+             &&  fwd_cutg_2.IsInside(fwd_hit_x_2, fwd_hit_y_2)
+             ) {
+          h1_covered[det_id].Fill(e);
+          eff[det_id]->Fill(true, e);
+          output_covered[id]++;
+        }
+        else{
+          eff[det_id]->Fill(false, e);
+        }
         break;
       }
     }
-
-    // fwd
-    if ( fwd_cutg_1.IsInside(fwd_hit_x_1, fwd_hit_y_1) ) {
-      h2fwd_hitmap_1->Fill(fwd_hit_x_1, fwd_hit_y_1);
-      if( fwd_cutg_2.IsInside(fwd_hit_x_2, fwd_hit_y_2) ) {
-        h2rec_acceptance->Fill(recoil_hit_z, recoil_hit_y);
-      }
-    }
-
-    if ( fwd_cutg_2.IsInside(fwd_hit_x_2, fwd_hit_y_2) ) {
-      h2fwd_hitmap_2->Fill(fwd_hit_x_2, fwd_hit_y_2);
-    }
-
-    // vertex
-    h2vertex_xy->Fill(beamParticle->GetStartX()*10, beamParticle->GetStartY()*10);
-    h1vertex_z->Fill(beamParticle->GetStartZ()*10);
   }
 
-  // drawing and output
-  // output 
-  TString outFile(primaryFile);
-  outFile.ReplaceAll(".root", "_acceptance.root");
-  TString pdfFile(primaryFile);
-  pdfFile.ReplaceAll(".root", "_acceptance.pdf");
+  // root
+  TString outputfilename(primaryFile);
+  outputfilename.ReplaceAll(".root", "_FwdCovered.root");
+  auto fout = TFile::Open(outputfilename.Data(), "update");
+  writeHistos<TH1D>(fout, h1_total);
+  writeHistos<TH1D>(fout, h1_covered);
 
-  //
-  TCanvas* canpdf = new TCanvas("canpdf");
-  canpdf->Print(pdfFile+"[");
+  // txt file
+  TString txtfile(primaryFile);
+  txtfile.ReplaceAll(".root", "_FwdCovered.txt");
+  printValueList<long>(CountsParameter, txtfile.Data());
 
-  // rec
-  h2rec_acceptance->Draw("colz");
-  for( auto& cutg: rec_cutg ) {
-    cutg.Draw("same");
+  // Compute and save coverage ratio
+  for(auto sensor : ROOT::TSeqI(RecIdRange[0],RecIdRange[1]+1)){
+    // TString volName = encoder->DetectorIDToVolName(sensor);
+    // volName.ReplaceAll("Sensor", "");
+    // txtfile = primaryFile;
+    // txtfile.ReplaceAll(".root",Form("_FwdCoveredRatio_%s",volName.Data()));
+
+    fout->WriteTObject(eff[sensor],"","WriteDelete");
   }
-  canpdf->Print(pdfFile);
-
-  // fwd
-  h2fwd_acceptance_1->Draw("colz");
-  fwd_cutg_1.Draw("same");
-  canpdf->Print(pdfFile);
-
-  h2fwd_acceptance_2->Draw("colz");
-  fwd_cutg_2.Draw("same");
-  canpdf->Print(pdfFile);
-
-  canpdf->Print(pdfFile+"]");
-
-  //
-  TFile* fOutput = new TFile(outFile, "recreate");
-  h2rec_acceptance->Write(0,TObject::kOverwrite);
-  h2rec_hitmap->Write(0,TObject::kOverwrite);
-  h2fwd_acceptance_1->Write(0,TObject::kOverwrite);
-  h2fwd_acceptance_2->Write(0,TObject::kOverwrite);
-  h2fwd_hitmap_1->Write(0,TObject::kOverwrite);
-  h2fwd_hitmap_2->Write(0,TObject::kOverwrite);
-  h2vertex_xy->Write(0,TObject::kOverwrite);
-  h1vertex_z->Write(0,TObject::kOverwrite);
-
-  for( auto cutg : rec_cutg ) {
-    cutg.Write(0, TObject::kOverwrite);
-  }
-  fwd_cutg_1.Write(0, TObject::kOverwrite);
-  fwd_cutg_2.Write(0, TObject::kOverwrite);
 
   // cleanning
   delete fgeo;
   delete fPrimary;
-  delete fOutput;
+  delete fout;
 
   //
   timer.Stop();

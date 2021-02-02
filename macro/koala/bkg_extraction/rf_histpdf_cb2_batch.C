@@ -171,7 +171,7 @@ void rf_histpdf_cb2_batch(const char* infile,
                          {
                            // Print Canvases to PDF
                            TString outfile_pdf(infile_name);
-                           outfile_pdf.ReplaceAll(".root", Form("_%s_FitHistPdfCB2.pdf",dirname));
+                           outfile_pdf.ReplaceAll(".root", Form("_%s_FitHistPdfCoulombCB2.pdf",dirname));
 
                            TCanvas *can = new TCanvas("canvas","Fitting using HistPdf+CB2Shape", 1000, 1000);
                            can->Divide(2,2);
@@ -391,7 +391,7 @@ void rf_histpdf_cb2_batch(const char* infile,
   ////////////////////////////////////////
   // Save Workspaces and RooFitResult to ROOT file, with one directory for each channel
   ////////////////////////////////////////
-  auto hDirOut = getDirectory(filein, Form("%s_FitHistPdfCB2", dirname));
+  auto hDirOut = getDirectory(filein, Form("%s_FitHistPdfCoulombCB2", dirname));
 
   for(auto& item : ws){
     auto id = item.first;
@@ -406,7 +406,7 @@ void rf_histpdf_cb2_batch(const char* infile,
   // Save Parameters to TXT
   ////////////////////////////////////////
   TString outfile_channel_txt(infile_name);
-  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitHistPdfCB2.txt", dirname));
+  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitHistPdfCoulombCB2.txt", dirname));
   printValueList<double>(ChannelParams, outfile_channel_txt.Data());
 
   ////////////////////////////////////////

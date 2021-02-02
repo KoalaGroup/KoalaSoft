@@ -16,6 +16,12 @@ void fill_coulomb_cb2_workspace(RooWorkspace& ws,
                                 double nbkg = 100
                                 )
 {
+  if(nbkg<0) nbkg = 0.1*nelastic;
+
+  double fit_low = range_low;
+  double fit_high = param_cb_m0 + 11*param_cb_sigma;
+  if(fit_high < 1.6) fit_high = 1.6;
+
   /*********************************************************************************************************/
   // Define the x-axis: recoil energy in MeV [0, max_energy]
   /*********************************************************************************************************/
@@ -45,5 +51,5 @@ void fill_coulomb_cb2_workspace(RooWorkspace& ws,
   ws.import(elastic_model);
 
   //
-  ws.factory(Form( "SUM::model(nbkg[%.1f,%f,%f]*bkg_model,nelastic[%.1f,%f,%f]*elastic_model)", 0.3*nbkg,0.1*nbkg, 10*nbkg, nelastic, 0.5*nelastic, 10*nelastic));
+  ws.factory(Form( "SUM::model(nbkg[%.1f,0,%f]*bkg_model,nelastic[%.1f,0,%f]*elastic_model)", 0.3*nbkg, 10*nbkg, nelastic, 2*nelastic));
 }
