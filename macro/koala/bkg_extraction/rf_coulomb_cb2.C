@@ -131,6 +131,7 @@ void rf_coulomb_cb2(const char* infile,
   auto& output_cb_n1 = addValueContainer(ChannelParams, "CB_n1");
   auto& output_cb_n2 = addValueContainer(ChannelParams, "CB_n2");
   auto& output_evt = addValueContainer(ChannelParams, "EvtNr");
+  auto& output_evt_coulomb = addValueContainer(ChannelParams, "EvtNr(Coulomb)");
   auto& output_avg_mean_err = addValueContainer(ChannelParams, "Err(CB_mean)");
   auto& output_evt_err = addValueContainer(ChannelParams, "Err(EvtNr)");
   auto& output_chi2ndf = addValueContainer(ChannelParams, "chi2/ndf");
@@ -327,6 +328,9 @@ void rf_coulomb_cb2(const char* infile,
                              RooRealVar* nelastic = w.var("nelastic");
                              output_evt.emplace(id, nelastic->getVal());
                              output_evt_err.emplace(id, nelastic->getError());
+
+                             RooRealVar* nbkg = w.var("nbkg");
+                             output_evt_coulomb.emplace(id, nbkg->getVal());
 
                              RooRealVar* tmp = w.var("cb_alpha1");
                              output_cb_alpha1.emplace(id, tmp->getVal());

@@ -539,10 +539,10 @@ void shiftHisto(TH1* h, int shift)
     }
   }
   else {
-    for (auto i=1; i <= (nbin-shift); ++i) {
-      h->SetBinContent(i, h->GetBinContent(i+shift));
+    for (auto i=1; i <= (nbin+shift); ++i) {
+      h->SetBinContent(i, h->GetBinContent(i-shift));
     }
-    for (auto i = (nbin-shift+1); i <= nbin; ++i) {
+    for (auto i = (nbin+shift+1); i <= nbin; ++i) {
         h->SetBinContent(i, 0);
     }
   }

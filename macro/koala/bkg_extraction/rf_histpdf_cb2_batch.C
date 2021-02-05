@@ -171,7 +171,7 @@ void rf_histpdf_cb2_batch(const char* infile,
                          {
                            // Print Canvases to PDF
                            TString outfile_pdf(infile_name);
-                           outfile_pdf.ReplaceAll(".root", Form("_%s_FitHistPdfCoulombCB2.pdf",dirname));
+                           outfile_pdf.ReplaceAll(".root", Form("_%s_FitHistPdfCB2.pdf",dirname));
 
                            TCanvas *can = new TCanvas("canvas","Fitting using HistPdf+CB2Shape", 1000, 1000);
                            can->Divide(2,2);
@@ -282,21 +282,22 @@ void rf_histpdf_cb2_batch(const char* infile,
                              // Get residual
                              RooHist *hpull = frame->pullHist();
                              hpull->SetMarkerSize(0.5);
-                             RooHist *hresid = frame->residHist();
-                             hresid->SetMarkerSize(0.5);
 
                              // Add pull histo to frame2
                              RooPlot *frame2 = energy->frame(Title("Pull Distribution"));
                              frame2->addPlotable(hpull, "P");
-                             RooPlot *frame3 = energy->frame(Title("Residual Distribution"));
-                             frame3->addPlotable(hresid, "P");
 
                              // Get correlation matrix of the floating parameters
                              TH2 *hcorr = r->correlationHist();
 
                              // Add other components to the frame
-                             model->plotOn(frame, Components("bkg_model"), LineStyle(kDashed), LineColor(kGreen), Range("drawRange"));
                              model->plotOn(frame, Components("elastic_model"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
+                             model->plotOn(frame, Components("bkg_model"), LineStyle(kDashed), LineColor(kGreen), Range("drawRange"));
+
+                             RooHist *helastic = frame->residHist();
+                             helastic->SetMarkerSize(0.5);
+                             RooPlot *frame3 = energy->frame(Title("Elastic Peak Distribution"));
+                             frame3->addPlotable(helastic, "P");
 
                              // Draw all frames on a canvas
                              canvas.emplace(std::piecewise_construct,
@@ -391,7 +392,7 @@ void rf_histpdf_cb2_batch(const char* infile,
   ////////////////////////////////////////
   // Save Workspaces and RooFitResult to ROOT file, with one directory for each channel
   ////////////////////////////////////////
-  auto hDirOut = getDirectory(filein, Form("%s_FitHistPdfCoulombCB2", dirname));
+  auto hDirOut = getDirectory(filein, Form("%s_FitHistPdfCB2", dirname));
 
   for(auto& item : ws){
     auto id = item.first;
@@ -406,7 +407,7 @@ void rf_histpdf_cb2_batch(const char* infile,
   // Save Parameters to TXT
   ////////////////////////////////////////
   TString outfile_channel_txt(infile_name);
-  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitHistPdfCoulombCB2.txt", dirname));
+  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitHistPdfCB2.txt", dirname));
   printValueList<double>(ChannelParams, outfile_channel_txt.Data());
 
   ////////////////////////////////////////

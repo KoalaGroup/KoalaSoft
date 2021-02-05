@@ -13,22 +13,17 @@ void fill_coulomb_histpdf_cb2_workspace(RooWorkspace& ws,
                                         double param_cb_alpha2 = -2.58,
                                         double param_cb_n1 = 4,
                                         double param_cb_n2 = 9,
-                                        double nelastic = 10000
+                                        double nelastic = 10000,
+                                        double ncoulomb = 1000
                                         )
 {
   double rg_low = param_cb_m0 - param_cb_sigma*11;
-  double rg_high = param_cb_m0 + param_cb_sigma*11;
-  if(param_cb_m0 > 1.6) {
+  double rg_high = param_cb_m0 + param_cb_sigma*10;
+  if(param_cb_m0 < 1.6) {
     // rg_low = rg_low - param_cb_sigma;
-    rg_high = rg_high + param_cb_sigma*10;
-  }
-
-  if(rg_low < range_low) {
+    rg_high = range_high;
     rg_low = range_low;
   }
-  // if(rg_high < range_high) {
-  //   rg_high = range_high;
-  // }
 
   TH1D* hclone = (TH1D*)hbkg->Clone("hclone");
   if(param_cb_m0 < 1.) hclone->Rebin(5);
@@ -43,7 +38,7 @@ void fill_coulomb_histpdf_cb2_workspace(RooWorkspace& ws,
   /*********************************************************************************************************/
   RooRealVar energy("energy", "Energy (MeV)", rg_low, rg_high);
   energy.setRange("fitRange", rg_low, rg_high);
-  energy.setRange("drawRange", rg_low, rg_high);
+  energy.setRange("drawRange", rg_low-param_cb_sigma, rg_high+2*param_cb_sigma);
 
   /*********************************************************************************************************/
   // Background model: frac_mip * bkg_mip + frac_expo1 * bkg_expo1 + (1-frac_mip-frac_expo1) * bkg_expo2
@@ -75,5 +70,7 @@ void fill_coulomb_histpdf_cb2_workspace(RooWorkspace& ws,
   ws.import(elastic_model);
 
   //
-  ws.factory(Form( "SUM::model(ncoul[3000,1000, 10000]*coulomb_model,nbkg[%.1f,%f,%f]*bkg_model,nelastic[%.1f,%f,%f]*elastic_model)",nbkg,0.2*nbkg, 2*nbkg,nelastic ,0.5*nelastic,10*nelastic));
+  ws.factory(Form( "SUM::model(ncoul[%f,%f, %f]*coulomb_model,nbkg[%.1f,%f,%f]*bkg_model,nelastic[%.1f,%f,%f]*elastic_model)",
+                   ncoulomb, 0.9*ncoulomb, 10*ncoulomb,
+                   nbkg,0.1*nbkg, 1.4*nbkg,nelastic ,0.5*nelastic,5*nelastic));
 }

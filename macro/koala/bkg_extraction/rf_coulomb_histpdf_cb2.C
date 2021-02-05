@@ -39,6 +39,7 @@ void rf_coulomb_histpdf_cb2(const char* infile,
   ValueContainer<double> cb_alpha1, cb_n1;
   ValueContainer<double> cb_alpha2, cb_n2;
   ValueContainer<double> elastic_evt;
+  ValueContainer<double> coulomb_evt;
 
   auto read_config = [&]() {
                        auto fit_params = readParameterList<double>(configFile);
@@ -105,6 +106,13 @@ void rf_coulomb_histpdf_cb2(const char* infile,
                          return;
                        }
                        elastic_evt = it->second;
+
+                       it = findValueContainer(fit_params, "EvtNr(Coulomb)");
+                       if( it == fit_params.end() ) {
+                         cout << "EvtNr(Coulomb) not available in config file: " << configFile << endl;
+                         return;
+                       }
+                       coulomb_evt = it->second;
                      };
 
   read_config();
@@ -172,7 +180,7 @@ void rf_coulomb_histpdf_cb2(const char* infile,
                          {
                            // Print Canvases to PDF
                            TString outfile_pdf(infile_name);
-                           outfile_pdf.ReplaceAll(".root", Form("_%s_FitHistPdfCB2.pdf",dirname));
+                           outfile_pdf.ReplaceAll(".root", Form("_%s_FitHistPdfCoulombCB2.pdf",dirname));
 
                            TCanvas *can = new TCanvas("canvas","Fitting using HistPdf+CB2Shape", 1000, 1000);
                            can->Divide(2,2);
@@ -228,12 +236,13 @@ void rf_coulomb_histpdf_cb2(const char* infile,
 
                              // fill_histpdf_cb2_workspace(w,
                              fill_coulomb_histpdf_cb2_workspace(w,
-                                                        hbkg_ref,
-                                                        rg_low[id], rg_high[id],
-                                                        cb_mean[id],
-                                                        cb_sigma[id], cb_alpha1[id], cb_alpha2[id], cb_n1[id], cb_n2[id],
-                                                        elastic_evt[id]
-                                                        );
+                                                                hbkg_ref,
+                                                                rg_low[id], rg_high[id],
+                                                                cb_mean[id],
+                                                                cb_sigma[id], cb_alpha1[id], cb_alpha2[id], cb_n1[id], cb_n2[id],
+                                                                elastic_evt[id],
+                                                                coulomb_evt[id]
+                                                                );
                              w.Print();
                              std::cout << "Fit channel: " << volName.Data() << "_" << ch+1 << std::endl;
 
@@ -285,22 +294,25 @@ void rf_coulomb_histpdf_cb2(const char* infile,
                              // Get residual
                              RooHist *hpull = frame->pullHist();
                              hpull->SetMarkerSize(0.5);
-                             RooHist *hresid = frame->residHist();
-                             hresid->SetMarkerSize(0.5);
 
                              // Add pull histo to frame2
                              RooPlot *frame2 = energy->frame(Title("Pull Distribution"));
                              frame2->addPlotable(hpull, "P");
-                             RooPlot *frame3 = energy->frame(Title("Residual Distribution"));
-                             frame3->addPlotable(hresid, "P");
 
                              // Get correlation matrix of the floating parameters
                              TH2 *hcorr = r->correlationHist();
 
                              // Add other components to the frame
                              model->plotOn(frame, Components("coulomb_model"), LineStyle(kSolid), LineColor(kGreen), Range("drawRange"));
-                             model->plotOn(frame, Components("bkg_model"), LineStyle(kDashed), LineColor(kGreen), Range("drawRange"));
                              model->plotOn(frame, Components("elastic_model"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
+                             model->plotOn(frame, Components("bkg_model"), LineStyle(kDashed), LineColor(kGreen), Range("drawRange"));
+
+                             RooHist *helastic = frame->residHist();
+                             helastic->SetMarkerSize(0.5);
+                             RooPlot *frame3 = energy->frame(Title("Elastic Peak Distribution"));
+                             model->plotOn(frame3, Components("coulomb_model"), LineStyle(kSolid), LineColor(kGreen), Range("drawRange"));
+                             model->plotOn(frame3, Components("elastic_model"), LineStyle(kDotted), LineColor(kRed), Range("drawRange"));
+                             frame3->addPlotable(helastic, "P");
 
                              // Draw all frames on a canvas
                              canvas.emplace(std::piecewise_construct,
@@ -398,7 +410,7 @@ void rf_coulomb_histpdf_cb2(const char* infile,
   ////////////////////////////////////////
   // Save Workspaces and RooFitResult to ROOT file, with one directory for each channel
   ////////////////////////////////////////
-  auto hDirOut = getDirectory(filein, Form("%s_FitHistPdfCB2", dirname));
+  auto hDirOut = getDirectory(filein, Form("%s_FitHistPdfCoulombCB2", dirname));
 
   for(auto& item : ws){
     auto id = item.first;
@@ -413,7 +425,7 @@ void rf_coulomb_histpdf_cb2(const char* infile,
   // Save Parameters to TXT
   ////////////////////////////////////////
   TString outfile_channel_txt(infile_name);
-  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitHistPdfCB2.txt", dirname));
+  outfile_channel_txt.ReplaceAll(".root", Form("_%s_FitHistPdfCoulombCB2.txt", dirname));
   printValueList<double>(ChannelParams, outfile_channel_txt.Data());
 
   ////////////////////////////////////////
