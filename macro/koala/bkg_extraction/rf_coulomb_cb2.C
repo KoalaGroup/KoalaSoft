@@ -179,9 +179,9 @@ void rf_coulomb_cb2(const char* infile,
                              /**********************************************************************/
                              // rebin
                              if(cb_mean[id] < 1.6)
-                               hist->Rebin(6);
+                               hist->Rebin(2);
                              else
-                               hist->Rebin(20);
+                               hist->Rebin(10);
 
                              // get the observed events in fit range
                              auto bin_low = hist->GetXaxis()->FindBin(rg_low[id]);
@@ -290,7 +290,7 @@ void rf_coulomb_cb2(const char* infile,
                              // for printing to pdf file
                              can->cd(1);
                              gPad->SetLeftMargin(0.15);
-                             gPad->SetLogy();
+                             // gPad->SetLogy();
                              frame->GetYaxis()->SetTitleOffset(1.8);
                              frame->Draw();
 

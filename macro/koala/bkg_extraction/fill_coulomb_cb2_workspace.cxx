@@ -22,10 +22,12 @@ void fill_coulomb_cb2_workspace(RooWorkspace& ws,
   double fit_high = param_cb_m0 + 11*param_cb_sigma;
   if(fit_high < 1.6) fit_high = 1.6;
 
+  // if(fit_high < 1.0) fit_high = range_high;
+
   /*********************************************************************************************************/
   // Define the x-axis: recoil energy in MeV [0, max_energy]
   /*********************************************************************************************************/
-  RooRealVar energy("energy", "Energy (MeV)", range_low, range_high);
+  RooRealVar energy("energy", "Energy (MeV)", 0.02, range_high);
   energy.setRange("fitRange", range_low, range_high);
 
   /*********************************************************************************************************/

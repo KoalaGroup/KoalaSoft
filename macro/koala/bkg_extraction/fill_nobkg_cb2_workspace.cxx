@@ -20,11 +20,11 @@ void fill_nobkg_cb2_workspace(RooWorkspace& ws,
   double range_high = param_cb_m0 + param_cb_sigma*4;
   double draw_low = range_low - param_cb_sigma*4;
   double draw_high = range_high + param_cb_sigma*2;
-  if(range_low < 0.2) {
-    range_low = 0.2;
+  if(range_low < 0.12) {
+    range_low = 0.12;
   }
-  if(draw_low < 0.2) {
-    draw_low = 0.2;
+  if(draw_low < 0.12) {
+    draw_low = 0.02;
   }
 
   RooRealVar energy("energy", "Energy (MeV)", draw_low, draw_high);

@@ -158,16 +158,16 @@ void rf_nobkg_cb2_batch(const char* infile,
                            // set range
                            double ig_low = cb_mean[id]-9*cb_sigma[id];
                            double ig_high = cb_mean[id]+7*cb_sigma[id];
-                           if(ig_low < 0.2)
-                             hist->SetAxisRange(0.2, ig_high);
+                           if(ig_low < 0.12)
+                             hist->SetAxisRange(0.12, ig_high);
                            else
                              hist->SetAxisRange(ig_low, ig_high);
 
                            // get the observed events in fit range
                            auto bin_low = hist->GetXaxis()->FindBin(cb_mean[id]-3*cb_sigma[id]);
                            auto bin_high = hist->GetXaxis()->FindBin(cb_mean[id]+5*cb_sigma[id]);
-                           if((cb_mean[id]-3*cb_sigma[id]) < 0.2)
-                             bin_low = hist->GetXaxis()->FindBin(0.2);
+                           if((cb_mean[id]-3*cb_sigma[id]) < 0.12)
+                             bin_low = hist->GetXaxis()->FindBin(0.12);
                            double ntotal = hist->Integral(bin_low, bin_high);
 
                            /**********************************************************************/
