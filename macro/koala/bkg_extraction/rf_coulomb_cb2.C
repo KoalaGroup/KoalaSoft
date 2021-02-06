@@ -37,6 +37,7 @@ void rf_coulomb_cb2(const char* infile,
   ValueContainer<double> cb_alpha2, cb_n2;
   ValueContainer<double> elastic_evt;
   ValueContainer<double> coulomb_evt;
+  ValueContainer<double> energy_offset;
 
   auto read_config = [&]() {
                        auto fit_params = readParameterList<double>(configFile);
@@ -110,6 +111,13 @@ void rf_coulomb_cb2(const char* infile,
                          return;
                        }
                        coulomb_evt = it->second;
+
+                       it = findValueContainer(fit_params, "Energy_offset");
+                       if( it == fit_params.end() ) {
+                         cout << "Energy_offset not available in config file: " << configFile << endl;
+                         return;
+                       }
+                       energy_offset = it->second;
                      };
 
   read_config();
@@ -124,6 +132,20 @@ void rf_coulomb_cb2(const char* infile,
   HistoPtr1D h1s_ptr;
   auto hdir_energy = getDirectory(filein, dirname);
   h1s_ptr = getHistosByRecTdcChannelId<TH1D>(hdir_energy, suffix);
+
+  // shift the histograms
+  auto htemp = h1s_ptr[0];
+  auto xbins = htemp->GetNbinsX();
+  auto xaxis = htemp->GetXaxis();
+  auto xlow = xaxis->GetBinLowEdge(1);
+  auto xup = xaxis->GetBinUpEdge(xbins);
+  double bin_width = 1000*(xup-xlow)/xbins; // in keV
+  for(auto item: h1s_ptr){
+    auto id = item.first;
+    auto h1 = item.second;
+
+    shiftHisto(h1, (int)(energy_offset[id]/bin_width));
+  }
 
   ////////////////////////////////////////
   // Fitting with CB2Shape based on number
@@ -142,6 +164,7 @@ void rf_coulomb_cb2(const char* infile,
   auto& output_cb_n2 = addValueContainer(ChannelParams, "CB_n2");
   auto& output_evt = addValueContainer(ChannelParams, "EvtNr");
   auto& output_evt_coulomb = addValueContainer(ChannelParams, "EvtNr(Coulomb)");
+  auto& output_energy_shift = addValueContainer(ChannelParams, "Energy_offset");
   auto& output_avg_mean_err = addValueContainer(ChannelParams, "Err(CB_mean)");
   auto& output_evt_err = addValueContainer(ChannelParams, "Err(EvtNr)");
   auto& output_chi2ndf = addValueContainer(ChannelParams, "chi2/ndf");
@@ -359,6 +382,7 @@ void rf_coulomb_cb2(const char* infile,
 
                              output_range_low.emplace(id, rg_low[id]);
                              output_range_high.emplace(id, rg_high[id]);
+                             output_energy_shift.emplace(id, energy_offset[id]);
 
                              std::cout << "End Fit channel: " << volName.Data() << "_" << ch+1 << std::endl;
                            }
