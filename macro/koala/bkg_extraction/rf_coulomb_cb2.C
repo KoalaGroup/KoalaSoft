@@ -11,7 +11,8 @@ using namespace std;
 void rf_coulomb_cb2(const char* infile,
                     const char* configFile = "./rf_cb2_config.txt",
                     const char* dirname = "Energy_Individual_-5.0_5.0",
-                    const char* suffix = "Energy"
+                    const char* suffix = "Energy",
+                    int ch_target_edge = 26
                     )
 
 {
@@ -23,6 +24,7 @@ void rf_coulomb_cb2(const char* infile,
 
   // Map encoder
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
+  auto id_target_edge = encoder->EncodeChannelID(0, ch_target_edge);
 
   ////////////////////////////////////////
   // Read in the fitting config params
@@ -34,6 +36,7 @@ void rf_coulomb_cb2(const char* infile,
   ValueContainer<double> cb_alpha1, cb_n1;
   ValueContainer<double> cb_alpha2, cb_n2;
   ValueContainer<double> elastic_evt;
+  ValueContainer<double> coulomb_evt;
 
   auto read_config = [&]() {
                        auto fit_params = readParameterList<double>(configFile);
@@ -100,6 +103,13 @@ void rf_coulomb_cb2(const char* infile,
                          return;
                        }
                        elastic_evt = it->second;
+
+                       it = findValueContainer(fit_params, "EvtNr(Coulomb)");
+                       if( it == fit_params.end() ) {
+                         cout << "EvtNr(Coulomb) not available in config file: " << configFile << endl;
+                         return;
+                       }
+                       coulomb_evt = it->second;
                      };
 
   read_config();
@@ -208,6 +218,13 @@ void rf_coulomb_cb2(const char* infile,
                                                         );
                              w.Print();
                              std::cout << "Fit channel: " << volName.Data() << "_" << ch+1 << std::endl;
+
+                             // fix background event for channels within the target body
+                             RooRealVar* nbkg = w.var("nbkg");
+                             if(id < id_target_edge){
+                               nbkg->setVal(coulomb_evt[id]);
+                               nbkg->setConstant(true);
+                             }
 
                              // retrieve vars and p.d.fs from workspace
                              RooRealVar* energy = w.var("energy");
@@ -329,7 +346,6 @@ void rf_coulomb_cb2(const char* infile,
                              output_evt.emplace(id, nelastic->getVal());
                              output_evt_err.emplace(id, nelastic->getError());
 
-                             RooRealVar* nbkg = w.var("nbkg");
                              output_evt_coulomb.emplace(id, nbkg->getVal());
 
                              RooRealVar* tmp = w.var("cb_alpha1");
