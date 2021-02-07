@@ -60,17 +60,17 @@ void run_sim_pure(Int_t nEvents = 100, Int_t pdgid=0, const char* outdir="./", T
 
   KoaPipe* pipe = new KoaPipe("Pipe");
   pipe->SetGeometryFileName("pipe.root");
-  run->AddModule(pipe);
+  //run->AddModule(pipe);
 
   KoaRec* rec_det = new KoaRec("KoaRec", kTRUE);
-  // rec_det->SetGeometryFileName("rec.root");
-  rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
+  rec_det->SetGeometryFileName("rec.root");
+  //rec_det->SetGeometryFileName("rec_withChamber_withColdPlate.root");
   rec_det->SetModifyGeometry(kTRUE);
   run->AddModule(rec_det);
 
   KoaFwd* fwd_det = new KoaFwd("KoaFwd", kTRUE);
-  // fwd_det->SetGeometryFileName("fwd.root");
-  fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
+  fwd_det->SetGeometryFileName("fwd.root");
+  //fwd_det->SetGeometryFileName("fwd_withChamber_withExtra.root");
   fwd_det->SetModifyGeometry(kTRUE);
   run->AddModule(fwd_det);
 
@@ -120,13 +120,16 @@ void run_sim_pure(Int_t nEvents = 100, Int_t pdgid=0, const char* outdir="./", T
   // ------------------------------------------------------------------------
    
   // -----   Start run   ----------------------------------------------------
-   run->Run(nEvents);
-    
-   rtdb->saveOutput();
-   rtdb->print();
+  //You can export your ROOT geometry ot a separate file, the misaligned geometry
+  run->CreateGeometryFile("geofile_misaligned.root");
 
-  //You can export your ROOT geometry ot a separate file
-  // run->CreateGeometryFile("geofile_full.root");
+  run->Run(nEvents);
+
+  rtdb->saveOutput();
+  rtdb->print();
+
+  //You can export your ROOT geometry ot a separate file, the original geometry
+  run->CreateGeometryFile("geofile_full.root");
   // ------------------------------------------------------------------------
 
   delete run;

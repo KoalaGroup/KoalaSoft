@@ -6,6 +6,7 @@ using namespace KoaUtility;
 // this macro can only be used for two-body elastic scattering events
 void getFwdCoverageRatio(const char* primaryFile, // root file from simulation macro, containing MCTrack tree
                          const char* geoFile = "../calib_para/geo_standard.root",
+                         double fwd_offset = 0, // fwd y position offset in mm
                          int nbins = 300,
                          double xlow = 0,
                          double xhigh = 3,
@@ -57,16 +58,18 @@ void getFwdCoverageRatio(const char* primaryFile, // root file from simulation m
   TCutG fwd_cutg_1("fwd_cutg_1"); fwd_cutg_1.SetLineWidth(2); fwd_cutg_1.SetLineColor(kRed);
   TCutG fwd_cutg_2("fwd_cutg_2"); fwd_cutg_2.SetLineWidth(2); fwd_cutg_2.SetLineColor(kRed);
   for( auto point=0; point < 4; point++ ) {
-    fwd_cutg_1.SetPoint(point, fwd_boundaries_1[point].x(), fwd_boundaries_1[point].y());
-    fwd_cutg_2.SetPoint(point, fwd_boundaries_2[point].x(), fwd_boundaries_2[point].y());
+    fwd_cutg_1.SetPoint(point, fwd_boundaries_1[point].x(), fwd_boundaries_1[point].y()+fwd_offset/10.);
+    fwd_cutg_2.SetPoint(point, fwd_boundaries_2[point].x(), fwd_boundaries_2[point].y()+fwd_offset/10.);
+    std::cout << "fwd boundary " << point+1 << ": x = " << fwd_boundaries_1[point].x() << ", y = " << fwd_boundaries_1[point].y()+(double)fwd_offset/10. << std::endl;
   }
-  fwd_cutg_1.SetPoint(4, fwd_boundaries_1[0].x(), fwd_boundaries_1[0].y());
-  fwd_cutg_2.SetPoint(4, fwd_boundaries_2[0].x(), fwd_boundaries_2[0].y());
+  fwd_cutg_1.SetPoint(4, fwd_boundaries_1[0].x(), fwd_boundaries_1[0].y()+fwd_offset/10.);
+  fwd_cutg_2.SetPoint(4, fwd_boundaries_2[0].x(), fwd_boundaries_2[0].y()+fwd_offset/10.);
 
   // output txt paramaeters
-  ParameterList<long> CountsParameter;
+  ParameterList<double> CountsParameter;
   auto& output_total = addValueContainer(CountsParameter, "Total");
   auto& output_covered = addValueContainer(CountsParameter, "FwdCovered");
+  auto& output_ratio = addValueContainer(CountsParameter, "Ratio");
 
   auto ChIDs = encoder->GetRecChIDs();
   for(auto id: ChIDs) {
@@ -204,13 +207,15 @@ void getFwdCoverageRatio(const char* primaryFile, // root file from simulation m
   TString outputfilename(primaryFile);
   outputfilename.ReplaceAll(".root", "_FwdCovered.root");
   auto fout = TFile::Open(outputfilename.Data(), "update");
-  writeHistos<TH1D>(fout, h1_total);
-  writeHistos<TH1D>(fout, h1_covered);
+  auto dirout = getDirectory(fout, Form("fwd_offset_%.1fmm",fwd_offset));
+  writeHistos<TH1D>(dirout, h1_total);
+  writeHistos<TH1D>(dirout, h1_covered);
 
   // txt file
   TString txtfile(primaryFile);
-  txtfile.ReplaceAll(".root", "_FwdCovered.txt");
-  printValueList<long>(CountsParameter, txtfile.Data());
+  txtfile.ReplaceAll(".root", Form("_FwdCovered_FwdOffset_%.1fmm.txt", fwd_offset));
+  calcValueContainer<double>(output_covered, output_total, output_ratio);
+  printValueList<double>(CountsParameter, txtfile.Data());
 
   // Compute and save coverage ratio
   for(auto sensor : ROOT::TSeqI(RecIdRange[0],RecIdRange[1]+1)){
@@ -219,7 +224,7 @@ void getFwdCoverageRatio(const char* primaryFile, // root file from simulation m
     // txtfile = primaryFile;
     // txtfile.ReplaceAll(".root",Form("_FwdCoveredRatio_%s",volName.Data()));
 
-    fout->WriteTObject(eff[sensor],"","WriteDelete");
+    dirout->WriteTObject(eff[sensor],"","WriteDelete");
   }
 
   // cleanning
