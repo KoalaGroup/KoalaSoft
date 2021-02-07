@@ -36,8 +36,10 @@ void getFwdCoverageRatio(const char* primaryFile, // root file from simulation m
 
     rec_cutg[sensor].SetName(Form("rec_cutg_%s", volName.Data()));
     auto rec_boundaries = geoHandler->GetDetBoundaryPointsById(sensor);
+    std::cout << volName.Data() << ": " << std::endl;
     for ( auto point=0; point < 4; point++ ) {
       rec_cutg[sensor].SetPoint(point, rec_boundaries[point].z(), rec_boundaries[point].y());
+      std::cout << "   boundary " << point+1 << ": x = " << rec_boundaries[point].x() << ", y = " << rec_boundaries[point].y() << ", z= " << rec_boundaries[point].z() << std::endl;
     }
     rec_cutg[sensor].SetPoint(4, rec_boundaries[0].z(), rec_boundaries[0].y());
   }
@@ -82,6 +84,9 @@ void getFwdCoverageRatio(const char* primaryFile, // root file from simulation m
                                       nbins, xlow, xhigh);
   auto h1_covered = bookH1dByDetectorId("covered","Event Counts (Fwd Covered);E (MeV); EvtNr",
                                          nbins, xlow, xhigh);
+
+  auto h1_energy = bookH1dByDetectorId("energy","Event Energy;E (MeV); EvtNr",
+                                      7000, 0, 70);
 
   std::map<int, TEfficiency*> eff;
   for(auto sensor : ROOT::TSeqI(RecIdRange[0],RecIdRange[1]+1)){
@@ -179,7 +184,7 @@ void getFwdCoverageRatio(const char* primaryFile, // root file from simulation m
 
       if ( cutg.IsInside(recoil_hit_z, recoil_hit_y) ) {
         Double_t global[3], local[3];
-        global[0] = -rec_distance;
+        global[0] = rec_distance;
         global[1] = recoil_hit_y;
         global[2] = recoil_hit_z;
         geoHandler->GlobalToLocal(global,local,det_id);
@@ -187,6 +192,7 @@ void getFwdCoverageRatio(const char* primaryFile, // root file from simulation m
         Int_t id = geoHandler->RecLocalPositionToDetCh(local,det_id);
         auto e = (recoilParticle->GetEnergy()-recoilParticle->GetMass())*1e3;
         h1_total[det_id].Fill(e);
+        h1_energy[det_id].Fill(e);
         output_total[id]++;
         if ( fwd_cutg_1.IsInside(fwd_hit_x_1, fwd_hit_y_1)
              &&  fwd_cutg_2.IsInside(fwd_hit_x_2, fwd_hit_y_2)
@@ -210,6 +216,7 @@ void getFwdCoverageRatio(const char* primaryFile, // root file from simulation m
   auto dirout = getDirectory(fout, Form("fwd_offset_%.1fmm",fwd_offset));
   writeHistos<TH1D>(dirout, h1_total);
   writeHistos<TH1D>(dirout, h1_covered);
+  writeHistos<TH1D>(dirout, h1_energy);
 
   // txt file
   TString txtfile(primaryFile);
