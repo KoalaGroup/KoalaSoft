@@ -51,7 +51,7 @@ class KoaElasticCalculator : public TObject
   /* Get-ers */
   /* Get deposited energy based on position along beam axis.
      It's valid both in GeoModel and Non-GeoModel modes. zposition in mm, return value in MeV */
-  Double_t GetEnergyByRecZ(Double_t zposition);
+  Double_t GetEnergyByRecZ(Double_t zposition, Double_t yposition=31.75);
   /* Get T of recoil proton by alpha. alpha is the angle between recoil proton momentum and axis perpendicular to beam axis. alpha in degree, return value in MeV */
   Double_t GetEnergyByAlpha(Double_t alpha);
   /* Get T of recoil proton by theta. theta is the angle between scattering proton momentum and beam axis. theta in degree, return value in MeV */

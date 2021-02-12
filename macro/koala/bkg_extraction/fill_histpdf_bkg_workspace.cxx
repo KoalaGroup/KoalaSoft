@@ -60,5 +60,5 @@ void fill_histpdf_bkg_workspace(RooWorkspace& ws,
   delete hclone;
 
   //
-  ws.factory(Form( "SUM::model(nbkg[%.1f,%f,%f]*bkg_model)",nbkg,0.2*nbkg, 2*nbkg));
+  ws.factory(Form( "SUM::model(nbkg[%.1f,%f,%f]*bkg_model)",nbkg,0.0, 2*nbkg));
 }

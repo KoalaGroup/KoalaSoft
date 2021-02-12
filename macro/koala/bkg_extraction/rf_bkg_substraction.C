@@ -118,6 +118,7 @@ void rf_bkg_substraction(const char* infile,
     auto h1 = item.second;
 
     shiftHisto(h1, (int)(energy_offset[id]/bin_width));
+    shiftHisto(hist_tofe_elastic[id], (int)(energy_offset[id]/bin_width));
   }
 
   // bkg reference histograms
@@ -162,6 +163,7 @@ void rf_bkg_substraction(const char* infile,
   std::map<Int_t, RooWorkspace> ws;
   std::map<Int_t, RooFitResult> rf_result;
   std::map<Int_t, TCanvas> canvas;
+  std::map<Int_t, TCanvas> canvas2;
 
   auto substract_bkg = [&] ()
                        {
@@ -346,6 +348,16 @@ void rf_bkg_substraction(const char* infile,
                            gPad->SetLeftMargin(0.1);
                            frame3->Draw();
 
+                           canvas2.emplace(std::piecewise_construct,
+                                           std::forward_as_tuple(id),
+                                           std::forward_as_tuple(Form("c2_%s_%d",volName.Data(),ch+1),
+                                                                 Form("HistPdf + Double-sided CrystalBall Fitting"), 600, 600));
+                           canvas2[id].cd();
+                           hist_tofe_elastic[id]->SetLineColor(kBlue);
+                           hist_tofe_elastic[id]->SetLineWidth(3);
+                           frame4->Draw();
+                           hist_tofe_elastic[id]->Draw("same");
+
                            // for printing to pdf file
                            can->cd(1);
                            gPad->SetLeftMargin(0.15);
@@ -405,6 +417,7 @@ void rf_bkg_substraction(const char* infile,
 
     // hDirOut->WriteTObject(&w, "", "WriteDelete");
     hDirOut->WriteTObject(&canvas[id], "", "WriteDelete");
+    hDirOut->WriteTObject(&canvas2[id], "", "WriteDelete");
   }
   writeHistos<TH1D>(hDirOut, hist_out);
 

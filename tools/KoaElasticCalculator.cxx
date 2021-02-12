@@ -40,13 +40,14 @@ KoaElasticCalculator::~KoaElasticCalculator()
   
 }
 
-Double_t KoaElasticCalculator::GetEnergyByRecZ(Double_t zposition)
+Double_t KoaElasticCalculator::GetEnergyByRecZ(Double_t zposition, Double_t yposition)
 {
   if( zposition<0 ) {
     LOG(ERROR) << "fwd z position should be larger than 0";
   }
 
-  Double_t alpha = 180*TMath::ATan(zposition/fRecDistance/10.)/TMath::Pi();
+  double l = TMath::Sqrt(zposition*zposition+yposition*yposition);
+  Double_t alpha = 180*TMath::ATan(l/fRecDistance/10.)/TMath::Pi();
   return GetEnergyByAlpha(alpha);
 }
 
