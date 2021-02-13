@@ -8,7 +8,8 @@ using namespace std;
 void compute_energy_difference(const char* param_file,
                                double mom,
                                const char* geoFile,
-                               double zoffset_si1 = 0.18, double zoffset_si2 = 0.13, double zoffset_ge1 = 0.2, double zoffset_ge2 = 0.2
+                               double zoffset_si1 = 0.18, double zoffset_si2 = 0.13, double zoffset_ge1 = 0.13, double zoffset_ge2 = 0.13,
+                               double yoffset_si1 = 0, double yoffset_si2=0, double yoffset_ge1=0, double yoffset_ge2=0
                                )
 {
   // read in fitting parameter of CB_mean and associated error from aggregated results
@@ -35,7 +36,7 @@ void compute_energy_difference(const char* param_file,
   std::map<Int_t, double> CalculatedEnergies;
 
   double zoffset[4] = {zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2}; // in cm
-  double yoffset[4] = {0, 0, 0, 0}; // in cm
+  double yoffset[4] = {yoffset_si1, yoffset_si2, yoffset_ge1, yoffset_ge2}; // in cm
   // auto Positions = getChannelGlobalPosition(geoFile, zoffset);
   auto Alphas = getChannelAlphas(geoFile, yoffset, zoffset);
 
@@ -129,13 +130,13 @@ void compute_energy_difference(const char* param_file,
 
   //
   TString outfile_pdf(param_file);
-  outfile_pdf.ReplaceAll(".txt", Form("_zoffset_%.2f_%.2f_%.2f_%.2f.pdf", zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2));
+  outfile_pdf.ReplaceAll(".txt", Form("_zoffset_%.3f_%.3f_%.3f_%.3f.pdf", zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2));
   printGraphs<TGraphErrors>(graphs_diff_value, outfile_pdf.Data());
 
   TString outfile_root(param_file);
   outfile_root.ReplaceAll(".txt",".root");
   auto fout = TFile::Open(outfile_root, "update");
-  auto dir_out = getDirectory(fout, Form("zoffset_%.2f_%.2f_%.2f_%.2f.pdf", zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2));
+  auto dir_out = getDirectory(fout, Form("zoffset_%.3f_%.3f_%.3f_%.3f", zoffset_si1, zoffset_si2, zoffset_ge1, zoffset_ge2));
 
   dir_out->WriteTObject( graph_fitted, "", "WriteDelete");
   dir_out->WriteTObject( graph_calculated, "", "WriteDelete");
