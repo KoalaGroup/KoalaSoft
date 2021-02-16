@@ -10,10 +10,10 @@ void profile_target_with_energy(const char* filename, // *_TofE_cut.root
                                 const char* suffix = "Energy",
                                 double mom = 2.2, // in GeV
                                 double e_ref = 0.12, // in MeV
+                                const char* geoFile = "geo_standard.root",
                                 int si1_low = 20, int si1_high = 47,
                                 int si2_low = 2, int si2_high = 38,
-                                double e_width = 0.01, // in MeV
-                                const char* geoFile = "geo_standard.root"
+                                double e_width = 0.01 // in MeV
                                 )
 {
   // get id ranges
@@ -128,12 +128,12 @@ void profile_target_with_energy(const char* filename, // *_TofE_cut.root
 
   // output txt
   TString outfile_txt(filename);
-  outfile_txt.ReplaceAll(".root","_target_profile.txt");
+  outfile_txt.ReplaceAll(".root",Form("_target_profile_ref%.0fkeV.txt", e_ref*1000));
   printValueList<double>(OutputParameters, outfile_txt.Data());
 
   //
   TString outfile_pdf(filename);
-  outfile_pdf.ReplaceAll(".root","_target_fit.pdf");
+  outfile_pdf.ReplaceAll(".root",Form("_target_profile_ref%.0fkeV.pdf", e_ref*1000));
   printHistos<TH1D*>(h1map, outfile_pdf.Data());
   
   //

@@ -7,6 +7,7 @@
  ********************************************************************************/
 void run_cluster_purification_PercentageMode(const char* data,
                                              const char* para,
+                                             const char* branch = "KoaRecCluster_ThresholdFilter",
                                              double threshold = 0.01,
                                              std::string thresh_file = "",
                                              const char* suffix = "_cluster_purification_percentage.root"
@@ -56,7 +57,7 @@ void run_cluster_purification_PercentageMode(const char* data,
   // rtdb->setOutput(parInput1);
 
   KoaRecClusterPurification* clusterPurification = new KoaRecClusterPurification();
-  clusterPurification->SetInputClusterName("KoaRecCluster_ThresholdFilter");
+  clusterPurification->SetInputClusterName(branch);
   clusterPurification->SetOutputClusterName("KoaRecCluster_Purification");
   clusterPurification->SaveOutputCluster(kTRUE);
 

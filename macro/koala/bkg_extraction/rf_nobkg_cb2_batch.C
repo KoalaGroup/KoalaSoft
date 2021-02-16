@@ -23,6 +23,7 @@ void rf_nobkg_cb2_batch(const char* infile,
 
   // Map encoder
   KoaMapEncoder* encoder = KoaMapEncoder::Instance();
+  auto peak_id = encoder->EncodeChannelID(0, 17);
 
   ////////////////////////////////////////
   // Read in the fitting config params
@@ -192,6 +193,9 @@ void rf_nobkg_cb2_batch(const char* infile,
                            RooRealVar* energy = w.var("energy");
                            auto model = w.pdf("model");
 
+                           if(id < peak_id){
+                             energy->setRange("fitRange", 0.1,0.5);
+                           }
                            std::cout << "Peak Energy: " << cb_mean[id] << std::endl;
 
                            // init and fill in the data set

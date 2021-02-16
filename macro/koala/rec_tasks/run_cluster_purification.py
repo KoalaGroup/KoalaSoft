@@ -18,6 +18,9 @@ parser.add_argument("-d","--directory",
 parser.add_argument("-s","--suffix",
                     default="_calib.root",
                     help="suffix of the input file")
+parser.add_argument("-b","--branch",
+                    default="KoaRecCluster_ThresholdFilter",
+                    help="suffix of the input file")
 parser.add_argument("-p", "--para_dir",
                     default="./",
                     help="directory for parameter file")
@@ -51,7 +54,7 @@ list_para = batch.get_list(args.infile, "_param.root", para_dir)
 
 # invoking the command
 for fin, fpara in zip(list_input, list_para):
-    command = [exec_bin, macro, fin, fpara, args.threshold, thresh_file]
+    command = [exec_bin, macro, fin, fpara, args.branch, args.threshold, thresh_file]
     print(command)
     process = subprocess.Popen(command)
     process.wait()

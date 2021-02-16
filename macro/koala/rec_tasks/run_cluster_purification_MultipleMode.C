@@ -7,11 +7,12 @@
  ********************************************************************************/
 void run_cluster_purification_MultipleMode(const char* data,
                                            const char* para,
+                                           const char* branch = "KoaRecCluster_ThresholdFilter",
                                            int threshold = 7,
                                            std::string thresh_file = "",
                                            const char* suffix = "_cluster_purification_multiple.root",
                                            const char* ped_file = "adc_pedestal_20190902_003449.txt",
-                                           const char* adcpara_file = "adc_calib_energy.txt"
+                                           const char* adcpara_file = "adc_calib_energy_huagen.txt"
                               )
 {
   // ----    Debug option   -------------------------------------------------
@@ -60,7 +61,7 @@ void run_cluster_purification_MultipleMode(const char* data,
   // rtdb->setOutput(parInput1);
 
   KoaRecClusterPurification* clusterPurification = new KoaRecClusterPurification();
-  clusterPurification->SetInputClusterName("KoaRecCluster_ThresholdFilter");
+  clusterPurification->SetInputClusterName(branch);
   clusterPurification->SetOutputClusterName("KoaRecCluster_Purification");
   clusterPurification->SaveOutputCluster(kTRUE);
 

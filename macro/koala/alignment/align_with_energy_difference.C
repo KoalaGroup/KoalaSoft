@@ -44,15 +44,18 @@ void align_with_energy_difference(const char* param_file,
   // par[6] : yoffset ge1
   // par[7] : yoffset ge2
   auto encoder = KoaMapEncoder::Instance();
+  int lower_id = encoder->EncodeChannelID(0, 17);
   double yoffset_sign[4]= {-10, 10, -10, 10};
   auto chi2Function = [&](const double* par) {
                         double chi2 = 0;
                         int det_id;
                         for(auto item: e){
                           auto id = item.first;
+                          if(id < lower_id) continue;
                           encoder->DecodeChannelID(id, det_id);
+                          // auto cal_e = calculator->GetEnergyByRecZ(10*(Positions[id]+par[det_id]));
                           // auto cal_e = calculator->GetEnergyByRecZ(10*(Positions[id]+par[det_id]), par[4]*yoffset_sign[det_id]);
-                          auto cal_e = calculator->GetEnergyByRecZ(10*(Positions[id]+par[det_id]), par[4+det_id]);
+                          auto cal_e = calculator->GetEnergyByRecZ(10*(Positions[id]+par[det_id]), 10*par[4+det_id]);
                           auto diff = (e[id]-cal_e)/e_err[id];
                           chi2 += diff*diff;
                         }
@@ -64,27 +67,40 @@ void align_with_energy_difference(const char* param_file,
   ROOT::Math::Functor fcn(chi2Function, 8);
   ROOT::Fit::Fitter fitter;
 
-  double pStart[8] = {start_si1, start_si2, start_ge1, start_ge2,
-                      0, 0, 0, 0};
+  double pStart[8] = {start_si1, start_si2, start_ge1, start_ge2
+  // };
+                      // ,0};
+                      ,0, 0, 0, 0};
   fitter.SetFCN(fcn, pStart);
 
   fitter.Config().ParSettings(0).SetName("zoffset_si1");
-  fitter.Config().ParSettings(0).SetLimits(0 ,start_si1+0.2);
+  fitter.Config().ParSettings(0).SetLimits(0,start_si1+0.2);
   fitter.Config().ParSettings(1).SetName("zoffset_si2");
-  fitter.Config().ParSettings(1).SetLimits(0,start_si2+0.1);
+  fitter.Config().ParSettings(1).SetLimits(0,start_si2+0.2);
   fitter.Config().ParSettings(2).SetName("zoffset_ge1");
-  fitter.Config().ParSettings(2).SetLimits(0, start_ge1+0.1);
+  fitter.Config().ParSettings(2).SetLimits(0, start_ge1+0.2);
   fitter.Config().ParSettings(3).SetName("zoffset_ge2");
-  fitter.Config().ParSettings(3).SetLimits(0, start_ge2+0.1);
+  fitter.Config().ParSettings(3).SetLimits(0, start_ge2+0.2);
   fitter.Config().ParSettings(4).SetName("yoffset_si1");
-  fitter.Config().ParSettings(4).SetLimits(-0.3, 0.3);
+  fitter.Config().ParSettings(4).SetLimits(-0.1, 0.1);
   fitter.Config().ParSettings(5).SetName("yoffset_si2");
-  fitter.Config().ParSettings(5).SetLimits(-0.3, 0.3);
+  fitter.Config().ParSettings(5).SetLimits(-0.1, 0.1);
   fitter.Config().ParSettings(6).SetName("yoffset_ge1");
-  fitter.Config().ParSettings(6).SetLimits(-0.3, 0.3);
+  fitter.Config().ParSettings(6).SetLimits(-0.1, 0.1);
   fitter.Config().ParSettings(7).SetName("yoffset_ge2");
-  fitter.Config().ParSettings(7).SetLimits(-0.3, 0.3);
-  // fitter.Config().ParSettings(4).Fix();
+  fitter.Config().ParSettings(7).SetLimits(-0.1, 0.1);
+  fitter.Config().ParSettings(0).SetStepSize(0.001);
+  fitter.Config().ParSettings(1).SetStepSize(0.001);
+  fitter.Config().ParSettings(2).SetStepSize(0.001);
+  fitter.Config().ParSettings(3).SetStepSize(0.001);
+  fitter.Config().ParSettings(4).SetStepSize(0.0001);
+  fitter.Config().ParSettings(5).SetStepSize(0.0001);
+  fitter.Config().ParSettings(6).SetStepSize(0.0001);
+  fitter.Config().ParSettings(7).SetStepSize(0.0001);
+  fitter.Config().ParSettings(4).Fix();
+  fitter.Config().ParSettings(5).Fix();
+  fitter.Config().ParSettings(6).Fix();
+  fitter.Config().ParSettings(7).Fix();
 
   //
   bool ok = fitter.FitFCN();

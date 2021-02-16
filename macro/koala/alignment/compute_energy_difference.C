@@ -9,7 +9,8 @@ void compute_energy_difference(const char* param_file,
                                double mom,
                                const char* geoFile,
                                double zoffset_si1 = 0.18, double zoffset_si2 = 0.13, double zoffset_ge1 = 0.13, double zoffset_ge2 = 0.13,
-                               double yoffset_si1 = 0, double yoffset_si2=0, double yoffset_ge1=0, double yoffset_ge2=0
+                               double yoffset_si1 = 0, double yoffset_si2=0, double yoffset_ge1=0, double yoffset_ge2=0,
+                               bool useLowerLimit = true
                                )
 {
   // read in fitting parameter of CB_mean and associated error from aggregated results
@@ -99,6 +100,7 @@ void compute_energy_difference(const char* param_file,
 
   //
   auto encoder = KoaMapEncoder::Instance();
+  int lower_id = encoder->EncodeChannelID(0, 17);
   Int_t index[4] = {0} ;
   Int_t global_index = 0;
   for(auto item: e){
@@ -107,6 +109,8 @@ void compute_energy_difference(const char* param_file,
     auto fitted_err = e_err[id];
     auto calculated = CalculatedEnergies[id];
     auto alpha = Alphas[id];
+
+    if(useLowerLimit && id < lower_id) continue;
 
     //
     Int_t det_id, ch_id;

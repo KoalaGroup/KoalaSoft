@@ -142,10 +142,13 @@ Double_t KoaElasticCalculator::GetAlphaByEnergy(Double_t T)
   return alpha;
 }
 
-Double_t KoaElasticCalculator::GetRecZByEnergy(Double_t T)
+Double_t KoaElasticCalculator::GetRecZByEnergy(Double_t T, Double_t yoffset)
 {
   Double_t alpha = GetAlphaByEnergy(T);
-  return 10*fRecDistance*TMath::Tan(alpha/180*TMath::Pi());
+
+  double yposition = 3.175 + yoffset/10.; // in cm
+  double l = TMath::Sqrt(fRecDistance*fRecDistance+yposition*yposition);
+  return 10*l*TMath::Tan(alpha/180*TMath::Pi());
 }
 
 Double_t KoaElasticCalculator::GetFwdXByEnergy(Double_t T)

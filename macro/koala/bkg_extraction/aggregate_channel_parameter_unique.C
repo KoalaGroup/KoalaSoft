@@ -6,7 +6,7 @@ using namespace std;
 
 void aggregate_channel_paramter_unique(const char* outfilename)
 {
-  vector<string> list_file = {"P_2.2_calib_cluster_purification_multiple_Purification_smear_TofE_cut_Energy_All_Individual_-5.0_5.0_SubstractBkgHistPdf_FitOnlyCB2.txt", // Si1: 19-29
+  vector<string> list_file = {"P_2.2_calib_cluster_purification_multiple_Purification_smear_TofE_cut_Energy_All_Individual_-5.0_5.0_SubstractBkgHistPdf_FitOnlyCB2.txt", // Si1: 17-29
                       "P_2.2_calib_cluster_purification_multiple_Purification_smear_TofE_cut_Energy_Individual_-5.0_5.0_FitCoulombCB2.txt", // Si1: 30-31, Si2: 2-6
                       "P_2.2_calib_cluster_purification_multiple_Purification_smear_TofE_cut_Energy_All_Individual_-5.0_5.0_FitHistPdfCB2.txt", // Si1: 32-47, Si2: 7-26
                       "P_2.2_calib_cluster_purification_multiple_Purification_smear_result_rec_cluster_energy_FirstHit_FitExpoCB2.txt", // Si2: 27-63

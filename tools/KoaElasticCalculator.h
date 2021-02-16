@@ -70,8 +70,8 @@ class KoaElasticCalculator : public TObject
 
   /* Get recoil angle based on recoil energy. T in MeV, return value in degree */
   Double_t GetAlphaByEnergy(Double_t T);
-  /* Get rec hit position in z-axis based on recoil energy. T in MeV, return value in mm */
-  Double_t GetRecZByEnergy(Double_t T);
+  /* Get rec hit position in z-axis based on recoil energy. T in MeV and y offset in mm, return value in mm */
+  Double_t GetRecZByEnergy(Double_t T, Double_t yoffset = 0);
   /* Get fwd hit position in x-axis based on recoil energy. T in MeV, return value in cm */
   Double_t GetFwdXByEnergy(Double_t T);
 
