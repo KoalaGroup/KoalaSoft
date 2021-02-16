@@ -48,6 +48,12 @@ void compute_energy_shift(const char* filename,
   gr_ediff_vs_eref->SetMarkerStyle(20);
   gr_ediff_vs_eref->SetMarkerSize(0.6);
 
+  auto gr_ediff_vs_ecorrected = new TGraph();
+  gr_ediff_vs_ecorrected->SetName("gr_ediff_vs_ecorrected");
+  gr_ediff_vs_ecorrected->SetTitle("Energy difference between corrected and reference energy VS Corrected Energy;E_{corrected} (keV);E_{corrected} - E_{ref} (keV)");
+  gr_ediff_vs_ecorrected->SetMarkerStyle(20);
+  gr_ediff_vs_ecorrected->SetMarkerSize(0.6);
+
   //
   auto calculator = new KoaElasticCalculator(mom);
 
@@ -64,6 +70,7 @@ void compute_energy_shift(const char* filename,
     gr_zpeak_vs_eref->SetPoint(index, e_measured, z0[id]);
     gr_ecorrected_vs_eref->SetPoint(index, e_measured, e_corrected);
     gr_ediff_vs_eref->SetPoint(index, e_measured, e_corrected-e_measured);
+    gr_ediff_vs_ecorrected->SetPoint(index, e_corrected, e_corrected-e_measured);
 
     index++;
   }
@@ -74,6 +81,7 @@ void compute_energy_shift(const char* filename,
   dir->WriteTObject(gr_zpeak_vs_eref, "", "WriteDelete");
   dir->WriteTObject(gr_ecorrected_vs_eref, "", "WriteDelete");
   dir->WriteTObject(gr_ediff_vs_eref, "", "WriteDelete");
+  dir->WriteTObject(gr_ediff_vs_ecorrected, "", "WriteDelete");
 
   delete fout;
   delete calculator;
