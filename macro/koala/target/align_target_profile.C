@@ -4,7 +4,9 @@ using namespace KoaUtility;
 
 void align_target_profile(const char* filename,
                           const char* dirname,
-                          int last_id = 30
+                          double e_start = 180, // in keV
+                          double e_step = 60, // in keV
+                          int e_nr = 30
                           )
 {
   gStyle->SetPalette(kDeepSea);
@@ -50,7 +52,20 @@ void align_target_profile(const char* filename,
 
   // auto z_ref = z0[last_id-1];
   auto A_ref = A[0];
-  for(int ch = 0; ch<last_id;ch++){
+  int index = 0;
+  for(auto item: A){
+    auto ch = item.first;
+
+    bool found = false;
+    for(int i = 0; i<e_nr; i++) {
+      if(10 > TMath::Abs(e_ref[ch] - (e_start+e_step*i))) {
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) continue;
+
     auto fin = TFile::Open(Form("%s/ref_%.0fkeV.root", dirname, e_ref[ch]));
     auto dir_in = (TDirectory*)fin->Get(Form("profile_si1_%.2f_si2_%.2f", zoffset_si1[ch], zoffset_si2[ch]));
     auto gr = (TGraph*)dir_in->Get("gr_strip_si1");
