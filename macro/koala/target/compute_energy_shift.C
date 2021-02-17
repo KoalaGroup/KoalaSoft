@@ -54,6 +54,24 @@ void compute_energy_shift(const char* filename,
   gr_ediff_vs_ecorrected->SetMarkerStyle(20);
   gr_ediff_vs_ecorrected->SetMarkerSize(0.6);
 
+  auto gr_ediff_vs_alpharef = new TGraph();
+  gr_ediff_vs_alpharef->SetName("gr_ediff_vs_alpharef");
+  gr_ediff_vs_alpharef->SetTitle("Energy difference between corrected and reference energy VS Reference Alpha;#alpha_{ref} (#circ);E_{corrected} - E_{ref} (keV)");
+  gr_ediff_vs_alpharef->SetMarkerStyle(20);
+  gr_ediff_vs_alpharef->SetMarkerSize(0.6);
+
+  auto gr_ediff_vs_alphacorrected = new TGraph();
+  gr_ediff_vs_alphacorrected->SetName("gr_ediff_vs_alphacorrected");
+  gr_ediff_vs_alphacorrected->SetTitle("Energy difference between corrected and reference energy VS Corrected Alpha;#alpha_{corrected} (#circ);E_{corrected} - E_{ref} (keV)");
+  gr_ediff_vs_alphacorrected->SetMarkerStyle(20);
+  gr_ediff_vs_alphacorrected->SetMarkerSize(0.6);
+
+  auto gr_estoppwr_vs_ecorrected = new TGraph();
+  gr_estoppwr_vs_ecorrected->SetName("gr_estoppwr_vs_ecorrected");
+  gr_estoppwr_vs_ecorrected->SetTitle("Stop-power VS Corrected Energy;E_{corrected} (keV);Stop-Power (Arb.)");
+  gr_estoppwr_vs_ecorrected->SetMarkerStyle(20);
+  gr_estoppwr_vs_ecorrected->SetMarkerSize(0.6);
+
   //
   auto calculator = new KoaElasticCalculator(mom);
 
@@ -66,11 +84,18 @@ void compute_energy_shift(const char* filename,
     auto ref_z = calculator->GetRecZByEnergy(e_measured/1000.); // in mm
     auto real_z = ref_z + delta_z;
     auto e_corrected = calculator->GetEnergyByRecZ(real_z)*1000.; // in keV
+    auto real_alpha = calculator->GetAlphaByEnergy(e_corrected/1000.);
+    auto ref_alpha = calculator->GetAlphaByEnergy(e_measured/1000.);
 
     gr_zpeak_vs_eref->SetPoint(index, e_measured, z0[id]);
     gr_ecorrected_vs_eref->SetPoint(index, e_measured, e_corrected);
     gr_ediff_vs_eref->SetPoint(index, e_measured, e_corrected-e_measured);
     gr_ediff_vs_ecorrected->SetPoint(index, e_corrected, e_corrected-e_measured);
+    gr_ediff_vs_alpharef->SetPoint(index, ref_alpha, e_corrected-e_measured);
+    gr_ediff_vs_alphacorrected->SetPoint(index, real_alpha, e_corrected-e_measured);
+
+    real_alpha = real_alpha/180.*3.1415926;
+    gr_estoppwr_vs_ecorrected->SetPoint(index, e_corrected, (e_corrected-e_measured)*(1-real_alpha*real_alpha));
 
     index++;
   }
@@ -82,6 +107,9 @@ void compute_energy_shift(const char* filename,
   dir->WriteTObject(gr_ecorrected_vs_eref, "", "WriteDelete");
   dir->WriteTObject(gr_ediff_vs_eref, "", "WriteDelete");
   dir->WriteTObject(gr_ediff_vs_ecorrected, "", "WriteDelete");
+  dir->WriteTObject(gr_ediff_vs_alpharef, "", "WriteDelete");
+  dir->WriteTObject(gr_ediff_vs_alphacorrected, "", "WriteDelete");
+  dir->WriteTObject(gr_estoppwr_vs_ecorrected, "", "WriteDelete");
 
   delete fout;
   delete calculator;
