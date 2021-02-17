@@ -41,14 +41,20 @@ void align_target_profile(const char* filename,
   //
   auto fout = TFile::Open(Form("%s/aggregate_profiles.root",dirname), "update");
   auto dir_norm = getDirectory(fout, "align_normalized");
+  auto dir_scale = getDirectory(fout, "align_scaled");
   auto dir = getDirectory(fout, "align");
 
   TMultiGraph *mg_align = new TMultiGraph();
   mg_align->SetName("mg_align");
   mg_align->SetTitle("Align Target Profiles to Z = 0 mm");
+
   TMultiGraph *mg_norm = new TMultiGraph();
   mg_norm->SetName("mg_align_normalized");
   mg_norm->SetTitle("Align Target Profiles to Z = 0 mm and Normalized to same Peak Density");
+
+  TMultiGraph *mg_scale = new TMultiGraph();
+  mg_scale->SetName("mg_align_scaled");
+  mg_scale->SetTitle("Align Target Profiles to Z = 0 mm and Scaled to same Peak Density");
 
   // auto z_ref = z0[last_id-1];
   auto A_ref = A[0];
@@ -72,6 +78,7 @@ void align_target_profile(const char* filename,
 
     auto deltaA = A_ref - A[ch];
     auto deltaZ = - z0[ch];
+    auto scaleA = A_ref/A[ch];
 
     auto npts = gr->GetN();
     auto x = gr->GetX();
@@ -89,14 +96,22 @@ void align_target_profile(const char* filename,
     gr_norm->SetMarkerSize(0.4);
     mg_norm->Add(gr_norm, "PL");
 
+    auto gr_scale = new TGraph();
+    gr_scale->SetName(Form("gr_align_scaled_ref_%.0fkeV", e_ref[ch]));
+    gr_scale->SetMarkerStyle(20);
+    gr_scale->SetMarkerSize(0.4);
+    mg_scale->Add(gr_scale, "PL");
+
     for(int i=0;i<npts;i++){
       gr_align->SetPoint(i, x[i]+deltaZ, y[i]);
       gr_norm->SetPoint(i, x[i]+deltaZ, y[i]+deltaA);
+      gr_scale->SetPoint(i, x[i]+deltaZ, y[i]*scaleA);
     }
 
     //
     dir->WriteTObject(gr_align, "", "WriteDelete");
     dir_norm->WriteTObject(gr_norm, "", "WriteDelete");
+    dir_scale->WriteTObject(gr_scale, "", "WriteDelete");
 
     delete gr;
     delete fin;
@@ -105,6 +120,7 @@ void align_target_profile(const char* filename,
   //
   dir->WriteTObject(mg_align, "", "WriteDelete");
   dir_norm->WriteTObject(mg_norm, "", "WriteDelete");
+  dir_scale->WriteTObject(mg_scale, "", "WriteDelete");
 
   //
   delete fout;

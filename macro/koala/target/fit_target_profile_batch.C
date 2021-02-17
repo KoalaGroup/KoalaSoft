@@ -3,6 +3,7 @@
 using namespace KoaUtility;
 
 void fit_target_profile_batch(const char* dirname,
+                              const char* sensor = "si1", // or si2
                               double zoffset_si1 = 0,
                               double zoffset_si2 = 0,
                               double e_start = 120,
@@ -26,7 +27,7 @@ void fit_target_profile_batch(const char* dirname,
   auto& output_xhigh = addValueContainer(OutputParameters, "xhigh(mm)");
 
   //
-  auto fit_bigaus = [&](TGraph* gr, TF1* ffit, int i)
+  auto fit_bigaus = [&](TGraph* gr, TF1* ffit, int i, double frac)
                     {
                       auto npts = gr->GetN();
                       auto x = gr->GetX();
@@ -43,8 +44,8 @@ void fit_target_profile_batch(const char* dirname,
                       ffit->SetParameter(0, max);
                       ffit->SetParLimits(0, max, 5*max);
                       ffit->SetParName(1, "frac1");
-                      ffit->SetParameter(1, 0.6);
-                      ffit->SetParLimits(1, 0.4, 1.);
+                      ffit->SetParameter(1, frac);
+                      ffit->SetParLimits(1, frac-0.2, 1.);
                       ffit->SetParName(2, "z0");
                       ffit->SetParameter(2, max_x);
                       ffit->SetParLimits(2, max_x-0.5, max_x+0.5);
@@ -142,32 +143,32 @@ void fit_target_profile_batch(const char* dirname,
 
   //
   TCanvas c("c","c",600,600);
-  c.Print(Form("%s/profiles_fit.pdf[",dirname));
+  c.Print(Form("%s/profiles_fit_%s.pdf[",dirname, sensor));
   for(int i = 0;i<nr_step;i++){
     auto e_current = e_start + i*e_step;
     auto fin = TFile::Open(Form("%s/ref_%.0fkeV.root", dirname, e_current));
     auto dir = (TDirectory*)fin->Get(Form("profile_si1_%.2f_si2_%.2f", zoffset_si1, zoffset_si2));
-    auto gr = (TGraph*)dir->Get("gr_strip_si1");
+    auto gr = (TGraph*)dir->Get(Form("gr_strip_%s", sensor));
     TF1* ffit = nullptr;
 
     if(e_current < 1000)
-      fit_bigaus(gr, ffit, i);
+      fit_bigaus(gr, ffit, i, 0.6);
     else
-      fit_gaus(gr, ffit, i);
+      fit_bigaus(gr, ffit, i, 1.);
 
     //
     output_e_ref.emplace(i, e_current);
 
     // print to pdf
-    c.Print(Form("%s/profiles_fit.pdf",dirname));
+    c.Print(Form("%s/profiles_fit_%s.pdf",dirname, sensor));
 
     //
     delete fin;
     delete ffit;
     delete gr;
   }
-  c.Print(Form("%s/profiles_fit.pdf]",dirname));
+  c.Print(Form("%s/profiles_fit_%s.pdf]",dirname, sensor));
 
   // print params to txt
-  printValueList<double>(OutputParameters, Form("%s/profiles_fit.txt", dirname));
+  printValueList<double>(OutputParameters, Form("%s/profiles_fit_%s.txt", dirname, sensor));
 }
