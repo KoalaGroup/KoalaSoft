@@ -11,7 +11,7 @@ void profile_target_with_energy(const char* filename, // *_TofE_cut.root
                                 double mom = 2.2, // in GeV
                                 double e_ref = 0.12, // in MeV
                                 const char* geoFile = "geo_standard.root",
-                                int si1_low = 20, int si1_high = 47,
+                                int si1_low = 2, int si1_high = 47,
                                 int si2_low = 2, int si2_high = 38,
                                 double e_width = 0.01 // in MeV
                                 )

@@ -4,6 +4,7 @@ using namespace KoaUtility;
 
 void align_target_profile(const char* filename,
                           const char* dirname,
+                          const char* sensor = "si1", // or 'si2'
                           double e_start = 180, // in keV
                           double e_step = 60, // in keV
                           int e_nr = 30
@@ -40,9 +41,14 @@ void align_target_profile(const char* filename,
   
   //
   auto fout = TFile::Open(Form("%s/aggregate_profiles.root",dirname), "update");
-  auto dir_norm = getDirectory(fout, "align_normalized");
-  auto dir_scale = getDirectory(fout, "align_scaled");
-  auto dir = getDirectory(fout, "align");
+  auto dir_norm = getDirectory(fout, Form("align_normalized_%s", sensor));
+  auto dir_scale = getDirectory(fout, Form("align_scaled_%s", sensor));
+  auto dir = getDirectory(fout, Form("align_%s",sensor));
+  auto dir_noalign = getDirectory(fout, Form("noalign_%s",sensor));
+
+  TMultiGraph *mg_noalign = new TMultiGraph();
+  mg_noalign->SetName("mg_noalign");
+  mg_noalign->SetTitle("Original Target Profiles");
 
   TMultiGraph *mg_align = new TMultiGraph();
   mg_align->SetName("mg_align");
@@ -74,7 +80,7 @@ void align_target_profile(const char* filename,
 
     auto fin = TFile::Open(Form("%s/ref_%.0fkeV.root", dirname, e_ref[ch]));
     auto dir_in = (TDirectory*)fin->Get(Form("profile_si1_%.2f_si2_%.2f", zoffset_si1[ch], zoffset_si2[ch]));
-    auto gr = (TGraph*)dir_in->Get("gr_strip_si1");
+    auto gr = (TGraph*)dir_in->Get(Form("gr_strip_%s", sensor));
 
     auto deltaA = A_ref - A[ch];
     auto deltaZ = - z0[ch];
@@ -84,31 +90,39 @@ void align_target_profile(const char* filename,
     auto x = gr->GetX();
     auto y = gr->GetY();
     
+    auto gr_noalign = new TGraph();
+    gr_noalign->SetName(Form("gr_noalign_ref_%.0fkeV", e_ref[ch]));
+    gr_noalign->SetMarkerStyle(20);
+    gr_noalign->SetMarkerSize(0.6);
+    mg_noalign->Add(gr_noalign, "PL");
+
     auto gr_align = new TGraph();
     gr_align->SetName(Form("gr_align_ref_%.0fkeV", e_ref[ch]));
     gr_align->SetMarkerStyle(20);
-    gr_align->SetMarkerSize(0.4);
+    gr_align->SetMarkerSize(0.6);
     mg_align->Add(gr_align, "PL");
 
     auto gr_norm = new TGraph();
     gr_norm->SetName(Form("gr_align_normalized_ref_%.0fkeV", e_ref[ch]));
     gr_norm->SetMarkerStyle(20);
-    gr_norm->SetMarkerSize(0.4);
+    gr_norm->SetMarkerSize(0.6);
     mg_norm->Add(gr_norm, "PL");
 
     auto gr_scale = new TGraph();
     gr_scale->SetName(Form("gr_align_scaled_ref_%.0fkeV", e_ref[ch]));
     gr_scale->SetMarkerStyle(20);
-    gr_scale->SetMarkerSize(0.4);
+    gr_scale->SetMarkerSize(0.6);
     mg_scale->Add(gr_scale, "PL");
 
     for(int i=0;i<npts;i++){
+      gr_noalign->SetPoint(i, x[i], y[i]);
       gr_align->SetPoint(i, x[i]+deltaZ, y[i]);
       gr_norm->SetPoint(i, x[i]+deltaZ, y[i]+deltaA);
       gr_scale->SetPoint(i, x[i]+deltaZ, y[i]*scaleA);
     }
 
     //
+    dir_noalign->WriteTObject(gr_noalign, "", "WriteDelete");
     dir->WriteTObject(gr_align, "", "WriteDelete");
     dir_norm->WriteTObject(gr_norm, "", "WriteDelete");
     dir_scale->WriteTObject(gr_scale, "", "WriteDelete");
@@ -118,6 +132,7 @@ void align_target_profile(const char* filename,
   }
   
   //
+  dir_noalign->WriteTObject(mg_noalign, "", "WriteDelete");
   dir->WriteTObject(mg_align, "", "WriteDelete");
   dir_norm->WriteTObject(mg_norm, "", "WriteDelete");
   dir_scale->WriteTObject(mg_scale, "", "WriteDelete");
