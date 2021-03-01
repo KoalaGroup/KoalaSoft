@@ -12,8 +12,8 @@ void fit_TofE(const char* filename,
               const char* graphname = "gr_TofE",
               double mom = 2.2,
               double tof_offset = 473.5,
-              double e_low = 0.1,
-              double e_high = 4)
+              double e_low = 0.8,
+              double e_high = 0.9)
 {
   auto fin = TFile::Open(filename, "update");
   auto dir = (TDirectory*)fin->Get(dirname);
@@ -48,21 +48,39 @@ void fit_TofE(const char* filename,
   }
 
   //
-  TF1 *f_tof_energy = new TF1("f_tof_energy", tof_energy_imp, e_low, e_high, 4);
+  TF1 *f_tof_energy = new TF1("f_tof_energy", tof_energy_imp, 0.1, 4, 4);
   f_tof_energy->SetParName(0, "Beam Momentum (GeV)");
-  f_tof_energy->SetParameter(0, mom);
-  f_tof_energy->SetParLimits(0, mom, mom);
+  // f_tof_energy->SetParameter(0, mom);
+  // f_tof_energy->SetParLimits(0, mom, mom);
+  f_tof_energy->FixParameter(0, mom);
   f_tof_energy->SetParName(1, "Recoil Distance (cm)");
-  f_tof_energy->SetParameter(1, 90.4);
-  f_tof_energy->SetParLimits(1, 90, 91);
+  // f_tof_energy->SetParameter(1, 90.4);
+  // f_tof_energy->SetParLimits(1, 90, 91);
+  f_tof_energy->FixParameter(1, 90.4);
   f_tof_energy->SetParName(2, "Fwd Distance (cm)");
-  f_tof_energy->SetParameter(2, 460);
-  f_tof_energy->SetParLimits(2, 455, 465);
+  // f_tof_energy->SetParameter(2, 460);
+  // f_tof_energy->SetParLimits(2, 455, 465);
+  f_tof_energy->FixParameter(2, 460);
   f_tof_energy->SetParName(3, "TOF offset (ns)");
   f_tof_energy->SetParameter(3, tof_offset);
   f_tof_energy->SetParLimits(3, 470, 490);
   f_tof_energy->SetNpx(1400);
   dir->WriteTObject(f_tof_energy,"", "WriteDelete");
+
+  //
+  TCanvas c;
+  TString pdffilename(filename);
+  pdffilename.ReplaceAll(".root","_fit.pdf");
+  c.Print(Form("%s[", pdffilename.Data()));
+
+  gr->Draw("AP");
+  f_tof_energy->Draw("same");
+  c.Print(Form("%s", pdffilename.Data()));
+
+  gr->Fit(f_tof_energy,"", "", e_low,e_high);
+  gr->Draw("AP");
+  f_tof_energy->Draw("same");
+  c.Print(Form("%s", pdffilename.Data()));
 
   //
   TGraph* gr_ediff = new TGraph();
@@ -78,20 +96,7 @@ void fit_TofE(const char* filename,
     gr_ediff->SetPoint(i, e_theory, e_theory-x[i]);
   }
   dir->WriteTObject(gr_ediff,"", "WriteDelete");
-
-  //
-  TCanvas c;
-  TString pdffilename(filename);
-  pdffilename.ReplaceAll(".root","_fit.pdf");
-  c.Print(Form("%s[", pdffilename.Data()));
-
-  gr->Draw("AP");
-  f_tof_energy->Draw("same");
-  c.Print(Form("%s", pdffilename.Data()));
-
-  gr->Fit(f_tof_energy,"", "", 0.3,1.6);
-  gr->Draw("AP");
-  f_tof_energy->Draw("same");
+  gr_ediff->Draw("AP");
   c.Print(Form("%s", pdffilename.Data()));
 
   c.Print(Form("%s]", pdffilename.Data()));

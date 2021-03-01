@@ -5,7 +5,11 @@
  *              GNU Lesser General Public Licence (LGPL) version 3,             *
  *                  copied verbatim in the file "LICENSE"                       *
  ********************************************************************************/
-void run_rec_energy(const char* data, const char* adcpara_file = "adc_calib_energy.txt")
+void run_rec_energy(const char* data,
+                    const char* para,
+                    const char* outdir,
+                    const char* suffix = "_ecalib.root",
+                    const char* adcpara_file = "adc_calib_energy_huagen.txt")
 {
   // ----    Debug option   -------------------------------------------------
   gDebug = 0;
@@ -20,12 +24,11 @@ void run_rec_energy(const char* data, const char* adcpara_file = "adc_calib_ener
 
   // Parameter file
   TString paraFile(data);
-  paraFile.ReplaceAll("_calib_noisefilter.root","_param.root");
 
   // Output file
   TString outFile(data);
-  outFile.ReplaceAll("_calib_noisefilter.root","_calib_energy.root");
-
+  outFile = gSystem->ConcatFileName(outdir, outFile.Data());
+  outFile.ReplaceAll(".root", suffix);
 
   // -----   Timer   --------------------------------------------------------
   TStopwatch timer;
@@ -50,11 +53,11 @@ void run_rec_energy(const char* data, const char* adcpara_file = "adc_calib_ener
 
   //
   KoaRecEnergyRecon* energyRecon = new KoaRecEnergyRecon();
-  energyRecon->SetInputDigiName("RecDigi_NoiseFilter");
-  energyRecon->SetOutputDigiName("RecDigi_Energy");
+  energyRecon->SetInputDigiName("KoaRecDigi");
+  energyRecon->SetOutputDigiName("KoaRecCalib");
   energyRecon->SaveOutputDigi(true);
   energyRecon->SetAdcParaFile(adcparaFile.Data());
-  // energyRecon->SetThreshold(5);
+  energyRecon->SetThreshold(0);
 
   fRun->AddTask(energyRecon);
 

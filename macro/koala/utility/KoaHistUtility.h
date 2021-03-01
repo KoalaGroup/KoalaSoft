@@ -16,7 +16,7 @@ using HistoPtr2D = std::map<Int_t, TH2D*>;
 Histo1D bookH1dByChannelId(const char *hName, const char *hTitle, Int_t nBin = 7000,
                            Double_t xLow = 0, Double_t xHigh = 70, Bool_t IsRec = true,
                            Int_t colorLine = kBlack,
-                           Bool_t seperateTdc = false
+                           Bool_t seperateTdc = true
                            ) {
   Histo1D h1book;
   KoaMapEncoder *encoder = KoaMapEncoder::Instance();
@@ -38,7 +38,7 @@ Histo1D bookH1dByChannelId(const char *hName, const char *hTitle, Int_t nBin = 7
     auto search = std::find(std::begin(TdcChIDs), std::end(TdcChIDs), ChID);
     if(search != std::end(TdcChIDs)) IsTdc = true;
 
-    if(IsTdc) {
+    if(IsTdc && seperateTdc) {
       h1book.emplace(std::piecewise_construct, std::forward_as_tuple(ChID),
                      std::forward_as_tuple(
                          Form("h1_%s_%s_%d", volName.Data(), hName, ch + 1),
