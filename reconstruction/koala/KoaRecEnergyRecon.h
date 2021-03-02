@@ -67,6 +67,17 @@ public:
     fThreshold = thresh;
   }
 
+  void SetGeometryFile(const char* name){
+    fGeometryFile = name;
+  }
+
+  void SetZOffset(double* zoffset){
+    fZOffset[0] = zoffset[0];
+    fZOffset[1] = zoffset[1];
+    fZOffset[2] = zoffset[2];
+    fZOffset[3] = zoffset[3];
+  }
+
 private:
   // Input digit branch name
   std::string fInputName = "";
@@ -85,6 +96,10 @@ private:
   double fThreshold = 0.;
   ValueContainer<double> fP0;
   ValueContainer<double> fP1;
+
+  std::string fGeometryFile = "";
+  double fZOffset[4] = {0};
+  ValueContainer<double> fAlpha;
 
   KoaRecEnergyRecon(const KoaRecEnergyRecon&);
   KoaRecEnergyRecon operator=(const KoaRecEnergyRecon&);
