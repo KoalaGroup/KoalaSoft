@@ -61,22 +61,26 @@ void correct_energy_difference(const char* param_file,
   TGraphErrors* graph_calculated = new TGraphErrors();
   graph_calculated->SetName("graph_calculated");
   graph_calculated->SetTitle("Energy VS Recoil Angle (Calculated);#alpha (#circ);Energy (MeV)");
-  graph_calculated->SetMarkerColor(kBlack);
-  graph_calculated->SetMarkerStyle(22);
-  graph_calculated->SetMarkerSize(0.6);
-  graph_calculated->SetLineWidth(3);
+  // graph_calculated->SetMarkerColor(kBlack);
+  // graph_calculated->SetMarkerStyle(22);
+  // graph_calculated->SetMarkerSize(0.8);
+  graph_calculated->SetLineColor(kBlack);
+  // graph_calculated->SetLineStyle(9);
+  graph_calculated->SetLineWidth(5);
+
   TGraphErrors* graph_corrected = new TGraphErrors();
   graph_corrected->SetName("graph_corrected");
   graph_corrected->SetTitle("Energy VS Recoil Angle (Corrected);#alpha (#circ);Energy (MeV)");
   graph_corrected->SetMarkerColor(kRed-4);
   graph_corrected->SetMarkerStyle(20);
-  graph_corrected->SetMarkerSize(0.6);
+  graph_corrected->SetMarkerSize(0.8);
   graph_corrected->SetLineWidth(3);
+  graph_corrected->SetLineColor(kRed-4);
 
   TMultiGraph* mg=new TMultiGraph();
   mg->SetName("mg_energy_vs_alpha");
   mg->SetTitle("Energy VS Recoil Angle;#alpha (#circ);Energy (MeV)");
-  mg->Add(graph_calculated, "PL");
+  mg->Add(graph_calculated, "C");
   mg->Add(graph_corrected, "PL");
 
   TGraphErrors* graph_diff = new TGraphErrors();
@@ -137,25 +141,25 @@ void correct_energy_difference(const char* param_file,
   }
 
   // ediff vs alpha
-  int colors[4]={kBlue-5, kCyan-8, kOrange+1, kGreen-5};
+  int colors[4]={kBlue-4, kCyan-3, kOrange+1, kGreen-5};
 
   TMultiGraph* mg_individual = new TMultiGraph();
   mg_individual->SetName("mg_energy_vs_alpha_individual");
   mg_individual->SetTitle("Energy VS Recoil Angle (Corrected);#alpha (#circ);Energy (MeV)");
-  auto graphs_corrected = bookGraphByRecDetectorId("corrected","Energy VS Recoil Angle (Corrected);#alpha (#circ);E (MeV)",8, 0.6);
+  auto graphs_corrected = bookGraphByRecDetectorId("corrected","Energy VS Recoil Angle (Corrected);#alpha (#circ);E (MeV)",8, 0.8);
   for(auto& graph: graphs_corrected) {
     auto id = graph.first;
     graph.second.SetMarkerColor(colors[id]);
     graph.second.SetLineColor(colors[id]);
     graph.second.SetLineWidth(3);
-    mg_individual->Add(&graph.second, "PL");
+    mg_individual->Add(&graph.second, "P");
   }
-  mg_individual->Add(graph_calculated, "PL");
+  mg_individual->Add(graph_calculated, "C");
 
   TMultiGraph* mg_diff = new TMultiGraph();
   mg_diff->SetName("mg_relativeDiff_vs_alpha");
   mg_diff->SetTitle("Relative Difference between Fitted and Calculated Energy;#alpha (#circ);#Delta E/E");
-  auto graphs_diff = bookGraphByRecDetectorId("relativeDiff_vs_alpha","Relative Difference between Fitted and Calculated Energy;#alpha (#circ);#Delta E/E",8, 0.6);
+  auto graphs_diff = bookGraphByRecDetectorId("relativeDiff_vs_alpha","Relative Difference between Fitted and Calculated Energy;#alpha (#circ);#Delta E/E",8, 0.8);
   for(auto& graph: graphs_diff) {
     auto id = graph.first;
     graph.second.SetMarkerColor(colors[id]);
@@ -167,7 +171,7 @@ void correct_energy_difference(const char* param_file,
   TMultiGraph* mg_diff_value = new TMultiGraph();
   mg_diff_value->SetName("mg_diff_vs_alpha");
   mg_diff_value->SetTitle("Difference between Fitted and Calculated Energy;#alpha (#circ);#Delta E (keV)");
-  auto graphs_diff_value = bookGraphByRecDetectorId("diff_vs_alpha","Difference between Fitted and Calculated Energy;#alpha (#circ);#Delta E (keV)",8, 0.6);
+  auto graphs_diff_value = bookGraphByRecDetectorId("diff_vs_alpha","Difference between Fitted and Calculated Energy;#alpha (#circ);#Delta E (keV)",8, 0.8);
   for(auto& graph: graphs_diff_value) {
     auto id = graph.first;
     graph.second.SetMarkerColor(colors[id]);
@@ -179,7 +183,7 @@ void correct_energy_difference(const char* param_file,
   TMultiGraph* mg_diff_ratio = new TMultiGraph();
   mg_diff_ratio->SetName("mg_diff_vs_ratio");
   mg_diff_ratio->SetTitle("Ratio between Fitted and Calculated Energy;#alpha (#circ);E_{fit}/E_{cal}");
-  auto graphs_diff_ratio = bookGraphByRecDetectorId("ratio_vs_alpha","Ratio between Fitted and Calculated Energy;#alpha (#circ);E_{fit}/E_{cal}",8, 0.6);
+  auto graphs_diff_ratio = bookGraphByRecDetectorId("ratio_vs_alpha","Ratio between Fitted and Calculated Energy;#alpha (#circ);E_{fit}/E_{cal}",8, 0.8);
   for(auto& graph: graphs_diff_ratio) {
     auto id = graph.first;
     graph.second.SetMarkerColor(colors[id]);
@@ -236,6 +240,9 @@ void correct_energy_difference(const char* param_file,
   dir_out->WriteTObject( graph_diff, "", "WriteDelete");
   dir_out->WriteTObject( graph_diff_value, "", "WriteDelete");
   dir_out->WriteTObject( graph_diff_ratio, "", "WriteDelete");
+
+  dir_out->WriteTObject( mg_individual, "", "WriteDelete");
+  writeGraphs<TGraphErrors>(dir_out, graphs_corrected,"WriteDelete");
 
   dir_out->WriteTObject( mg_diff, "", "WriteDelete");
   writeGraphs<TGraphErrors>(dir_out, graphs_diff,"WriteDelete");

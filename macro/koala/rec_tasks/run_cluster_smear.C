@@ -10,7 +10,7 @@ void run_cluster_smear(const char* data,
                        const char* br_cluster,
                        const char* outdir,
                        const char* suffix = "_smear.root",
-                       const char* adcpara_file = "adc_calib_energy.txt",
+                       const char* adcpara_file = "adc_calib_energy_huagen.txt",
                        double tdc_resolution = 8./256
                        )
 {
