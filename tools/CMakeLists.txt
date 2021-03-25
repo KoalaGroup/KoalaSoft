@@ -55,15 +55,9 @@ Set(LIBRARY_NAME KoaTools)
 Set(DEPENDENCIES
   Base
   Geom
-  Core
   Physics
   Hist
   KoaData
-  Physics
-  Hist
-  KoaData
-  Physics
-  Hist
 )
 
 GENERATE_LIBRARY()
