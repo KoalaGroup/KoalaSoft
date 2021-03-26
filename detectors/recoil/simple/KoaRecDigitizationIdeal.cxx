@@ -66,7 +66,7 @@ InitStatus KoaRecDigitizationIdeal::Init()
   // Create the TClonesArray for the output data and register
   // it in the IO manager
   
-  fDigis = new TClonesArray("KoaRecDigi", 100);
+  fDigis = new TClonesArray("KoaRecDigi", 200);
   ioman->Register("KoaRecDigi","KoaRec",fDigis,kTRUE);
   // if(!gMC->IsMT()){
   //   ioman->Register("KoaRecDigi","KoaRec",fDigis,kTRUE);

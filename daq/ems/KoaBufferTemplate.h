@@ -4,20 +4,26 @@
 #include "FairLogger.h"
 #include <cstdint>
 #include <iostream>
+#include <iomanip>
 #include <map>
 #include <string>
 
 /************** KoaBufferStatistic Begin ********************/
 struct KoaBufferStatistic
 {
-  KoaBufferStatistic() : events(0), words(0) {}
+  KoaBufferStatistic() : events(0), discarded(0),
+                         remaining(0), processed(0) {}
   void Reset() {
     events = 0;
-    words  = 0;
+    discarded  = 0;
+    remaining  = 0;
+    processed  = 0;
   }
 
   std::uint64_t events;
-  std::uint64_t words;
+  std::uint64_t discarded;
+  std::uint64_t remaining;
+  std::uint64_t processed;
 };
 
 /************** KoaBufferStatist End ********************/
@@ -274,7 +280,7 @@ public:
   // It works as an iterator, which is useful for sweep through the buffer list
   const ItemType* NextItem() {
     const ItemType* item = nullptr;
-    if ( !fCurrent ) {
+    if ( fCurrent ) {
       item = fCurrent;
       fCurrent = fCurrent->fNext;
     }
@@ -296,6 +302,11 @@ public:
     return fCurrent;
   }
 
+  // Get the top item
+  ItemType* TopItem() {
+    return fTop;
+  }
+
   // Reset the current pointer to the top of the buffer
   void Reset() {
     fCurrent = fTop;
@@ -309,6 +320,20 @@ public:
       fTop = fTop->fNext;
       temp->Recycle();
     }
+  }
+
+  // Get size of the buffer
+  int Size() {
+    ItemType* temp = fCurrent;
+    fCurrent = fTop;
+
+    int size=0;
+    while(NextItem()){
+      size++;
+    }
+
+    fCurrent = temp;
+    return size;
   }
 
 private:
@@ -379,6 +404,8 @@ public:
     else {
       buffer = new BufferType();
       fBufferList.emplace(name, buffer);
+
+      GetStatistic(name);
     }
     return buffer;
   }
@@ -396,12 +423,32 @@ public:
     return buffer;
   }
 
+  void Print(){
+    for( auto buffer : fBufferList ) {
+      std::cout << buffer.first << " size: " << buffer.second->Size() << std::endl;
+    }
+  }
+
+  void PrintStatist(){
+    for ( auto statist : fStatistList ) {
+      auto buffer = GetBuffer(statist.first);
+      std::cout << std::setw(6)  << std::left << statist.first
+                << std::setw(12) << std::right << ": total " << std::setw(10) << std::left << statist.second->events
+                << std::setw(12) << std::right << ", remaining " << std::setw(8) << std::left << buffer->Size()+statist.second->remaining
+                << std::setw(12) << std::right << ", discarded " << std::setw(8) << std::left << statist.second->discarded
+                << std::setw(12) << std::right << ", processed " << std::setw(8) << std::left << statist.second->processed
+                << std::endl;
+    }
+  }
+
 private:
   /* friend class CleanerType; */
   friend class KoaBufferManagerCleaner<DataType>;
 
   KoaBufferManager() {}
   ~KoaBufferManager() {
+    PrintStatist();
+
     for( auto buffer : fBufferList ) {
       delete buffer.second;
     }

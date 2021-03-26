@@ -16,8 +16,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class  Pythia6Generator+;
-#pragma link C++ class  Pythia8Generator+;
+#pragma link C++ class  KoaPythia8Generator+;
 #pragma link C++ class  KoaPpelasticGenerator+;
 #pragma link C++ class  KoaPpelasticGeneratorImp+;
 #pragma link C++ class  KoaPPElasticIdealGenerator+;

@@ -15,8 +15,9 @@ ${BASE_INCLUDE_DIRECTORIES}
 ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_SOURCE_DIR}/tools
 ${CMAKE_SOURCE_DIR}/data
+${CMAKE_SOURCE_DIR}/data/MCData
 ${CMAKE_SOURCE_DIR}/detectors/recoil/simple
-${CMAKE_SOURCE_DIR}/detectors/scint-forward
+${CMAKE_SOURCE_DIR}/detectors/scintforward
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -50,6 +51,7 @@ set(HEADERS
   KoaEventAnalyzer.h
   KoaEmsEventAnalyzer.h
   KoaEventAssembler.h
+  KoaEventLgtAsm.h
   KoaRawEventTransform.h
   )
 
@@ -67,6 +69,7 @@ KoaMxdc32Unpack.cxx
 KoaEventAnalyzer.cxx
 KoaEmsEventAnalyzer.cxx
 KoaEventAssembler.cxx
+KoaEventLgtAsm.cxx
 KoaRawEventTransform.cxx
 )
 

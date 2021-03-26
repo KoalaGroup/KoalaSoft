@@ -28,6 +28,7 @@ void KoaEmsEventAnalyzer::InitInputBuffer()
 {
   auto bufferManager = KoaEmsEventBufferManager::Instance();
   fBuffer = bufferManager->GetBuffer("EMS");
+  fStat   = bufferManager->GetStatistic("EMS");
 }
 
 void KoaEmsEventAnalyzer::InitChannelMap()
@@ -47,7 +48,6 @@ void KoaEmsEventAnalyzer::InitOutputBuffer()
 
   // 2. init the storage space
   fCurrentRawEvent = new KoaEmsRawEvent();
-  fPreviousRawEvent = new KoaEmsRawEvent();
 }
 
 void KoaEmsEventAnalyzer::InitOutputTree()
@@ -65,14 +65,43 @@ void KoaEmsEventAnalyzer::InitOutputTree()
   }
 }
 
+bool KoaEmsEventAnalyzer::Analyze()
+{
+  // 1. get the latest event from input buffer
+  if (!NextEvent())  return true;
+
+  // 2. decode
+  Decode();
+
+  // 3. update
+  Update();
+
+  // 4. fill tree
+  FillTree();
+
+  // 5. fill histograms
+  FillHist();
+
+  // 6. recycle input event buffer
+  Recycle();
+
+  // 7. go to next event
+  Analyze();
+}
+
 bool KoaEmsEventAnalyzer::NextEvent()
 {
-  // 1. check whether there is new ems event available
-  fCurrentEvent = fBuffer->PopTopItem();
-  if (!fCurrentEvent) {
+  // 1. get the next event on roll and whether it's referenced by other objects
+  fCurrentEvent = fBuffer->TopItem();
+  if (!fCurrentEvent || fCurrentEvent->fData.ref != 0 ) {
+    // if(fCurrentEvent && fCurrentEvent->fData.ref == 1)
+    //   std::cout << "EMS Event ref: " << fCurrentEvent->fData.ref << std::endl;
     return false;
   }
 
+  // 2. pop out the top item, since it's not referenced by any object
+  fCurrentEvent = fBuffer->PopTopItem();
+  fStat->processed++;
   return true;
 }
 
@@ -147,4 +176,13 @@ void KoaEmsEventAnalyzer::FillHist()
   for ( auto scalor : fScalorChMap ) {
   
   }
+}
+
+void KoaEmsEventAnalyzer::Finish()
+{
+  // clean the remaining items in the buffer
+  Analyze();
+
+  // standard finish tasks in base class
+  KoaRawEventAnalyzer::Finish();
 }

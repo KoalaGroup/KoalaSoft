@@ -21,4 +21,9 @@
 #pragma link C++ class PndStringSeparator + ;
 #pragma link C++ class PndGeoHandling + ;
 
+#pragma link C++ namespace KoaUtility;
+#pragma link C++ defined_in namespace KoaUtility;
+#pragma link C++ nestedclass;
+#pragma link C++ nestedtypedef;
+
 #endif

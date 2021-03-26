@@ -29,9 +29,7 @@ KoaElasticCalculator::KoaElasticCalculator(Double_t mom, Double_t rec_distance, 
 }
 
 KoaElasticCalculator::KoaElasticCalculator(Double_t mom) :
-  fMom(mom),
-  fRecDistance(0),
-  fFwdDistance(0)
+  fMom(mom)
 {
   PxPyPzMVector beam(0,0,fMom,fProtonMass);
   fKappa = (beam.energy()+beam.mass())/(beam.energy()-beam.mass());
@@ -42,13 +40,16 @@ KoaElasticCalculator::~KoaElasticCalculator()
   
 }
 
-Double_t KoaElasticCalculator::GetEnergyByRecZ(Double_t zposition)
+Double_t KoaElasticCalculator::GetEnergyByRecZ(Double_t zposition, Double_t yoffset)
 {
   if( zposition<0 ) {
     LOG(ERROR) << "fwd z position should be larger than 0";
   }
 
-  Double_t alpha = 180*TMath::ATan(zposition/fRecDistance/10.)/TMath::Pi();
+  double yposition = 3.175 + yoffset/10.; // in cm
+  // double yposition = 0;
+  double l = TMath::Sqrt(fRecDistance*fRecDistance+yposition*yposition);
+  Double_t alpha = 180*TMath::ATan(zposition/10./l)/TMath::Pi();
   return GetEnergyByAlpha(alpha);
 }
 
@@ -141,10 +142,13 @@ Double_t KoaElasticCalculator::GetAlphaByEnergy(Double_t T)
   return alpha;
 }
 
-Double_t KoaElasticCalculator::GetRecZByEnergy(Double_t T)
+Double_t KoaElasticCalculator::GetRecZByEnergy(Double_t T, Double_t yoffset)
 {
   Double_t alpha = GetAlphaByEnergy(T);
-  return 10*fRecDistance*TMath::Tan(alpha/180*TMath::Pi());
+
+  double yposition = 3.175 + yoffset/10.; // in cm
+  double l = TMath::Sqrt(fRecDistance*fRecDistance+yposition*yposition);
+  return 10*l*TMath::Tan(alpha/180*TMath::Pi());
 }
 
 Double_t KoaElasticCalculator::GetFwdXByEnergy(Double_t T)
@@ -152,6 +156,34 @@ Double_t KoaElasticCalculator::GetFwdXByEnergy(Double_t T)
   Double_t alpha = GetAlphaByEnergy(T);
   Double_t theta = GetThetaByAlpha(alpha);
   return fFwdDistance*TMath::Tan(theta/180*TMath::Pi());
+}
+
+Double_t KoaElasticCalculator::GetFwdTOFByAlpha(Double_t alpha)
+{
+  Double_t T = GetEnergyByAlpha(alpha)/1000.; //in GeV
+
+  Double_t pz_abs = fMom - TMath::Sqrt(T*T+2*fProtonMass*T)*TMath::Sin(alpha/180*TMath::Pi());
+  Double_t beta_fwd = pz_abs/fMom; //
+
+  double l_unit = 0.01*6.58/1.97; // cm in ns
+  double tof = fFwdDistance*l_unit/beta_fwd;
+  
+
+  return tof;
+}
+
+Double_t KoaElasticCalculator::GetRecTOFByAlpha(Double_t alpha)
+{
+  Double_t T = GetEnergyByAlpha(alpha)/1000.; //in GeV
+
+  double l_unit = 0.01*6.58/1.97; // cm in ns
+
+  Double_t px_abs = TMath::Sqrt(T*T+2*fProtonMass*T)*TMath::Cos(alpha/180*TMath::Pi());
+  double beta_rec = px_abs/(T+fProtonMass);
+
+  // double tof = fRecDistance*l_unit*TMath::Sqrt(fProtonMass/2./T);
+  double tof = fRecDistance*l_unit/beta_rec;
+  return tof;
 }
 
 Double_t KoaElasticCalculator::operator() (Double_t* x, Double_t* p)

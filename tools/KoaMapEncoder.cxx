@@ -44,7 +44,7 @@ void KoaMapEncoder::Init()
   fFwdDetIDRange[1]=11;
   fFwdNrOfSensors = fFwdDetIDRange[1] - fFwdDetIDRange[0] + 1;
 
-  fDetectorIDToVolName[12]="RecoilRear";
+  fDetectorIDToVolName[12]="Rear";
   fRecRearID = 12;
 
   //-------------------------------------//
@@ -62,7 +62,7 @@ void KoaMapEncoder::Init()
   fVolNameToDetectorID["SensorSc7"]=10;
   fVolNameToDetectorID["SensorSc8"]=11;
 
-  fVolNameToDetectorID["RecoilRear"]=12;
+  fVolNameToDetectorID["Rear"]=12;
 
   //-------------------------------------//
   fDetectorIDToChNr[0]=48;
@@ -205,6 +205,34 @@ std::vector<Int_t> KoaMapEncoder::GetRecRearChIDs()
     ids.emplace_back(EncodeChannelID(fRecRearID, i));
   }
   return ids;
+}
+
+std::map<Int_t, Int_t> KoaMapEncoder::GetOverlapChMaps()
+{
+  std::map<Int_t, Int_t> maps;
+
+  // Si1 & Si2
+  for(int i=0;i<20;i++){
+    auto id1 = EncodeChannelID(0,28+i);
+    auto id2 = EncodeChannelID(1,i);
+    maps.emplace(id1, id2);
+  }
+
+  // Si2 & Ge1
+  for(int i=0;i<9;i++){
+    auto id1 = EncodeChannelID(1,55+i);
+    auto id2 = EncodeChannelID(2,i);
+    maps.emplace(id1, id2);
+  }
+
+  // Ge1 & Ge2
+  for(int i=0;i<5;i++){
+    auto id1 = EncodeChannelID(2,27+i);
+    auto id2 = EncodeChannelID(3,i);
+    maps.emplace(id1, id2);
+  }
+
+  return maps;
 }
 
 ClassImp(KoaMapEncoder)

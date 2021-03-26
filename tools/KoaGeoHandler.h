@@ -82,12 +82,18 @@ class KoaGeoHandler : public TObject
     // hitPos here is the local coordinate in the sensor volume
     // return value is the encoded ch id
     Int_t RecLocalPositionToDetCh(Double_t* hitPos, Int_t detID);
-    // hitPos is the global coordinate 
+    // hitPos is the global coordinate
     // return value is the encoded ch id
     Int_t RecGlobalPositionToDetCh(Double_t* hitPos, Int_t detID);
     // return value is the center position of this channel along z-axis
     // here detChId is the encoded readout channel id
     Double_t RecDetChToPosition(Int_t detChId, Double_t& lower, Double_t& higher);
+    // return value is the center position of this strip along z-axis
+    // here stripId is the encoded strip id
+    Double_t RecDetStripToPosition(Int_t stripId, Double_t& lower, Double_t& higher);
+  // return the vector of encoded strip ids
+  std::vector<Int_t> GetStripIds() { return fStripIds; }
+  std::map<Int_t, std::vector<Int_t>> GetChIdToStripIds() { return fChIdToStripIds; }
 
     typedef struct{
       Double_t center;
@@ -120,6 +126,11 @@ class KoaGeoHandler : public TObject
     std::map<Int_t, StripRange>   fRecChIdToStripRange;
     // mapping from encoded strip id to encoded readout channel id
     std::map<Int_t, Int_t>        fRecStripIdToChId;
+    // mapping from encoded strip id to local strip range in sensor volume
+    std::map<Int_t, StripRange>   fRecStripIdToStripRange;
+  // collection of strip ids
+  std::vector<Int_t> fStripIds;
+  std::map<Int_t, std::vector<Int_t>> fChIdToStripIds;
 
     KoaGeoHandler(const KoaGeoHandler&);
     KoaGeoHandler operator=(const KoaGeoHandler&);

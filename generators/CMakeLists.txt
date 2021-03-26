@@ -5,6 +5,7 @@ ${SIMPATH}/include
 ${BASE_INCLUDE_DIRECTORIES}
 ${CMAKE_CURRENT_SOURCE_DIR}
 ${CMAKE_SOURCE_DIR}/data
+${CMAKE_SOURCE_DIR}/data/MCData
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
@@ -19,8 +20,7 @@ ${SIMPATH}/lib
 link_directories( ${LINK_DIRECTORIES})
 
 set(SRCS
-Pythia6Generator.cxx
-Pythia8Generator.cxx
+KoaPythia8Generator.cxx
 KoaPpelasticGenerator.cxx
 FairFilteredPrimaryGenerator.cxx
 FairEvtFilter.cxx

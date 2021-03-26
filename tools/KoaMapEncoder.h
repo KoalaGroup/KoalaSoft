@@ -63,6 +63,8 @@ class KoaMapEncoder : public TObject
   std::vector<Int_t> GetRecTdcChIDs();
   std::vector<Int_t> GetRecRearChIDs();
 
+  std::map<Int_t, Int_t> GetOverlapChMaps();
+
   Int_t GetChNr(Int_t detID) { return fDetectorIDToChNr[detID]; }
 
   static KoaMapEncoder* Instance()

@@ -74,18 +74,21 @@ Bool_t KoaEmsSource::InitUnpackers()
 
 Int_t KoaEmsSource::ReadEvent(UInt_t value)
 {
-  // 1) Get the next assembled koala event, if not read new cluster
+  // 1) Get the next assembled koala event from previous cluster
   if ( fKoaEvtAnalyzer->Analyze() ) {
     return 0;
   }
 
-  // 2) If no more assembled event, get the next cluster
+  // 2) process all EMS events in previous cluster before reading new cluster
+  fEmsEvtAnalyzer->Analyze();
+
+  // 3) If no more assembled event, get the next cluster
   if ( !NextCluster() ) {
     // error occured or interrupted by user during cluster reading
     return 1;
   }
 
-  // 3) parsing the new cluster
+  // 4) parsing the new cluster
   Int_t status = DecodeCluster();
   if ( status < 0 ) {
     // cluster structure not correct, skip this cluster
@@ -96,13 +99,10 @@ Int_t KoaEmsSource::ReadEvent(UInt_t value)
     return 3;
   }
 
-  // 4) process the ems event
-  fEmsEvtAnalyzer->Analyze();
-
-  // 5) assemble the new module events and fill in the koala event buffer
+  // 6) assemble the new module events and fill in the koala event buffer
   fAssembler->Assemble();
 
-  // 6) go back to ReadEvent again
+  // 7) go to the koala event loop for this cluster
   ReadEvent();
 }
 
@@ -272,6 +272,7 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
   KoaEmsEventBufferManager* event_manager = KoaEmsEventBufferManager::Instance();
   // 'EMS' is the key label of the ems event buffer
   auto event_buffer = event_manager->GetBuffer("EMS");
+  auto event_stat = event_manager->GetStatistic("EMS");
   auto event_data = event_buffer->PrepareNewItem();
 
   // we need event_number, trigger id and number of subevents
@@ -320,6 +321,7 @@ Int_t KoaEmsSource::ParseEvent(const ems_u32 *buf, Int_t size)
 
   // EmsEventData storage
   event_buffer->StoreNewItem();
+  event_stat->events++;
 
   return 0;
 }
@@ -343,10 +345,6 @@ Int_t KoaEmsSource::ParseSubevent(const ems_u32 *buf, Int_t size, ems_u32 is_id)
 //
 void KoaEmsSource::Close()
 {
-  // 1. event analyzers
-  fEmsEvtAnalyzer->Finish();
-  fKoaEvtAnalyzer->Finish();
-
   // 2. close input stream
   if ( fInput >= 0 ) {
     LOG(info) << "KoaEmsSource::Close : close input stream";
@@ -355,6 +353,10 @@ void KoaEmsSource::Close()
 
   // 3. TODO other
   fAssembler->Finish();
+
+  // 1. event analyzers
+  fKoaEvtAnalyzer->Finish();
+  fEmsEvtAnalyzer->Finish(); // ems analyzer must be at last
 }
 
 Bool_t KoaEmsSource::ReInitUnpackers()

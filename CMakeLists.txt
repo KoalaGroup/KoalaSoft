@@ -266,6 +266,8 @@ add_subdirectory (passive)
 add_subdirectory (detectors)
 add_subdirectory (daq)
 add_subdirectory (tools)
+add_subdirectory (reconstruction)
+add_subdirectory (calibration)
 add_subdirectory (analysis)
 add_subdirectory (test)
 

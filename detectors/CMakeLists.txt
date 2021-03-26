@@ -10,7 +10,7 @@
 add_subdirectory(recoil)
 
 # Implementation of recoil and forward detector from KOALA group
-add_subdirectory(scint-forward)
+add_subdirectory(scintforward)
 
 # Implementation of forward detector from LMD group
  add_subdirectory(lmdforward)

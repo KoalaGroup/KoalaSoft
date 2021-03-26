@@ -29,7 +29,19 @@ KoaRecMisalignPar.cxx
 KoaRecPoint.cxx
 KoaRecDigi.cxx
 KoaRecDigitizationIdeal.cxx
+KoaRecChargeDivisionIdeal.cxx
+KoaRecAddNoise.cxx
+KoaRecNoisePar.cxx
+KoaRecAddFano.cxx
+KoaRecFanoPar.cxx
+KoaRecChargeCollection.cxx
+KoaRecChargeCollectionPar.cxx
+KoaRecAddTimeWalk.cxx
+KoaRecTimeWalkPar.cxx
+KoaRecAddTimeJitter.cxx
+KoaRecTimeJitterPar.cxx
 KoaRecCluster.cxx
+KoaRecNoiseGenerator.cxx
 )
 
 Set(LINKDEF SimpleRecLinkDef.h)
