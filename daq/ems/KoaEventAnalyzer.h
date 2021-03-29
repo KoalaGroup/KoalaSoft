@@ -35,6 +35,7 @@ private:
 
   // koala event buffer
   KoaEventBuffer* fBuffer; //!
+  KoaBufferStatistic* fStat;//!
   KoaEventDataItem* fCurrentEvent; //!
 
   // ems configuration and channel mapping
@@ -52,6 +53,9 @@ private:
   Short_t   *fNrWords; //!
   Long64_t *fTimestamp; //!
   Int_t (*fData)[34]; //!
+  Long64_t  *fSecond;//!
+  Long64_t  *fUsecond;//!
+
   std::map<Int_t, Int_t*> fAmplitudeValueMapInput; //!
   std::map<Int_t, Int_t*> fTimeValueMapInput; //!
   std::map<Int_t, Char_t*> fTimeResolutionMap; //!

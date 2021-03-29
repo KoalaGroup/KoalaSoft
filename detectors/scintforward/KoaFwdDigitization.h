@@ -9,6 +9,7 @@
 #define KOAFWDDIGITIZATION_H
 
 #include "FairTask.h"
+#include "TRandom3.h"
 #include <map>
 
 class TClonesArray;
@@ -74,6 +75,7 @@ class KoaFwdDigitization : public FairTask
     KoaFwdStrips  fFiredStrips;
 
     /** parameters used for time & energy smearing **/
+  TRandom3 fRndEngine;
     KoaFwdDigitizationPar* fDigitizationPar;
     Double_t fTimeSigma;
     Double_t fEnergySigma;

@@ -35,6 +35,10 @@ public:
   // Mxdc32 Timestamp
   Long64_t  Timestamp; // frq of VME bus, unit: 25 ns
 
+  // EMS event timestamp from PC's OS
+  Long_t Second;
+  Long_t Usecond;
+
 public:
   inline std::map<Int_t, Int_t*> GetAmplitudeValueMap() const;
   inline std::map<Int_t, Int_t*> GetRecAmplitudeValueMap() const;

@@ -22,7 +22,7 @@ public:
 
   virtual void Init();
   virtual void Assemble();
-  virtual void Finish() {}
+  virtual void Finish();
   virtual void PrintStatistics() {}
   
 
@@ -33,21 +33,26 @@ public:
     fMaxTimeDiff = diff;
   }
 
-private:
+protected:
+  virtual bool NextEvent() { return IsFull(); }
+
+  enum class TSType {Equal, Greater, Less };
   // whether two timestamp are synchronized
-  Bool_t IsSameTS(int64_t first, int64_t second)
+  TSType IsSameTS(int64_t first, int64_t second)
   {
     int64_t delta_t = first - second;
 
     if ( delta_t > TS_RANGE/2 ) delta_t -= TS_RANGE;
     if ( delta_t < -TS_RANGE/2 ) delta_t += TS_RANGE;
 
-    if ( delta_t > fMaxTimeDiff || delta_t < -fMaxTimeDiff ) {
-      LOG(INFO) << "Unsynchronized timestamp: " << first << " != " << second;
-      return false;
+    if ( delta_t > fMaxTimeDiff ){
+      return TSType::Greater;
+    }
+    else if ( delta_t < -fMaxTimeDiff ) {
+      return TSType::Less;
     }
 
-    return true;
+    return TSType::Equal;
   }
 
   // whether all of the module have at least one event data available
@@ -60,13 +65,32 @@ private:
     return true;
   }
 
-private:
+  // collect the timestamps of current item from all modules
+  // in the same time, correct the qdc offset
+  void CollectTS()
+  {
+    for ( auto& module : fModuleTable ) {
+      auto module_id = module.first;
+      auto ts = fModuleBuffer[module_id]->Current()->fData.timestamp;
+      if(module.second.type == MesytecType::MQDC32) {
+        ts -= fQdcTimeDiff;
+      }
+      fTSs[module_id] = ts;
+    }
+  }
+
+protected:
+  int fModuleNr;
   std::map<ModuleId, KoaMxdc32Buffer*> fModuleBuffer;
+  std::map<ModuleId, KoaBufferStatistic*> fModuleStat;
   ModuleTable fModuleTable;
   KoaEventBuffer* fKoalaBuffer;
+  KoaBufferStatistic* fKoalaStat;
 
   Int_t   fQdcTimeDiff; // correction of QDC timestamp, the width of QDC gate in 62.5ns
   Int_t   fMaxTimeDiff; // the maximum difference of timestamps between module
+
+  std::map<ModuleId,int64_t> fTSs; // collection of current timestamps
 
   ClassDef(KoaEventAssembler, 1)
 };

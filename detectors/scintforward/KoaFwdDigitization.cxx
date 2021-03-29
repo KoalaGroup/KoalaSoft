@@ -15,7 +15,6 @@
 #include "FairRunAna.h"
 #include "FairRuntimeDb.h"
 #include "FairLogger.h"
-#include "TRandom.h"
 
 // ---- Default constructor -------------------------------------------
 KoaFwdDigitization::KoaFwdDigitization()
@@ -24,7 +23,8 @@ KoaFwdDigitization::KoaFwdDigitization()
    fTimeSigma(0),
    fEnergySigma(0),
    fEnergyNoise(0),
-   fEnergyNoiseSigma(0)
+   fEnergyNoiseSigma(0),
+   fRndEngine(0)
 {
   fMapEncoder = KoaMapEncoder::Instance();
   LOG(debug) << "Defaul Constructor of KoaFwdDigitization";
@@ -112,8 +112,10 @@ void KoaFwdDigitization::Exec(Option_t* /*option*/)
     KoaFwdPoint* curPoint = (KoaFwdPoint*)fPoints->At(iPoint);
     FillFiredStrip(curPoint);
   }
+
   //
   SmearDigis();
+
   //
   AddDigis();
 }
@@ -140,7 +142,7 @@ void KoaFwdDigitization::FillFiredStrip(KoaFwdPoint* McPoint)
   //
   Int_t detID = McPoint->GetDetectorID();
   Int_t chID = fMapEncoder->EncodeChannelID(detID, 0);
-  Double_t eLoss = 1.e6*McPoint->GetEnergyLoss();
+  Double_t eLoss = 1.e6*McPoint->GetEnergyLoss(); // transfer to keV
   Double_t timestamp = McPoint->GetTime();
 
   auto search = fFiredStrips.find(chID);
@@ -164,15 +166,15 @@ void KoaFwdDigitization::SmearDigis()
   if(fTimeSigma){
     for(auto& strip : fFiredStrips){
       Double_t time = strip.second.fTimestamp;
-      strip.second.fTimestamp = gRandom->Gaus(time, fTimeSigma);
+      strip.second.fTimestamp = fRndEngine.Gaus(time, fTimeSigma);
     }
   }
 
   if(fEnergySigma || fEnergyNoise || fEnergyNoiseSigma){
     for(auto& strip : fFiredStrips){
       Double_t energy = strip.second.fCharge;
-      Double_t noise = gRandom->Gaus(fEnergyNoise, fEnergyNoiseSigma);
-      energy = noise + gRandom->Gaus(energy, fEnergySigma);
+      Double_t noise = fRndEngine.Gaus(fEnergyNoise, fEnergyNoiseSigma);
+      energy = noise + fRndEngine.Gaus(energy, fEnergySigma);
       strip.second.fCharge = energy;
     }
   }

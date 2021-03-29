@@ -18,7 +18,7 @@
 class KoaEvtFilterOnGeometry : public FairEvtFilter
 {
  public:
-  KoaEvtFilterOnGeometry() {}
+  KoaEvtFilterOnGeometry() : fUnlimitY(false), fUnlimitZ(false) {}
   KoaEvtFilterOnGeometry(const char* name, const char* title="KoaEvtFilterOnGeometry") {}
   virtual ~KoaEvtFilterOnGeometry() {}
 

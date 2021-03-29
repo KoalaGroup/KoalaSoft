@@ -9,6 +9,7 @@ Set(SYSTEM_INCLUDE_DIRECTORIES
 message("GEANT 3 INCLUDE DIRECTORY: ${GEANT3_INCLUDE_DIR}")
 
 
+############### include and link directories ######################
 set(INCLUDE_DIRECTORIES
 #put here all directories where header files are located
 ${BASE_INCLUDE_DIRECTORIES}
@@ -54,7 +55,8 @@ Set(LIBRARY_NAME KoaTools)
 Set(DEPENDENCIES
   Base
   Geom
-  Core
+  Physics
+  Hist
   KoaData
   Physics
   Hist
@@ -64,3 +66,18 @@ Set(DEPENDENCIES
 )
 
 GENERATE_LIBRARY()
+
+############### executables ######################
+set(SRCS
+  KoaMacroExecutor.cxx
+  )
+
+set(DEPENDENCIES
+  Base
+  Core
+  FairLogger::FairLogger
+  )
+
+set(EXE_NAME koa_execute)
+
+GENERATE_EXECUTABLE()

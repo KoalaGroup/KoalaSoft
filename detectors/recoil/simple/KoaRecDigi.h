@@ -93,8 +93,8 @@ class KoaRecDigi : public FairTimeStamp
 		friend class boost::serialization::access;
 
 		std::vector<Int_t> fIndex;   // indice of mc points contributing to this digi
-		Int_t fDetID;                // branch ID of mc point array
-		Double_t fCharge;            // collected charge, could be energy (KeV) in ideal Digitization
+		Int_t fDetID;                // encoded detector channel id
+		Double_t fCharge;            // collected charge (eV) or energy (KeV) or ADC counts
     
     ClassDef(KoaRecDigi,1);
   };

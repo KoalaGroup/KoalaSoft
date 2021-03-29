@@ -50,7 +50,7 @@ public:
   }
 
   /* analyze */
-  bool Analyze() {
+  virtual bool Analyze() {
     // 1. get the latest event from input buffer
     if (!NextEvent())  return false;
 
@@ -73,7 +73,7 @@ public:
   }
 
   /* finish */
-  void Finish() {
+ virtual void Finish() {
     if ( fPersistence && fRootFile ) {
       fRootFile->Write();
     }

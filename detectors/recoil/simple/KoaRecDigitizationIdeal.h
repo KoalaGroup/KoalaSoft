@@ -15,25 +15,6 @@ class TClonesArray;
 class KoaGeoHandler;
 class KoaRecPoint;
 
-
-struct KoaRecStrip{
-/* KoaRecStrip(Double_t timestamp, Double_t charge) : */
-/*   fTimestamp(timestamp), fCharge(charge) {} */
-/* KoaRecStrip(const KoaRecStrip& rhs) : */
-/*   fTimestamp(rhs.fTimestamp), fCharge(rhs.fCharge) {} */
-/*   ~KoaRecStrip() {} */
-/*   KoaRecStrip& operator=(const KoaRecStrip& rhs){ */
-
-/*     fTimestamp = rhs.fTimestamp; */
-/*     fCharge = rhs.fCharge; */
-/*   } */
-
-  Double_t fTimestamp;
-  Double_t fCharge;
-};
-
-using KoaRecStrips = std::map<Int_t, KoaRecStrip>;
-
 class KoaRecDigitizationIdeal : public FairTask
 {
   public:
@@ -67,6 +48,13 @@ class KoaRecDigitizationIdeal : public FairTask
 
     /** Reset eventwise counters **/
     void Reset();
+
+ public:
+  struct KoaRecStrip{
+    Double_t fTimestamp;
+    Double_t fCharge;
+  };
+  using KoaRecStrips = std::map<Int_t, KoaRecStrip>;
 
  private:
     void FillFiredStrips(KoaRecPoint* McPoint);

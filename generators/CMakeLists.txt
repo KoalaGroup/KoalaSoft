@@ -20,8 +20,7 @@ ${SIMPATH}/lib
 link_directories( ${LINK_DIRECTORIES})
 
 set(SRCS
-Pythia6Generator.cxx
-Pythia8Generator.cxx
+KoaPythia8Generator.cxx
 KoaPpelasticGenerator.cxx
 FairFilteredPrimaryGenerator.cxx
 FairEvtFilter.cxx

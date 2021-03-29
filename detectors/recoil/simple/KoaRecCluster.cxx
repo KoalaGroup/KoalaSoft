@@ -104,6 +104,13 @@ Double_t KoaRecCluster::TimeTotal() const
   return min;
 }
 
+Double_t KoaRecCluster::TimeFirstCh() const
+{
+  auto result = std::min_element(fIds,fIds+fNrOfDigis);
+  auto idx = std::distance(fIds,result);
+  return fTimestamps[idx]; 
+}
+
 Int_t KoaRecCluster::ChIdTotal() const
 {
   Double_t hit_pos = PositionTotal(); // in cm
@@ -117,6 +124,24 @@ Int_t KoaRecCluster::GetMaximaChId() const
   auto result = std::max_element(fEnergies, fEnergies+fNrOfDigis);
   Int_t index = std::distance(fEnergies, result);
   return fIds[index];
+}
+
+Int_t KoaRecCluster::GetFirstChId() const
+{
+  auto result = std::min_element(fIds,fIds+fNrOfDigis);
+  return *result;
+}
+
+Int_t KoaRecCluster::GetFirstChIdAboveThresh() const
+{
+  int min_id = fIds[0];
+  for( auto index=0; index<fNrOfDigis; index++) {
+    if(fEnergies[index] > fThreshold) {
+      if(fIds[index] < min_id)
+        min_id = fIds[index];
+    }
+  }
+  return min_id;
 }
 
 Double_t KoaRecCluster::Maxima() const
@@ -221,7 +246,7 @@ bool KoaRecCluster::isInCluster(KoaRecDigi* theDigi) const
 void KoaRecCluster::AddDigi(KoaRecDigi* theDigi)
 {
   if (fNrOfDigis == 32 ) {
-    LOG(WARNING) << "Too much digits in one cluster, ignore this cluster in later analysis!";
+    // LOG(WARNING) << "Too much digits in one cluster, ignore this cluster in later analysis!";
   }
 
   fIds[fNrOfDigis] = theDigi->GetDetID();

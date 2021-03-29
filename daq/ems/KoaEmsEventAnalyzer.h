@@ -22,6 +22,7 @@ class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
   void InitOutputBuffer();
   void InitOutputTree();
 
+  bool Analyze();
   bool NextEvent();
   void Decode();
   void FillTree();
@@ -29,10 +30,12 @@ class KoaEmsEventAnalyzer : public KoaRawEventAnalyzer
 
   void Update();
   void FillHist();
+  void Finish();
 
  private:
   // ems event buffer and current item
   KoaEmsEventBuffer* fBuffer;
+  KoaBufferStatistic *fStat;
   KoaEmsEventDataItem* fCurrentEvent;
 
   // decoded ems event data

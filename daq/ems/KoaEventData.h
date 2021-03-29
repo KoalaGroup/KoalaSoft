@@ -19,6 +19,7 @@ struct KoaEventData
     for( auto module : modules ) {
       module.second->Recycle();
     }
+    modules.clear();
   }
 
   std::map<ems_u32, Mxdc32Data*> modules;

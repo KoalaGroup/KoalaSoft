@@ -25,6 +25,8 @@ link_directories( ${LINK_DIRECTORIES})
 set(SRCS
 #Put here your sourcefiles
 KoaAnaSolidAngle.cxx
+KoaTransformToArray.cxx
+KoaAnaTrigger.cxx
 )
 
 Set(LINKDEF AnalysisLinkDef.h)
@@ -36,6 +38,8 @@ Set(DEPENDENCIES
     KoaData
     KoaSimpleRec
     KoaTools
+    KoaEmsDaq
+    KoaScintFwd
 )
 
 GENERATE_LIBRARY()

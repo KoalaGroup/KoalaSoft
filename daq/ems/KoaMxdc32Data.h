@@ -3,6 +3,7 @@
 
 #include "ems_interface.h"
 #include "KoaBufferTemplate.h"
+#include "KoaEmsEventData.h"
 
 /* This class is a data class holding an unpacked event data from a mesytec mxdc32 module.
  * It should be used together with tempalte class 'KoaBufferItem' as an template argument.
@@ -23,8 +24,12 @@ struct KoaMxdc32Data
 
   void Initialize() {
     std::memset(this, 0, sizeof *this);
+    ems_event = nullptr;
   }
-  void Recycle() {}
+  void Recycle() {
+    ems_event->fData.ref--;
+    ems_event = nullptr;
+  }
 
   ems_u32 data[34];// channel data words including trigger channel, the index is ch_id, 33,34 is trigger input
   ems_u32 header; // header word
@@ -36,6 +41,8 @@ struct KoaMxdc32Data
   int64_t  timestamp; // timestamp of this event (extracted and with ext_stamp)
   uint64_t ext_stamp; // extended timestamp (extracted)
   bool ext_stamp_valid; // whether extended timestamp is found
+
+  KoaEmsEventDataItem* ems_event; // pointer to associated ems event, no ownership
 };
 
 template class KoaBufferItem<KoaMxdc32Data>;

@@ -34,10 +34,10 @@ class KoaFwdDigitizationPar : public FairParGenericSet
     Double_t GetEnergyNoiseSigma() {return fEnergyNoiseSigma;}
 
   private:
-    Double_t fTimeSigma;
-    Double_t fEnergySigma;
-    Double_t fEnergyNoise;
-    Double_t fEnergyNoiseSigma;
+  Double_t fTimeSigma; // in ns
+  Double_t fEnergySigma; // in keV
+  Double_t fEnergyNoise; //in keV
+  Double_t fEnergyNoiseSigma; // in keV
 
     KoaFwdDigitizationPar(const KoaFwdDigitizationPar&);
     KoaFwdDigitizationPar& operator=(const KoaFwdDigitizationPar&);
