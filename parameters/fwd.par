@@ -26,11 +26,11 @@ SensorRotationPsi: Double_t \
 [KoaFwdDigitizationPar]
 //----------------------------------------------------------------------------
 TimeSigma:  Double_t \
-0
+0.17
 EnergySigma:  Double_t \
-0
+80
 EnergyNoise:  Double_t \
-0
+300
 EnergyNoiseSigma: Double_t \
-0
+10
 ##############################################################################

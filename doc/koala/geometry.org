@@ -1,0 +1,27 @@
+* passive
+** cave
+*** Class: KoaCave (based on text configuration file)
+    File: KoaCave.h/cxx
+    Directory: /passive/
+    Namespace: global
+*** Geometry file
+    File: cave.geo
+    Directory: /geometry/
+** pipe
+*** Class: KoaPipe (based on ROOT model)
+    File:: KoaPipe.h/cxx
+    Directory: /passive/
+    Namespace: global
+*** Geometry file
+    File: pipe.root
+    Directory: /geometry/
+    
+* detector
+
+** forward (scintillator based)
+
+** recoil (simplified ROOT model)
+   
+* material file
+  File: media.geo
+  Directory: /geometry/

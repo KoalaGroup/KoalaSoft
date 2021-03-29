@@ -1,0 +1,46 @@
+.current:
+  variables:
+    FAIRSOFT_VERSION: jun19
+    FAIRROOT_VERSION: v18.2.0
+  tags:
+    - jun19
+    - v18.2.0
+    - may18 # this is used to ensure the same runner is used
+
+before_script:
+  - echo "PANDAROOT_SETTINGS=$PANDAROOT_SETTINGS"
+  - source $PANDAROOT_SETTINGS/configSettings.sh
+  - echo "FAIRSOFT VERSION $FAIRSOFT_VERSION"
+  - echo "FAIRROOT VERSION $FAIRROOT_VERSION"
+  - export PATH=$SIMPATH/bin:$PATH
+  - which cmake
+  - cmake --version
+
+build:
+  extends: .current
+  stage: build
+  script:
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make -j4
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev"'
+      when: always
+  artifacts:
+    expire_in: 30min
+    paths:
+      - build/
+
+test:
+  extends: .current
+  stage: test
+  script:
+    - cd build
+    - make test
+  rules:
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev"'
+      when: on_success
+  needs:
+    - job: build
+      artifacts: true

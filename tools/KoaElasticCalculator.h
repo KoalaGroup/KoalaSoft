@@ -51,7 +51,7 @@ class KoaElasticCalculator : public TObject
   /* Get-ers */
   /* Get deposited energy based on position along beam axis.
      It's valid both in GeoModel and Non-GeoModel modes. zposition in mm, return value in MeV */
-  Double_t GetEnergyByRecZ(Double_t zposition);
+  Double_t GetEnergyByRecZ(Double_t zposition, Double_t yoffset=0);
   /* Get T of recoil proton by alpha. alpha is the angle between recoil proton momentum and axis perpendicular to beam axis. alpha in degree, return value in MeV */
   Double_t GetEnergyByAlpha(Double_t alpha);
   /* Get T of recoil proton by theta. theta is the angle between scattering proton momentum and beam axis. theta in degree, return value in MeV */
@@ -70,15 +70,20 @@ class KoaElasticCalculator : public TObject
 
   /* Get recoil angle based on recoil energy. T in MeV, return value in degree */
   Double_t GetAlphaByEnergy(Double_t T);
-  /* Get rec hit position in z-axis based on recoil energy. T in MeV, return value in mm */
-  Double_t GetRecZByEnergy(Double_t T);
+  /* Get rec hit position in z-axis based on recoil energy. T in MeV and y offset in mm, return value in mm */
+  Double_t GetRecZByEnergy(Double_t T, Double_t yoffset = 0);
   /* Get fwd hit position in x-axis based on recoil energy. T in MeV, return value in cm */
   Double_t GetFwdXByEnergy(Double_t T);
 
+  /* Get TOF of fwd scattering proton based on recoil angle (in degree), return value in ns*/
+  Double_t GetFwdTOFByAlpha(Double_t alpha);
+
+  Double_t GetRecTOFByAlpha(Double_t alpha);
+
  private:
   Double_t fMom; // momentum of incident proton, in GeV
-  Double_t fRecDistance; // distance of recoil sensor surface to IP, in cm
-  Double_t fFwdDistance; // distance of fwd sensor surface to IP, in cm
+  Double_t fRecDistance = 90.4; // distance of recoil sensor surface to IP, in cm
+  Double_t fFwdDistance = 460; // distance of fwd sensor surface to IP, in cm
 
   static Double_t fProtonMass;
   Double_t fKappa;
@@ -87,3 +92,4 @@ class KoaElasticCalculator : public TObject
 };
 
 #endif
+

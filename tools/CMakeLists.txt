@@ -1,29 +1,42 @@
- ################################################################################
- #    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    #
- #                                                                              #
- #              This software is distributed under the terms of the             # 
- #         GNU Lesser General Public Licence version 3 (LGPL) version 3,        #  
- #                  copied verbatim in the file "LICENSE"                       #
- ################################################################################
-# Create a library called "libKoaTools" which includes the source files given in
-# the array .
-# The extension is already found.  Any number of sources could be listed here.
+# Create a library called "libKoaTools"
+Set(SYSTEM_INCLUDE_DIRECTORIES
+  ${SYSTEM_INCLUDE_DIRECTORIES}
+  ${GEANT3_INCLUDE_DIR}
+  ${CLHEP_INCLUDE_DIR}
+  ${BASE_INCLUDE_DIRECTORIES} 
+  ${Boost_INCLUDE_DIR}
+)
+message("GEANT 3 INCLUDE DIRECTORY: ${GEANT3_INCLUDE_DIR}")
 
+
+############### include and link directories ######################
 set(INCLUDE_DIRECTORIES
-${BASE_INCLUDE_DIRECTORIES}
 #put here all directories where header files are located
-${CMAKE_SOURCE_DIR}/tools
+${BASE_INCLUDE_DIRECTORIES}
+${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 include_directories(${INCLUDE_DIRECTORIES})
-include_directories(${SYSTEM_INCLUDE_DIRECTORIES})
 
 set(LINK_DIRECTORIES
 ${ROOT_LIBRARY_DIR}
 ${FAIRROOT_LIBRARY_DIR}
-) 
-
+)
+include_directories(SYSTEM ${SYSTEM_INCLUDE_DIRECTORIES})
 link_directories( ${LINK_DIRECTORIES})
+
+############### library ######################
+set(HEADERS
+  KoaGeoHandler.h
+  KoaMapHandler.h
+  KoaMapEncoder.h
+  KoaElasticCalculator.h
+  KoaTextUtility.h
+  PndGeoHandling.h
+  PndSensorNamePar.h
+  PndSensorNameContFact.h
+  PndStringSeparator.h
+  )
 
 set(SRCS
 #Put here your sourcefiles
@@ -31,14 +44,35 @@ KoaGeoHandler.cxx
 KoaMapHandler.cxx
 KoaMapEncoder.cxx
 KoaElasticCalculator.cxx
+PndGeoHandling.cxx
+PndSensorNamePar.cxx
+PndSensorNameContFact.cxx
+PndStringSeparator.cxx
 )
 
-Set(LINKDEF KoaToolsLinkDef.h)
+Set(LINKDEF ToolsLinkDef.h)
 Set(LIBRARY_NAME KoaTools)
 Set(DEPENDENCIES
-    Base
-    Geom
-    Core
+  Base
+  Geom
+  Physics
+  Hist
+  KoaData
 )
 
 GENERATE_LIBRARY()
+
+############### executables ######################
+set(SRCS
+  KoaMacroExecutor.cxx
+  )
+
+set(DEPENDENCIES
+  Base
+  Core
+  FairLogger::FairLogger
+  )
+
+set(EXE_NAME koa_execute)
+
+GENERATE_EXECUTABLE()

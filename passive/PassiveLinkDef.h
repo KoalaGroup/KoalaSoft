@@ -17,7 +17,6 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class  KoaMagnet+;
 #pragma link C++ class  KoaCave+;
 #pragma link C++ class KoaGeoCave;
 #pragma link C++ class KoaPassiveContFact;

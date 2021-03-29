@@ -1,0 +1,5 @@
+* Calibration
+
+  noise_filter -->  energy_calibration -->  time_shift --> time_walk
+
+  pedestal + threshold   -->  adc parameter      -->  time shift  --> time walk

@@ -90,6 +90,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
     for(int ch=16;ch<48;ch++){
       low = SumWidth;
@@ -101,6 +115,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
     // Si2: 1-in-1 for all 64 channels
     SumWidth = 0;
@@ -115,6 +143,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
 
     // Ge1: 1-in-1 for the first 9 channels
@@ -133,6 +175,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
     for(int ch=9;ch<15;ch++){
       low = SumWidth;
@@ -144,6 +200,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
     for(int ch=15;ch<27;ch++){
       low = SumWidth;
@@ -155,6 +225,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
     for(int ch=27;ch<32;ch++){
       low = SumWidth;
@@ -166,6 +250,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
   
     // Ge2: 2-in-1 for the first 60 channels (30 ch)
@@ -183,6 +281,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
     for(int ch=30;ch<31;ch++){
       low = SumWidth;
@@ -194,6 +306,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
     for(int ch=31;ch<32;ch++){
       low = SumWidth;
@@ -205,6 +331,20 @@ Int_t KoaGeoHandler::InitMatrix()
       range.higher = high*STRIPWIDTH - fRecDetDimension[detId];
       range.center = (range.lower + range.higher)/2;
       fRecChIdToStripRange[detChId] = range;
+
+      std::vector<Int_t> stripIds;
+      for(int strip=low; strip<high;strip++){
+        detStripId = fMapEncoder->EncodeChannelID(detId, strip);
+        fStripIds.emplace_back(detStripId);
+
+        range.lower = strip*STRIPWIDTH - fRecDetDimension[detId];
+        range.higher = (strip+1)*STRIPWIDTH - fRecDetDimension[detId];
+        range.center = (range.lower + range.higher)/2;
+        fRecStripIdToStripRange[detStripId] = range;
+
+        stripIds.emplace_back(detStripId);
+      }
+      fChIdToStripIds[detChId] = stripIds;
     }
   }
   return 1;
@@ -575,8 +715,9 @@ Int_t KoaGeoHandler::RecLocalPositionToDetCh(Double_t* hitPos, Int_t detID)
   Int_t strip_ch = (hitPos[2] + fRecDetDimension[detID])/STRIPWIDTH;
   strip_ch = fMapEncoder->EncodeChannelID(detID,strip_ch);
   auto search = fRecStripIdToChId.find(strip_ch);
-  if(search == fRecStripIdToChId.end())
-    strip_ch--;
+  while(search == fRecStripIdToChId.end()) {
+    search = fRecStripIdToChId.find(--strip_ch);
+  }
 
   return fRecStripIdToChId[strip_ch];
 }
@@ -597,6 +738,13 @@ Double_t KoaGeoHandler::RecDetChToPosition(Int_t detChId, Double_t& lower, Doubl
   return range.center;
 }
 
+Double_t KoaGeoHandler::RecDetStripToPosition(Int_t stripId, Double_t& lower, Double_t& higher)
+{
+  StripRange range = fRecStripIdToStripRange[stripId];
+  lower = range.lower;
+  higher = range.higher;
+  return range.center;
+}
 
 void KoaGeoHandler::NavigateTo(TString volName)
 {

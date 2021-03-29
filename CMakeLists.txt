@@ -6,7 +6,7 @@
 # and the experiment part.
 
 # Check if cmake has the required version
-CMAKE_MINIMUM_REQUIRED(VERSION 3.11.0 FATAL_ERROR)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0 FATAL_ERROR)
 
 #######################################################
 # Version number of KoalaSoft
@@ -139,6 +139,17 @@ find_package2(PUBLIC FairLogger  VERSION 1.2.0 REQUIRED)
 find_package2(PUBLIC Pythia6)
 find_package2(PUBLIC Pythia8)
 find_package2(PUBLIC Geant3)
+ Set(GEANT3_INCLUDE_DIR ${Geant3_INCLUDE_DIRS})
+    if(Geant3_FOUND)
+      list(APPEND PROJECT_PACKAGE_COMPONENTS Geant3)
+      Set(Geant3_LIBRARY_DIR ${Geant3_DIR}/${Geant3_CMAKE_INSTALL_LIBDIR})
+      Set(G3SYS ${Geant3_DIR})
+      SET(LD_LIBRARY_PATH ${LD_LIBRARY_PATH} ${Geant3_LIBRARY_DIR})
+      FIND_PATH(Geant3_SYSTEM_DIR NAMES data PATHS
+        ${Geant3_DIR}/../../share/geant3
+        NO_DEFAULT_PATH)
+    endif()
+
 find_package2(PUBLIC Geant4)
 Find_Package2(PUBLIC VGM)
 find_package2(PUBLIC Geant4VMC)
@@ -163,11 +174,32 @@ Unset(Boost_INCLUDE_DIR CACHE)
 Unset(Boost_LIBRARY_DIRS CACHE)
 
 find_package2(PUBLIC Boost
-  VERSION 1.67 ${FairMQ_Boost_VERSION}
-  COMPONENTS thread system timer program_options random filesystem chrono exception regex serialization log log_setup atomic date_time signals ${FairMQ_Boost_COMPONENTS}
+  VERSION ${FairMQ_Boost_VERSION}
+  COMPONENTS 
+    thread 
+    system 
+    timer 
+    program_options 
+    random 
+    filesystem 
+    chrono 
+    exception 
+    regex 
+    serialization 
+    log 
+    log_setup 
+    atomic 
+    date_time 
+    signals
+    unit_test_framework
+    ${FairMQ_Boost_COMPONENTS}
 )
 
+# globally add dynamic link flag for boost unit test
+add_definitions(-DBOOST_TEST_DYN_LINK=1)
+
 If (Boost_FOUND)
+  message("Boost found ${Boost_VERSION}")
   Set(Boost_Avail 1)
 Else (Boost_FOUND)
   Set(Boost_Avail 0)
@@ -228,16 +260,16 @@ ENDIF(HAS_CXX11_SHAREDPOINTER)
 # cause another cmake executable to run.  The same process will walk through
 # the project's entire directory structure.
 
-add_subdirectory (KoaData)
-add_subdirectory (KoaGenerators)
-add_subdirectory (rec)
-add_subdirectory (fwd)
+add_subdirectory (data)
+add_subdirectory (generators)
 add_subdirectory (passive)
-add_subdirectory (field)  
-add_subdirectory (tools)  
-add_subdirectory (analysis)  
-add_subdirectory (unpack)  
-add_subdirectory (test)  
+add_subdirectory (detectors)
+add_subdirectory (daq)
+add_subdirectory (tools)
+add_subdirectory (reconstruction)
+add_subdirectory (calibration)
+add_subdirectory (analysis)
+add_subdirectory (test)
 
 #######################################################
 WRITE_CONFIG_FILE(config.sh)

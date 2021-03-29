@@ -1,4 +1,0 @@
-* FairMCPoint definition: 
-** Inherited from FairMultiLinkedData_Interface
-** Template member function: serialize
-** friend class: boost:serialization::access

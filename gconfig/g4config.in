@@ -1,26 +1,43 @@
-#/********************************************************************************
-# *    Copyright (C) 2014 GSI Helmholtzzentrum fuer Schwerionenforschung GmbH    *
-# *                                                                              *
-# *              This software is distributed under the terms of the             * 
-# *         GNU Lesser General Public Licence version 3 (LGPL) version 3,        *  
-# *                  copied verbatim in the file "LICENSE"                       *
-# ********************************************************************************/
+# $Id: g4config.in,v 1.4 2006/03/30 12:26:13 turany Exp $
 #
 # Geant4 configuration macro for Example02
 # (called from Root macro Config.C)
 
-/mcVerbose/all 0
-/mcVerbose/runAction 1
-/mcVerbose/composedPhysicsList 1
-#/mcVerbose/trackManager 2
+# specs
 
-# Omit output from threads except the one from the specified thread
-# /control/cout/ignoreThreadsExcept threadID
-# if threadID is greater than the actual number of threads, no output is hown from worker threads
-# To reset, use -1 as threadID
-/control/cout/ignoreThreadsExcept -1
+#/process/eLoss/subsec  false
+#/process/eLoss/minsubsec 2 cm
+  
 
-/run/particle/applyCuts
+# B field -> 0
+#/mcDet/fieldType None
 
+# don't store secondaries
+#/mcTracking/saveSecondaries true
+
+
+
+#/mcPhysics/setSpecialCuts false
+#/mcPhysics/printGeneralCuts true
+
+#/mcPhysics/setEM  false
+#/mcPhysics/setMuon false
+#/mcPhysics/setHadron false
+#/mcPhysics/setOptical false
+
+
+#/mcPhysics/rangeCut 1.
+
+
+#/mcVerbose/all 2
+#/mcVerbose/geometryManager 1
+#/mcVerbose/physicsList 2
 #/tracking/verbose 1
+
+#/run/particle/dumpCutValues
+
+# Limit max number of Cerenkov photons per step
+# (Needed as Cerenkov process does not limit step itself)
+#
+
 

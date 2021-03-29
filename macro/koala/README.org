@@ -1,0 +1,31 @@
+* Reconstruction Task/Macro Chain
+** beam test data
+   | Step | Function                          | Macro                       | Input                                                          | Output                                                               | Note                                                   |
+   |------+-----------------------------------+-----------------------------+----------------------------------------------------------------+----------------------------------------------------------------------+--------------------------------------------------------|
+   |    1 | Decoding                          | unpack.C/py                 | *.cl                                                           | *.root                                                               | KoaRawEvent branch alongside TClonesArray branch       |
+   |      |                                   |                             |                                                                | *_param.root                                                         |                                                        |
+   |      |                                   |                             |                                                                | *_EmsRawEvent.root                                                   |                                                        |
+   |------+-----------------------------------+-----------------------------+----------------------------------------------------------------+----------------------------------------------------------------------+--------------------------------------------------------|
+   |    2 | Calibration & Clustering          | run_rec_clusterfilter.C     | *.root                                                         | *_calib.root                                                         | Branch named 'KoaRecCluster_ThresholdFilter' for usage |
+   |      |                                   | rec_clusterfilter.py        | ADC pedestal param file                                        |                                                                      |                                                        |
+   |      |                                   |                             | ADC energy calibration param file                              |                                                                      |                                                        |
+   |      |                                   |                             | TDC time walk calibration param file                           |                                                                      |                                                        |
+   |      |                                   |                             | ADC trigger threshold file                                     |                                                                      |                                                        |
+   |      |                                   |                             | Cluster size file                                              |                                                                      |                                                        |
+   |------+-----------------------------------+-----------------------------+----------------------------------------------------------------+----------------------------------------------------------------------+--------------------------------------------------------|
+   |    3 | Cluster Purification              | rec_cluster_purification.py | *_calib.root                                                   | *_calib_cluster_purification_absolute/multiple/percentage.root       | Branch named 'KoaRecCluster_Purification' for usage    |
+   |------+-----------------------------------+-----------------------------+----------------------------------------------------------------+----------------------------------------------------------------------+--------------------------------------------------------|
+   |    4 | Cluster Smearing (binning issure) | run_cluster_smear.C/py      | *_calib_cluster_purification_absolute/multiple/percentage.root | *_calib_cluster_purification_absolute/multiple/percentage_smear.root | Branch named 'KoaRecCluster_Smear' for usage           |
+   
+** simulation data
+   
+   | Step | Function     | Macro                    | Input                        | Output | Note                                                   |
+   |------+--------------+--------------------------+------------------------------+--------+--------------------------------------------------------|
+   |    1 | Simulation   | run_sim_*.C              |                              |        |                                                        |
+   |------+--------------+--------------------------+------------------------------+--------+--------------------------------------------------------|
+   |    2 | Digitization | run_digi.C               | simulation output            |        |                                                        |
+   |------+--------------+--------------------------+------------------------------+--------+--------------------------------------------------------|
+   |    3 | Clustering   | run_cluster_simulation.C | digitization output          |        | Branch named 'KoaRecCluster_ThresholdFilter' for usage |
+   |      |              |                          | ADC pedestal in energy (keV) |        |                                                        |
+   |      |              |                          | ADC pedestal in ADC counts   |        |                                                        |
+   |      |              |                          | ADC energy calibration file  |        |                                                        |
